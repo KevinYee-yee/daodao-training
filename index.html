@@ -114,6 +114,13 @@ textarea.form-input{resize:none}
 .cs-num{font-size:18px;font-weight:700;color:var(--p)}
 .cs-label{font-size:11px;color:var(--muted);margin-top:2px}
 .hint{font-size:12px;color:var(--muted);text-align:center;padding:6px 0 0}
+
+.ex-name-wrap{flex:1;position:relative}
+.ex-dropdown{position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--card);border:1.5px solid var(--p);border-radius:10px;z-index:50;max-height:220px;overflow-y:auto;box-shadow:0 6px 20px rgba(0,0,0,.14)}
+.ex-dd-cat{font-size:10px;font-weight:700;color:var(--muted);padding:8px 12px 4px;text-transform:uppercase;letter-spacing:.6px;background:var(--bg);position:sticky;top:0}
+.ex-dd-item{padding:10px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid #f5f3ff}
+.ex-dd-item:last-child{border-bottom:none}
+.ex-dd-item:active,.ex-dd-item:hover{background:var(--pa);color:var(--p2)}
 </style>
 </head>
 <body>
@@ -195,7 +202,12 @@ textarea.form-input{resize:none}
     <div class="sec-title">動作重量進步</div>
     <div class="card">
       <label class="form-label">選擇動作</label>
-      <select class="form-input" id="ex-select" onchange="renderExChart()" style="margin-bottom:14px"></select>
+      <div style="position:relative;margin-bottom:14px">
+        <input class="form-input" id="ex-select-input" placeholder="搜尋動作…" autocomplete="off"
+          oninput="filterChartEx(this)" onfocus="showChartDd(this)" onblur="hideChartDd(200)">
+        <div class="ex-dropdown" id="chart-dd" hidden></div>
+      </div>
+      <input type="hidden" id="ex-select" value="">
       <div class="chart-wrap"><canvas id="ex-chart"></canvas></div>
       <div id="chart-stats"></div>
     </div>
@@ -221,9 +233,18 @@ textarea.form-input{resize:none}
   </button>
 </nav>
 
-<datalist id="ex-names"></datalist>
-
 <script>
+// ── 動作資料庫（依部位）──
+const EXERCISE_DB={
+  '腿部':['壺鈴硬舉','啞鈴羅馬尼亞硬舉','分腿蹲','高腳杯深蹲','徒手深蹲','腿推機','勾腿機器','盪壺','單腿後踢'],
+  '背部':['水平划船','站姿屈體划船','坐姿划船機','單邊啞鈴划船','滑輪下拉','引體向上'],
+  '胸部':['啞鈴臥推','器械坐姿胸推'],
+  '肩膀':['肩推','站姿啞鈴肩推','器械坐姿肩推','臉拉'],
+  '手臂':['啞鈴二頭彎舉','機械二頭彎舉','三頭下壓','滑輪下壓'],
+  '臀部':['臀橋','臀外展機','髖外展'],
+  '核心':['死蟲','鳥狗','棒式']
+};
+
 // ── SEED（歷史資料）──
 const SEED=[
   {id:'s1',date:'2026-04-18',note:'暖身：死蟲 8下×2組、臀橋 8下×2組。有氧：快走20分鐘',exercises:[
@@ -514,8 +535,6 @@ function initAdd(){
   document.getElementById('new-note').value='';
   document.getElementById('ex-container').innerHTML='';
   exIdx=0;
-  const names=[...new Set(WK.flatMap(w=>w.exercises.map(e=>e.name)))];
-  document.getElementById('ex-names').innerHTML=names.map(n=>`<option value="${n}">`).join('');
   addExercise();
 }
 function addExercise(){
@@ -524,7 +543,11 @@ function addExercise(){
   div.className='ex-block';div.id=id;
   div.innerHTML=`
     <div class="ex-block-header">
-      <input class="ex-name-input" placeholder="動作名稱" list="ex-names" autocomplete="off" oninput="onNameChange(this,'${id}')">
+      <div class="ex-name-wrap">
+        <input class="ex-name-input" placeholder="搜尋動作（如：壺鈴）" autocomplete="off"
+          oninput="filterExDd(this,'${id}')" onfocus="showExDd(this,'${id}')" onblur="hideExDd('${id}',200)">
+        <div class="ex-dropdown" id="dd-${id}" hidden></div>
+      </div>
       <button class="btn-rm" onclick="document.getElementById('${id}').remove()">✕</button>
     </div>
     <div id="lp-${id}" class="last-perf" hidden></div>
@@ -568,6 +591,49 @@ function onNameChange(inp,exId){
     }
   }
 }
+
+// ── 動作搜尋下拉（新增頁）──
+function buildExDdHtml(query,exId){
+  const usedNames=[...new Set(WK.flatMap(w=>w.exercises.map(e=>e.name)))];
+  const q=(query||'').toLowerCase().trim();
+  let html='';
+  if(q){
+    const allNames=[...new Set([...usedNames,...Object.values(EXERCISE_DB).flat()])];
+    const hits=allNames.filter(n=>n.toLowerCase().includes(q));
+    html=hits.length
+      ?hits.map(n=>`<div class="ex-dd-item" onmousedown="pickEx(this,'${exId}')">${n}</div>`).join('')
+      :`<div style="padding:12px 14px;font-size:13px;color:var(--muted)">沒有符合的動作</div>`;
+  }else{
+    if(usedNames.length){
+      html+=`<div class="ex-dd-cat">最近使用</div>`;
+      html+=usedNames.slice(0,5).map(n=>`<div class="ex-dd-item" onmousedown="pickEx(this,'${exId}')">${n}</div>`).join('');
+    }
+    for(const[cat,names] of Object.entries(EXERCISE_DB)){
+      html+=`<div class="ex-dd-cat">${cat}</div>`;
+      html+=names.map(n=>`<div class="ex-dd-item" onmousedown="pickEx(this,'${exId}')">${n}</div>`).join('');
+    }
+  }
+  return html;
+}
+function showExDd(inp,exId){
+  const dd=document.getElementById('dd-'+exId);if(!dd)return;
+  dd.innerHTML=buildExDdHtml(inp.value,exId);dd.hidden=false;
+}
+function filterExDd(inp,exId){
+  const dd=document.getElementById('dd-'+exId);if(!dd)return;
+  dd.innerHTML=buildExDdHtml(inp.value,exId);dd.hidden=false;
+  onNameChange(inp,exId);
+}
+function hideExDd(exId,delay){
+  setTimeout(()=>{const dd=document.getElementById('dd-'+exId);if(dd)dd.hidden=true;},delay||200);
+}
+function pickEx(item,exId){
+  const blk=document.getElementById(exId);if(!blk)return;
+  const inp=blk.querySelector('.ex-name-input');
+  inp.value=item.textContent;
+  const dd=document.getElementById('dd-'+exId);if(dd)dd.hidden=true;
+  onNameChange(inp,exId);
+}
 function saveWorkout(){
   const date=document.getElementById('new-date').value;
   if(!date){showToast('請選擇日期');return;}
@@ -610,14 +676,44 @@ function renderCal(){
   }
   document.getElementById('calendar').innerHTML=html;
 }
+let chartExNames=[];
 function populateSelect(){
   const nm={};
   WK.forEach(w=>w.exercises.forEach(ex=>{const mw=maxW(ex);if(mw!==null)nm[ex.name]=(nm[ex.name]||0)+1;}));
-  const names=Object.entries(nm).sort((a,b)=>b[1]-a[1]).map(([n])=>n);
-  const sel=document.getElementById('ex-select');
-  const prev=sel.value;
-  sel.innerHTML=names.length?names.map(n=>`<option value="${n}">${n}</option>`).join(''):'<option>（無含重量的動作）</option>';
-  if(prev&&names.includes(prev))sel.value=prev;
+  chartExNames=Object.entries(nm).sort((a,b)=>b[1]-a[1]).map(([n])=>n);
+  const hid=document.getElementById('ex-select');
+  const inp=document.getElementById('ex-select-input');
+  if(!chartExNames.length){if(inp)inp.placeholder='（無含重量的動作）';return;}
+  if(!hid.value||!chartExNames.includes(hid.value)){
+    hid.value=chartExNames[0];if(inp)inp.value=chartExNames[0];
+  }
+}
+function buildChartDdHtml(query){
+  const q=(query||'').toLowerCase().trim();
+  if(q){
+    const hits=chartExNames.filter(n=>n.toLowerCase().includes(q));
+    return hits.length
+      ?hits.map(n=>`<div class="ex-dd-item" onmousedown="pickChartEx('${n}')">${n}</div>`).join('')
+      :`<div style="padding:12px 14px;font-size:13px;color:var(--muted)">沒有符合的動作</div>`;
+  }
+  return chartExNames.map(n=>`<div class="ex-dd-item" onmousedown="pickChartEx('${n}')">${n}</div>`).join('');
+}
+function showChartDd(inp){
+  const dd=document.getElementById('chart-dd');if(!dd)return;
+  dd.innerHTML=buildChartDdHtml(inp.value);dd.hidden=false;
+}
+function filterChartEx(inp){
+  const dd=document.getElementById('chart-dd');if(!dd)return;
+  dd.innerHTML=buildChartDdHtml(inp.value);dd.hidden=false;
+}
+function hideChartDd(delay){
+  setTimeout(()=>{const dd=document.getElementById('chart-dd');if(dd)dd.hidden=true;},delay||200);
+}
+function pickChartEx(name){
+  document.getElementById('ex-select').value=name;
+  document.getElementById('ex-select-input').value=name;
+  const dd=document.getElementById('chart-dd');if(dd)dd.hidden=true;
+  renderExChart();
 }
 function renderExChart(){
   const name=document.getElementById('ex-select').value;if(!name)return;
@@ -629,12 +725,15 @@ function renderExChart(){
   const grad=ctx.createLinearGradient(0,0,0,220);
   grad.addColorStop(0,'rgba(139,92,246,.28)');grad.addColorStop(1,'rgba(139,92,246,0)');
   exChart=new Chart(ctx,{type:'line',data:{
-    labels:pts.map(p=>fmtDate(p.date)),
+    labels:pts.map((_,i)=>'第'+(i+1)+'次'),
     datasets:[{label:'最大重量',data:pts.map(p=>p.mw),borderColor:'#8b5cf6',backgroundColor:grad,borderWidth:2.5,
       pointBackgroundColor:'#8b5cf6',pointRadius:5,pointHoverRadius:7,fill:true,tension:.3}]
   },options:{responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.y} kg`}}},
-    scales:{x:{grid:{display:false},ticks:{font:{size:11},maxRotation:30}},
+    plugins:{legend:{display:false},tooltip:{callbacks:{
+      title:items=>`第${items[0].dataIndex+1}次（${fmtDate(pts[items[0].dataIndex].date)}）`,
+      label:ctx=>`${ctx.parsed.y} kg`
+    }}},
+    scales:{x:{grid:{display:false},ticks:{font:{size:11},maxRotation:0}},
       y:{grid:{color:'#f0ebff'},ticks:{font:{size:11},callback:v=>v+'kg'}}}}});
   const statsEl=document.getElementById('chart-stats');
   if(pts.length>=2){
