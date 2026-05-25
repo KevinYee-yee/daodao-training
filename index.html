@@ -9,12 +9,14 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --p:#8b5cf6;--p2:#7c3aed;--pa:#ede9fe;--acc:#d946ef;
-  --bg:#faf8ff;--card:#fff;--text:#1e1b2e;--muted:#9ca3af;
-  --border:#e5e7eb;--red:#ef4444;--green:#10b981;
-  --shadow:0 1px 3px rgba(0,0,0,.07),0 4px 14px rgba(139,92,246,.09);
+  --p:#f59e0b;--p2:#fbbf24;--pa:rgba(245,158,11,0.15);--acc:#d97706;
+  --bg:#080808;--card:rgba(245,158,11,0.06);--text:#fef9ee;--muted:rgba(254,249,238,0.42);
+  --border:rgba(255,255,255,0.1);--red:#ff6b6b;--green:#4ade80;
+  --shadow:0 8px 32px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08);
+  --glass:rgba(245,158,11,0.05);--glass-border:rgba(245,158,11,0.18);
+  --glass-hi:inset 0 1px 0 rgba(255,255,255,.12);
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:76px;font-size:15px}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans TC',sans-serif;background:#080808;color:#f0ece4;min-height:100vh;padding-bottom:110px;font-size:15px}
 
 .nav{position:fixed;bottom:0;left:0;right:0;height:72px;background:rgba(255,255,255,.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0px)}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--muted);font-size:10px;cursor:pointer;padding:8px 0;transition:color .2s;font-family:inherit}
@@ -131,16 +133,136 @@ textarea.form-input{resize:none}
 .check-btn{background:none;border:none;font-size:17px;padding:2px 4px;cursor:pointer;color:#d1d5db;line-height:1}
 .check-btn.done{color:var(--green)}
 .draft-bar{background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;font-size:13px}
+.badge-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0 0 4px}
+.badge-card{border-radius:14px;padding:14px 10px;text-align:center;border:1.5px solid}
+.badge-card.unlocked{background:var(--card);border-color:rgba(139,92,246,.18);box-shadow:var(--shadow)}
+.badge-card.locked{background:#fafafa;border-color:#f0f0f0;opacity:.45}
+.week-plan-grid{display:flex;gap:5px}
+.plan-cell{flex:1;border-radius:10px;padding:8px 3px;text-align:center;cursor:pointer;transition:transform .1s;-webkit-tap-highlight-color:transparent}
+.plan-cell:active{transform:scale(.94)}
+.today-plan-card{background:linear-gradient(135deg,#ede9fe,#fce7f3);border-radius:14px;padding:14px 16px;margin-bottom:12px;border:1px solid #ddd6fe;display:flex;align-items:center;justify-content:space-between}
+.celebrate-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:center;justify-content:center;animation:cfOut .3s ease 3s forwards}
+@keyframes cfOut{to{opacity:0;pointer-events:none}}
+.celebrate-card{background:var(--card);border-radius:26px;padding:34px 28px 28px;text-align:center;max-width:290px;width:90%;animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{transform:scale(.65);opacity:0}to{transform:scale(1);opacity:1}}
+.consec-weeks{display:inline-flex;align-items:center;gap:6px;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;color:#fde68a}
 .ex-name-wrap{flex:1;position:relative}
 .ex-dropdown{position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--card);border:1.5px solid var(--p);border-radius:10px;z-index:50;max-height:220px;overflow-y:auto;box-shadow:0 6px 20px rgba(0,0,0,.14)}
 .ex-dd-cat{font-size:10px;font-weight:700;color:var(--muted);padding:8px 12px 4px;text-transform:uppercase;letter-spacing:.6px;background:var(--bg);position:sticky;top:0}
 .ex-dd-item{padding:10px 14px;font-size:14px;cursor:pointer;border-bottom:1px solid #f5f3ff}
 .ex-dd-item:last-child{border-bottom:none}
 .ex-dd-item:active,.ex-dd-item:hover{background:var(--pa);color:var(--p2)}
+
+/* ══ MINIMAL CHARCOAL GOLD ══ */
+/* Nav pill — solid, zero blur */
+.nav{bottom:20px;left:50%;transform:translateX(-50%);right:auto;width:auto;max-width:calc(100vw - 28px);height:auto;background:#111;border:1px solid rgba(245,158,11,.25);border-radius:52px;box-shadow:none;padding:6px 10px calc(6px + env(safe-area-inset-bottom,0px));gap:2px}
+.nav-btn{border-radius:40px;padding:8px 13px;color:rgba(240,236,228,.32);font-size:10px;white-space:nowrap;transition:background .12s,color .12s}
+.nav-btn.active{background:rgba(245,158,11,.18);color:#f0ece4}
+.nav-btn:active{opacity:.55}
+/* Page header */
+.page-header{background:#0d0d0d;border-bottom:1px solid #1c1c1c;padding:60px 20px 28px}
+.page-header h1{font-size:26px;letter-spacing:-.5px;font-weight:800;color:#f0ece4}
+.page-header p{color:rgba(240,236,228,.4);font-size:13px}
+.gear-btn{background:#1a1a1a;border:1px solid #2a2a2a}
+/* Cards & surfaces */
+.card{background:#111;border:1px solid #1f1f1f;box-shadow:none;border-radius:16px}
+.stat-card{background:#111;border:1px solid #1f1f1f;box-shadow:none;border-radius:14px}
+.stat-num{color:var(--p)}.stat-label{color:var(--muted)}
+/* Session list */
+.session-item{background:#111;border:1px solid #1f1f1f;border-radius:14px;transition:opacity .1s}
+.session-item:active{opacity:.7}
+.session-date{color:var(--muted)}.session-title{color:var(--text)}
+.tag{background:rgba(245,158,11,.12);color:#f59e0b;border:none}
+.set-chip{background:rgba(245,158,11,.08);color:#f59e0b;border:none;font-size:11px}
+.session-detail{border-top:1px solid #1f1f1f}
+.ex-name-lbl{color:rgba(240,236,228,.6)}
+/* Forms */
+.form-input{background:#161616;border:1px solid #2a2a2a;color:var(--text)}
+.form-input:focus{border-color:var(--p);background:#161616;box-shadow:none}
+.form-input::placeholder{color:rgba(240,236,228,.22)}
+.form-label{color:rgba(240,236,228,.5)}
+.ex-block{background:#111;border:1px solid #222;border-radius:14px}
+.ex-name-input{background:#161616;border:1px solid #2a2a2a;color:var(--text);border-radius:10px}
+.ex-name-input:focus{border-color:var(--p);background:#161616}
+.ex-name-input::placeholder{color:rgba(240,236,228,.22)}
+.set-inp{background:#161616;border:1px solid #262626;color:var(--text);font-size:15px;padding:10px 4px;-webkit-appearance:textfield;text-align:center}
+.set-inp:focus{border-color:var(--p);background:#161616}
+.sets-tbl th{color:rgba(240,236,228,.3);font-size:11px}
+.set-n{color:rgba(240,236,228,.25)}
+.last-perf{background:#161616;border:1px solid #2a2a2a;color:var(--muted)}
+.last-perf strong{color:#f59e0b}
+/* RPE wider */
+.sets-tbl th:nth-child(4),.sets-tbl td:nth-child(4){width:72px}
+.sets-tbl th:nth-child(3),.sets-tbl td:nth-child(3){width:68px}
+/* Buttons */
+.btn-primary{background:#f59e0b;border:none;box-shadow:none;color:#080808;font-weight:800}
+.btn-ghost{background:transparent;color:#f59e0b;border:1px solid rgba(245,158,11,.35)}
+.btn:active{opacity:.7 !important}
+.btn-rm{background:transparent;color:#ff6b6b;border:1px solid rgba(255,107,107,.25)}
+.btn-sm{background:transparent;color:#ff6b6b;border:1px solid rgba(255,107,107,.25)}
+/* Sync bar */
+.sync-bar{background:#0d0d0d;border-bottom:1px solid #1a1a1a;color:var(--muted)}
+.sync-dot.ok{background:#4ade80}.sync-dot.err{background:#ff6b6b}
+/* Banner */
+.banner{background:#111;border:1px solid #222}.banner p{color:#f59e0b}.banner-btn{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#f59e0b}
+#plan-bar{background:#111 !important;border:1px solid #222 !important}
+/* Calendar */
+.cal-cell{background:#161616;border-radius:6px}
+.cal-cell.has-w{background:#f59e0b;box-shadow:none}
+.cal-cell.today{outline:2px solid #f59e0b;outline-offset:-2px}
+.cal-dow span{color:var(--muted)}
+/* Modal */
+.modal{background:#0d0d0d;border:1px solid #222;border-radius:24px 24px 0 0}
+.modal h2{color:var(--text)}.modal p{color:var(--muted)}.step-num{background:var(--p);color:#080808}
+.modal-overlay{background:rgba(0,0,0,.8)}
+/* Toast */
+.toast{background:#111;border:1px solid #2a2a2a;box-shadow:none}
+/* Dropdown */
+.ex-dd-cat{background:#111;color:rgba(240,236,228,.35)}
+.ex-dd-item{color:var(--text);border-bottom:1px solid #1a1a1a}
+.ex-dd-item:active{background:#1a1a1a}
+/* Celebrate */
+.celebrate-overlay{background:rgba(0,0,0,.8)}
+.celebrate-card{background:#111;border:1px solid #222;color:var(--text)}
+/* Section */
+.sec-title{color:rgba(240,236,228,.28)}
+/* Check btn */
+.check-btn{color:rgba(240,236,228,.2)}.check-btn.done{color:#4ade80}
+/* Set done */
+.set-done .set-inp{background:rgba(74,222,128,.06);border-color:rgba(74,222,128,.3)}
+/* Badge */
+.badge-card.unlocked{background:#111;border-color:#2a2a2a}
+.badge-card.locked{background:#0d0d0d;border-color:#1a1a1a}
+/* Draft bar */
+.draft-bar{background:#111;border:1px solid #222;color:rgba(240,236,228,.6)}
+/* Plan cells */
+.plan-cell{border:1px solid #1a1a1a !important}
+/* Chart */
+.chart-wrap{border-radius:10px;overflow:hidden}
+/* Scrollbar */
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(245,158,11,.25);border-radius:3px}
+/* Misc */
+.empty{color:var(--muted)}.hint{color:var(--muted)}
+input[type=date]{color-scheme:dark}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5)}
+.session-detail{margin-top:12px}
+/* Consec weeks gold */
+.consec-weeks{background:rgba(245,158,11,.1) !important;border:1px solid rgba(245,158,11,.25) !important;color:#f59e0b !important}
+/* Chart grid override */
 </style>
 </head>
 <body>
 
+<!-- SVG Liquid Glass filter -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <filter id="lg-blur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur"/>
+      <feColorMatrix in="blur" type="saturate" values="2" result="sat"/>
+      <feBlend in="SourceGraphic" in2="sat" mode="overlay"/>
+    </filter>
+  </defs>
+</svg>
 <div class="toast" id="toast"></div>
 
 <!-- Setup Modal -->
@@ -174,6 +296,7 @@ textarea.form-input{resize:none}
   <div id="cloud-banner"></div>
   <div class="stats-row" id="stats-row"></div>
   <div class="section">
+    <div id="today-plan-banner" hidden></div>
     <div class="sec-title">最近訓練</div>
     <div id="recent-list"></div>
   </div>
@@ -241,6 +364,22 @@ textarea.form-input{resize:none}
   </div>
 </div>
 
+<!-- TAB: 目標 -->
+<div id="tab-goal" class="tab-content" hidden>
+  <div class="page-header"><h1>目標 &amp; 成就</h1><p>讓訓練更有動力</p></div>
+  <div class="section" style="padding-top:14px">
+    <div class="sec-title">本週訓練</div>
+    <div class="card" id="freq-progress"></div>
+    <div class="sec-title">週計畫</div>
+    <div class="card">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">點擊切換訓練部位，長按重置</p>
+      <div class="week-plan-grid" id="week-plan-ui"></div>
+    </div>
+    <div class="sec-title">成就徽章</div>
+    <div class="badge-grid" id="badges-grid"></div>
+  </div>
+</div>
+
 <nav class="nav">
   <button class="nav-btn active" data-tab="overview" onclick="goTab('overview',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>總覽
@@ -253,6 +392,9 @@ textarea.form-input{resize:none}
   </button>
   <button class="nav-btn" data-tab="chart" onclick="goTab('chart',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>圖表
+  </button>
+  <button class="nav-btn" data-tab="goal" onclick="goTab('goal',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg>目標
   </button>
 </nav>
 
@@ -424,6 +566,7 @@ function goTab(tab,btn){
   if(tab==='overview')renderOverview();
   if(tab==='log')renderLog();
   if(tab==='chart')renderCharts();
+  if(tab==='goal')renderGoals();
   // Background refresh from GAS
   if(getGASUrl()){
     apiLoad().then(fresh=>{
@@ -431,6 +574,7 @@ function goTab(tab,btn){
       if(tab==='overview')renderOverview();
       if(tab==='log')renderLog();
       if(tab==='chart')renderCharts();
+      if(tab==='goal')renderGoals();
     });
   }
 }
@@ -512,6 +656,21 @@ function renderOverview(){
     <div class="stat-card"><div class="stat-num">${WK.length}</div><div class="stat-label">總訓練次</div></div>
     <div class="stat-card"><div class="stat-num">${thisMonth}</div><div class="stat-label">本月次數</div></div>
     <div class="stat-card"><div class="stat-num">${streak}🔥</div><div class="stat-label">連續天數</div></div>`;
+  // 今日計畫提示
+  const goals=getGoals();
+  const todayDow=new Date().getDay();
+  const todayPlan=(goals.weekPlan||{})[todayDow]||'休息';
+  const bannerEl=document.getElementById('today-plan-banner');
+  if(bannerEl){
+    if(todayPlan!=='休息'){
+      bannerEl.hidden=false;
+      bannerEl.innerHTML=`<div class="today-plan-card">
+        <div><div style="font-size:12px;color:var(--p2);font-weight:600">今日計畫</div>
+        <div style="font-size:20px;font-weight:700;margin-top:2px" style="color:${PLAN_TC[todayPlan]}">${todayPlan}日 💪</div></div>
+        <button class="btn btn-ghost" style="padding:8px 14px;font-size:13px" onclick="goTab('add',document.querySelector('[data-tab=add]'))">開始訓練</button>
+      </div>`;
+    }else{bannerEl.hidden=true;}
+  }
   document.getElementById('recent-list').innerHTML=sorted.slice(0,4).map(s=>sessionCard(s,false)).join('')||'<div class="empty">尚無訓練紀錄</div>';
 }
 
@@ -644,9 +803,9 @@ function addSet(exId){
   const tr=document.createElement('tr');tr.className='set-row';
   tr.innerHTML=`
     <td class="set-n">${n}</td>
-    <td><input class="set-inp" type="number" inputmode="decimal" step="0.5" placeholder="—" data-f="w" value="${pw}" oninput="scheduleDraftSave()"></td>
-    <td><input class="set-inp" type="number" inputmode="numeric" min="0" placeholder="—" data-f="r" value="${pr}" oninput="scheduleDraftSave()"></td>
-    <td><input class="set-inp" type="number" inputmode="decimal" step="0.5" min="0" max="10" placeholder="—" data-f="rpe" oninput="scheduleDraftSave()"></td>
+    <td><input class="set-inp" type="text" inputmode="decimal" placeholder="—" data-f="w" value="${pw}" oninput="scheduleDraftSave()"></td>
+    <td><input class="set-inp" type="text" inputmode="numeric" placeholder="—" data-f="r" value="${pr}" oninput="scheduleDraftSave()"></td>
+    <td><input class="set-inp" type="text" inputmode="decimal" placeholder="—" data-f="rpe" oninput="scheduleDraftSave()"></td>
     <td><button class="check-btn" onclick="toggleSetDone(this)">○</button></td>
     <td><button style="background:none;border:none;color:#d1d5db;font-size:15px;padding:2px 4px;cursor:pointer" onclick="rmSet(this)">✕</button></td>`;
   tb.appendChild(tr);
@@ -665,7 +824,13 @@ function onNameChange(inp,exId){
     if(ex){
       const lp=document.getElementById('lp-'+exId);if(!lp)break;
       const txt=ex.sets.map(st=>{let t='';if(st.w!=null)t+=`${st.w}kg`;if(st.r)t+=`×${st.r}`;return t||'—';}).filter(Boolean).join(', ');
-      lp.hidden=false;lp.innerHTML=`上次（${fmtDate(s.date)}）：<strong>${txt}</strong>`;break;
+      const lastMax=maxW(ex);
+      let suggest='';
+      if(lastMax&&lastMax>0){
+        const next=Math.round(lastMax*1.05*2)/2;
+        suggest=`<span style="color:var(--green);font-weight:700"> 🎯 今日試試 ${next}kg（+5%）</span>`;
+      }
+      lp.hidden=false;lp.innerHTML=`上次（${fmtDate(s.date)}）：<strong>${txt}</strong>${suggest}`;break;
     }
   }
 }
@@ -732,7 +897,7 @@ function saveWorkout(){
   const session={id:uid(),date,exercises,note};
   // Optimistic update
   WK.push(session);setCache(WK);clearDraft();
-  showToast(getGASUrl()?'✅ 儲存並同步中…':'✅ 已儲存（本地）');
+  showCelebration(session);
   setTimeout(()=>{initAdd();goTab('log',document.querySelector('[data-tab=log]'));},700);
   // Background sync
   apiAdd(session).then(()=>{if(getGASUrl())showToast('✅ 已同步到 Google Sheets！');});
@@ -801,18 +966,18 @@ function renderExChart(){
   if(exChart){exChart.destroy();exChart=null;}
   const ctx=document.getElementById('ex-chart').getContext('2d');
   const grad=ctx.createLinearGradient(0,0,0,220);
-  grad.addColorStop(0,'rgba(139,92,246,.28)');grad.addColorStop(1,'rgba(139,92,246,0)');
+  grad.addColorStop(0,'rgba(245,158,11,.32)');grad.addColorStop(1,'rgba(245,158,11,0)');
   exChart=new Chart(ctx,{type:'line',data:{
     labels:pts.map((_,i)=>'第'+(i+1)+'次'),
-    datasets:[{label:'最大重量',data:pts.map(p=>p.mw),borderColor:'#8b5cf6',backgroundColor:grad,borderWidth:2.5,
-      pointBackgroundColor:'#8b5cf6',pointRadius:5,pointHoverRadius:7,fill:true,tension:.3}]
+    datasets:[{label:'最大重量',data:pts.map(p=>p.mw),borderColor:'#f59e0b',backgroundColor:grad,borderWidth:2.5,
+      pointBackgroundColor:'#f59e0b',pointRadius:5,pointHoverRadius:7,fill:true,tension:.3}]
   },options:{responsive:true,maintainAspectRatio:false,
     plugins:{legend:{display:false},tooltip:{callbacks:{
       title:items=>`第${items[0].dataIndex+1}次（${fmtDate(pts[items[0].dataIndex].date)}）`,
       label:ctx=>`${ctx.parsed.y} kg`
     }}},
-    scales:{x:{grid:{display:false},ticks:{font:{size:11},maxRotation:0}},
-      y:{grid:{color:'#f0ebff'},ticks:{font:{size:11},callback:v=>v+'kg'}}}}});
+    scales:{x:{grid:{display:false},ticks:{font:{size:11},maxRotation:0,color:'rgba(254,249,238,.35)'}},
+      y:{grid:{color:'rgba(245,158,11,.08)'},ticks:{font:{size:11},callback:v=>v+'kg',color:'rgba(254,249,238,.35)'}}}}});
   const statsEl=document.getElementById('chart-stats');
   if(pts.length>=2){
     const f=pts[0],l=pts[pts.length-1],diff=+(l.mw-f.mw).toFixed(1);
@@ -838,10 +1003,195 @@ function renderFreq(){
   const ctx=document.getElementById('freq-chart').getContext('2d');
   freqChart=new Chart(ctx,{type:'bar',data:{
     labels:wks.map(w=>{const[,m,d]=w.split('-');return`${+m}/${+d}週`;}),
-    datasets:[{label:'次/週',data:wks.map(w=>wm[w]),backgroundColor:'rgba(139,92,246,.7)',borderRadius:6,borderSkipped:false}]
+    datasets:[{label:'次/週',data:wks.map(w=>wm[w]),backgroundColor:'rgba(245,158,11,.65)',borderRadius:6,borderSkipped:false}]
   },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-    scales:{x:{grid:{display:false},ticks:{font:{size:11}}},
-      y:{beginAtZero:true,ticks:{stepSize:1,font:{size:11}},grid:{color:'#f0ebff'}}}}});
+    scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'rgba(254,249,238,.35)'}},
+      y:{beginAtZero:true,ticks:{stepSize:1,font:{size:11},color:'rgba(254,249,238,.35)'},grid:{color:'rgba(245,158,11,.08)'}}}}});;
+}
+
+// ── 目標 & 成就 ──
+const GOALS_KEY='daodao_goals';
+const PLAN_OPTS=['休息','腿部','背部','胸部','肩膀','全身','自由'];
+const PLAN_BG={'休息':'#f3f4f6','腿部':'#ede9fe','背部':'#dbeafe','胸部':'#fce7f3','肩膀':'#fef3c7','全身':'#d1fae5','自由':'#f1f5f9'};
+const PLAN_TC={'休息':'#9ca3af','腿部':'#7c3aed','背部':'#2563eb','胸部':'#be185d','肩膀':'#b45309','全身':'#059669','自由':'#475569'};
+const DOW_CN=['日','一','二','三','四','五','六'];
+
+function getGoals(){
+  const def={weeklyTarget:3,weekPlan:{'0':'休息','1':'腿部','2':'背部','3':'休息','4':'肩膀','5':'腿部','6':'休息'}};
+  return Object.assign({},def,JSON.parse(localStorage.getItem(GOALS_KEY)||'{}'));
+}
+function saveGoals(g){localStorage.setItem(GOALS_KEY,JSON.stringify(g));}
+
+function getThisWeekSessions(){
+  const now=new Date(),dow=now.getDay();
+  const mon=new Date(now);mon.setDate(now.getDate()-(dow===0?6:dow-1));mon.setHours(0,0,0,0);
+  const sun=new Date(mon);sun.setDate(mon.getDate()+6);sun.setHours(23,59,59,999);
+  return WK.filter(w=>{const d=new Date(w.date);return d>=mon&&d<=sun;}).length;
+}
+
+const BADGES=[
+  {id:'b1',icon:'🌱',name:'第一步',    desc:'完成第1次訓練',   check:()=>WK.length>=1},
+  {id:'b2',icon:'💪',name:'習慣養成',  desc:'累積10次訓練',    check:()=>WK.length>=10},
+  {id:'b3',icon:'🔥',name:'訓練控',    desc:'累積20次訓練',    check:()=>WK.length>=20},
+  {id:'b4',icon:'👑',name:'健身女王',  desc:'累積50次訓練',    check:()=>WK.length>=50},
+  {id:'b5',icon:'📅',name:'週週出席',  desc:'連續4週都有訓練', check:()=>checkConsecWeeks(4)},
+  {id:'b6',icon:'🚀',name:'破個人紀錄',desc:'某動作重量超越初次1.5倍',check:()=>checkPR150()},
+  {id:'b7',icon:'⚡',name:'達標達人',  desc:'連續4週達頻率目標',check:()=>checkTargetWeeks(4)},
+  {id:'b8',icon:'🏆',name:'百場英雄',  desc:'累積100次訓練',   check:()=>WK.length>=100},
+];
+
+function checkConsecWeeks(n){
+  const ws=new Set();
+  WK.forEach(w=>{
+    const d=new Date(w.date),dow=d.getDay();
+    const m=new Date(d);m.setDate(d.getDate()-(dow===0?6:dow-1));
+    ws.add(`${m.getFullYear()}-${p2(m.getMonth()+1)}-${p2(m.getDate())}`);
+  });
+  const arr=[...ws].sort();if(arr.length<n)return false;
+  for(let i=0;i<=arr.length-n;i++){
+    let ok=true;
+    for(let j=1;j<n;j++){
+      const prev=new Date(arr[i+j-1]);prev.setDate(prev.getDate()+7);
+      if(prev.toISOString().slice(0,10)!==arr[i+j]){ok=false;break;}
+    }
+    if(ok)return true;
+  }
+  return false;
+}
+function checkPR150(){
+  const fw={},mx={};
+  [...WK].sort((a,b)=>a.date.localeCompare(b.date)).forEach(w=>{
+    w.exercises.forEach(ex=>{
+      const mw=maxW(ex);if(!mw||mw<=0)return;
+      if(fw[ex.name]===undefined)fw[ex.name]=mw;
+      else mx[ex.name]=Math.max(mx[ex.name]||0,mw);
+    });
+  });
+  return Object.keys(fw).some(n=>mx[n]&&mx[n]>=fw[n]*1.5);
+}
+function checkTargetWeeks(n){
+  const target=getGoals().weeklyTarget||3;
+  const wm={};
+  WK.forEach(w=>{
+    const d=new Date(w.date),dow=d.getDay();
+    const m=new Date(d);m.setDate(d.getDate()-(dow===0?6:dow-1));
+    const k=`${m.getFullYear()}-${p2(m.getMonth()+1)}-${p2(m.getDate())}`;
+    wm[k]=(wm[k]||0)+1;
+  });
+  const good=Object.keys(wm).filter(k=>wm[k]>=target).sort();
+  if(good.length<n)return false;
+  for(let i=0;i<=good.length-n;i++){
+    let ok=true;
+    for(let j=1;j<n;j++){
+      const prev=new Date(good[i+j-1]);prev.setDate(prev.getDate()+7);
+      if(prev.toISOString().slice(0,10)!==good[i+j]){ok=false;break;}
+    }
+    if(ok)return true;
+  }
+  return false;
+}
+
+function getConsecWeeks(){
+  const now=new Date(),dow=now.getDay();
+  const curMon=new Date(now);curMon.setDate(now.getDate()-(dow===0?6:dow-1));curMon.setHours(0,0,0,0);
+  const ws=new Set();
+  WK.forEach(w=>{
+    const d=new Date(w.date),dw=d.getDay();
+    const m=new Date(d);m.setDate(d.getDate()-(dw===0?6:dw-1));m.setHours(0,0,0,0);
+    ws.add(m.getTime());
+  });
+  let count=0,check=new Date(curMon);
+  while(ws.has(check.getTime())){count++;check.setDate(check.getDate()-7);}
+  return count;
+}
+
+let _prevBadges=new Set();
+function checkNewBadges(){
+  const newOnes=BADGES.filter(b=>!_prevBadges.has(b.id)&&b.check());
+  BADGES.forEach(b=>{if(b.check())_prevBadges.add(b.id);});
+  return newOnes;
+}
+
+function showCelebration(session){
+  const exCount=session.exercises.length;
+  const setCount=session.exercises.reduce((a,e)=>a+e.sets.length,0);
+  const newBadges=checkNewBadges();
+  const ov=document.createElement('div');ov.className='celebrate-overlay';
+  ov.innerHTML=`<div class="celebrate-card">
+    <div style="font-size:56px;line-height:1">🎉</div>
+    <h2 style="margin:14px 0 6px;font-size:20px;font-weight:800">訓練完成！</h2>
+    <p style="color:var(--muted);font-size:14px">${exCount} 個動作・${setCount} 組</p>
+    ${getConsecWeeks()>=1?`<div class="consec-weeks" style="margin:12px auto 0">🔥 連續 ${getConsecWeeks()} 週有訓練</div>`:''}
+    ${newBadges.length?`<div style="margin-top:14px;background:#faf5ff;border-radius:12px;padding:12px;font-size:13px">
+      🏅 解鎖成就：<strong>${newBadges.map(b=>b.icon+' '+b.name).join('、')}</strong></div>`:''}
+    <button onclick="this.closest('.celebrate-overlay').remove()" class="btn btn-primary" style="margin-top:20px;padding:11px 28px">繼續 →</button>
+  </div>`;
+  document.body.appendChild(ov);
+  setTimeout(()=>ov.remove(),4500);
+}
+
+function renderGoals(){renderFreqProgress();renderWeekPlanUI();renderAchievements();}
+
+function renderFreqProgress(){
+  const el=document.getElementById('freq-progress');if(!el)return;
+  const goals=getGoals(),done=getThisWeekSessions(),target=goals.weeklyTarget||3;
+  const pct=Math.min(done/target*100,100).toFixed(1);
+  const color=done>=target?'var(--green)':'var(--p)';
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:20px">
+    <div style="position:relative;width:80px;height:80px;flex-shrink:0">
+      <svg viewBox="0 0 36 36" style="width:80px;height:80px;transform:rotate(-90deg)">
+        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ede9fe" stroke-width="3"/>
+        <circle cx="18" cy="18" r="15.9" fill="none" stroke="${color}" stroke-width="3"
+          stroke-dasharray="${pct} 100" stroke-linecap="round"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <span style="font-size:22px;font-weight:700;color:${color}">${done}</span>
+        <span style="font-size:10px;color:var(--muted)">/${target}</span>
+      </div>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:15px;font-weight:700">${done>=target?'🎉 本週達標！':'本週訓練進度'}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px">${done>=target?'棒棒，繼續保持！':'目標每週 '+target+' 次'}</div>
+      ${getConsecWeeks()>=2?`<div class="consec-weeks" style="margin-top:8px">🔥 連續 ${getConsecWeeks()} 週達成</div>`:''}
+      <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+        <span style="font-size:11px;color:var(--muted)">週目標</span>
+        <div style="display:flex;gap:4px">${[1,2,3,4,5].map(i=>`<div onclick="setWeekTarget(${i})" style="width:28px;height:28px;border-radius:50%;background:${i<=target?'var(--p)':'#f0ebff'};color:${i<=target?'#fff':'var(--muted)'};font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:600;transition:background .2s">${i}</div>`).join('')}</div>
+      </div>
+    </div>
+  </div>`;
+}
+function setWeekTarget(n){const g=getGoals();g.weeklyTarget=n;saveGoals(g);renderGoals();showToast('週目標設為 '+n+' 次');}
+
+function renderWeekPlanUI(){
+  const el=document.getElementById('week-plan-ui');if(!el)return;
+  const plan=getGoals().weekPlan||{};
+  const today=new Date().getDay();
+  el.innerHTML=[0,1,2,3,4,5,6].map(d=>{
+    const cur=plan[d]||'休息';
+    return`<div class="plan-cell" style="background:${PLAN_BG[cur]};color:${PLAN_TC[cur]};outline:${d===today?'2.5px solid var(--p)':'none'};outline-offset:2px"
+      onclick="cyclePlanDay(${d})" oncontextmenu="resetPlanDay(${d});return false" ontouchstart="">
+      <div style="font-size:10px;font-weight:700;margin-bottom:4px">${DOW_CN[d]}${d===today?'·今':''}
+      </div><div style="font-size:10px;font-weight:600;line-height:1.2">${cur}</div></div>`;
+  }).join('');
+}
+function cyclePlanDay(d){
+  const g=getGoals();const cur=g.weekPlan[d]||'休息';
+  g.weekPlan[d]=PLAN_OPTS[(PLAN_OPTS.indexOf(cur)+1)%PLAN_OPTS.length];
+  saveGoals(g);renderWeekPlanUI();
+}
+function resetPlanDay(d){const g=getGoals();g.weekPlan[d]='休息';saveGoals(g);renderWeekPlanUI();}
+
+function renderAchievements(){
+  const el=document.getElementById('badges-grid');if(!el)return;
+  el.innerHTML=BADGES.map(b=>{
+    const ok=b.check();
+    return`<div class="badge-card ${ok?'unlocked':'locked'}">
+      <div style="font-size:32px;margin-bottom:6px">${b.icon}</div>
+      <div style="font-size:13px;font-weight:700;color:${ok?'var(--text)':'var(--muted)'}">${b.name}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.45">${b.desc}</div>
+      ${ok?'<div style="font-size:11px;color:var(--green);margin-top:6px;font-weight:700">✓ 已解鎖</div>':''}
+    </div>`;
+  }).join('');
 }
 
 // ── 拖曳排序 ──
@@ -954,6 +1304,7 @@ if(!cfg.setupSeen){
   document.getElementById('setup-modal').hidden=false;
 }
 setSyncState(getGASUrl()?'syncing':'local');
+BADGES.forEach(b=>{if(b.check())_prevBadges.add(b.id);}); // baseline: existing badges not "new"
 renderOverview();
 initAdd();
 if(getGASUrl()){
