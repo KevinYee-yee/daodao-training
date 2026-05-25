@@ -314,6 +314,38 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 .yt-link:active{background:#222;color:#f0ece4}
 .demo-close{display:block;width:100%;padding:12px;background:transparent;border:1px solid #222;border-radius:12px;color:rgba(240,236,228,.4);font-size:14px;cursor:pointer;margin-top:8px;font-family:inherit}
 .demo-close:active{background:#1a1a1a}
+/* Overview motivational */
+.ov-hero{padding:56px 20px 24px;position:relative;overflow:hidden}
+.ov-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:radial-gradient(circle,rgba(245,158,11,.15) 0%,transparent 70%);pointer-events:none}
+.ov-greeting{font-size:13px;color:rgba(240,236,228,.4);font-weight:600;letter-spacing:.4px;margin-bottom:4px}
+.ov-msg{font-size:22px;font-weight:800;color:#f0ece4;line-height:1.25;margin-bottom:6px}
+.ov-msg span{color:#f59e0b}
+.ov-gear{position:absolute;top:52px;right:18px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(240,236,228,.5)}
+.ov-start-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:16px;background:#f59e0b;color:#080808;border:none;border-radius:16px;font-size:17px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:.2px;margin-top:4px;transition:transform .1s,opacity .1s}
+.ov-start-btn:active{transform:scale(.97);opacity:.88}
+.ov-streak-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px 16px}
+.ov-scard{background:#111;border:1px solid #1f1f1f;border-radius:14px;padding:13px 10px;text-align:center}
+.ov-scard.fire{border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.06)}
+.ov-snum{font-size:24px;font-weight:800;color:#f59e0b;line-height:1}
+.ov-slbl{font-size:10px;color:rgba(240,236,228,.35);margin-top:4px;font-weight:600;letter-spacing:.3px}
+.ov-week-bar{margin:0 16px 16px;background:#111;border:1px solid #1f1f1f;border-radius:14px;padding:14px 16px}
+.ov-week-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.ov-week-title{font-size:12px;font-weight:700;color:rgba(240,236,228,.45);letter-spacing:.4px}
+.ov-week-count{font-size:12px;color:#f59e0b;font-weight:700}
+.ov-dots{display:flex;gap:6px;justify-content:center}
+.ov-dot{flex:1;height:5px;border-radius:3px;background:#1f1f1f}
+.ov-dot.done{background:#f59e0b}
+.ov-dot.today{background:rgba(245,158,11,.4);outline:1.5px solid rgba(245,158,11,.5);outline-offset:1px}
+.ov-badge-card{margin:0 16px 16px;background:#111;border:1px solid rgba(245,158,11,.15);border-radius:14px;padding:13px 16px;display:flex;align-items:center;gap:12px}
+.ov-badge-icon{font-size:28px;line-height:1}
+.ov-badge-text{flex:1}
+.ov-badge-title{font-size:12px;font-weight:700;color:rgba(240,236,228,.4);letter-spacing:.3px;margin-bottom:2px}
+.ov-badge-name{font-size:14px;font-weight:700;color:#f0ece4}
+.ov-badge-prog{height:3px;background:#1f1f1f;border-radius:2px;margin-top:6px;overflow:hidden}
+.ov-badge-fill{height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:2px;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+.ov-recent-hd{display:flex;align-items:center;justify-content:space-between;padding:0 16px 8px}
+.ov-recent-title{font-size:11px;font-weight:700;color:rgba(240,236,228,.3);letter-spacing:.6px}
+.ov-see-all{font-size:11px;color:#f59e0b;background:none;border:none;cursor:pointer;font-family:inherit;padding:0}
 /* Demo lib cards */
 .demo-lib-card{background:#111;border:1px solid #1f1f1f;border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
 .demo-lib-card:active{opacity:.7}
@@ -367,21 +399,48 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 
 <!-- TAB: 總覽 -->
 <div id="tab-overview" class="tab-content">
-  <div class="page-header">
-    <h1>呆呆的訓練日誌 💪</h1>
-    <p id="hdr-sub">繼續加油！</p>
-    <button class="gear-btn" onclick="openSetup()" title="雲端設定">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+  <div class="ov-hero">
+    <div class="ov-greeting" id="ov-greeting">早安，呆呆</div>
+    <div class="ov-msg" id="ov-msg">準備好了嗎？<br><span>今天繼續變強。</span></div>
+    <button class="ov-gear" onclick="openSetup()" title="雲端設定">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+    <button class="ov-start-btn" onclick="goTab('add',document.querySelector('[data-tab=add]'))">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>立刻開始訓練
     </button>
   </div>
   <div id="sync-bar"></div>
   <div id="cloud-banner"></div>
-  <div class="stats-row" id="stats-row"></div>
-  <div class="section">
-    <div id="today-plan-banner" hidden></div>
-    <div class="sec-title">最近訓練</div>
-    <div id="recent-list"></div>
+  <!-- Streak / stats row -->
+  <div class="ov-streak-row" id="ov-streak-row">
+    <div class="ov-scard fire"><div class="ov-snum" id="ov-streak">0</div><div class="ov-slbl">🔥 連續天</div></div>
+    <div class="ov-scard"><div class="ov-snum" id="ov-month">0</div><div class="ov-slbl">本月次數</div></div>
+    <div class="ov-scard"><div class="ov-snum" id="ov-total">0</div><div class="ov-slbl">累計訓練</div></div>
   </div>
+  <!-- Week progress bar -->
+  <div class="ov-week-bar" id="ov-week-bar">
+    <div class="ov-week-hd">
+      <span class="ov-week-title">本週進度</span>
+      <span class="ov-week-count" id="ov-week-count">0 / 3 天</span>
+    </div>
+    <div class="ov-dots" id="ov-week-dots"></div>
+  </div>
+  <!-- Next badge teaser -->
+  <div class="ov-badge-card" id="ov-badge-card">
+    <div class="ov-badge-icon" id="ov-badge-icon">🌱</div>
+    <div class="ov-badge-text">
+      <div class="ov-badge-title">下一個成就</div>
+      <div class="ov-badge-name" id="ov-badge-name">初心者</div>
+      <div class="ov-badge-prog"><div class="ov-badge-fill" id="ov-badge-fill" style="width:0%"></div></div>
+    </div>
+    <div style="font-size:11px;color:rgba(240,236,228,.28);text-align:right;white-space:nowrap" id="ov-badge-sub">0/10</div>
+  </div>
+  <!-- Recent sessions compact -->
+  <div class="ov-recent-hd">
+    <span class="ov-recent-title">最近訓練</span>
+    <button class="ov-see-all" onclick="goTab('log',document.querySelector('[data-tab=log]'))">查看全部 ›</button>
+  </div>
+  <div style="padding:0 16px 24px" id="recent-list"></div>
 </div>
 
 <!-- TAB: 紀錄 -->
@@ -770,50 +829,150 @@ function updateCloudBanner(){
 }
 
 // ── OVERVIEW ──
+const OV_BADGES=[
+  {n:1,icon:'🌱',name:'初心者',next:5,label:'第一步'},
+  {n:5,icon:'💪',name:'堅持者',next:10,label:'5次達成'},
+  {n:10,icon:'🔥',name:'訓練狂',next:20,label:'10次達成'},
+  {n:20,icon:'⚡',name:'鐵人',next:30,label:'20次達成'},
+  {n:30,icon:'🏆',name:'傳說',next:50,label:'30次達成'},
+  {n:50,icon:'👑',name:'呆呆大魔王',next:50,label:'50次達成'}
+];
 function renderOverview(){
   const sorted=[...WK].sort((a,b)=>b.date.localeCompare(a.date));
   const tm=todayStr().slice(0,7);
   const thisMonth=WK.filter(w=>w.date.startsWith(tm)).length;
+  const total=WK.length;
   const dateSet=new Set(WK.map(w=>w.date));
-  let streak=0;const d=new Date();
-  for(let i=0;i<60;i++){
-    const iso=`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+  // streak calc
+  let streak=0;const dc=new Date();
+  for(let i=0;i<90;i++){
+    const iso=`${dc.getFullYear()}-${p2(dc.getMonth()+1)}-${p2(dc.getDate())}`;
     if(dateSet.has(iso))streak++;
-    else if(i===0){d.setDate(d.getDate()-1);continue;}
+    else if(i===0){dc.setDate(dc.getDate()-1);continue;}
     else break;
-    d.setDate(d.getDate()-1);
+    dc.setDate(dc.getDate()-1);
   }
+  // greeting + motivational message
+  const hr=new Date().getHours();
+  const greet=hr<11?'早安，呆呆 ☀️':hr<17?'午安，呆呆 💛':hr<21?'晚上好，呆呆 🌙':'夜深了，呆呆 🌟';
   const last=sorted[0];
-  let sub='開始記錄訓練吧！';
-  if(last){
+  function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+  const MSGS={
+    none:[
+      '第一步，<br><span>就是今天。</span>',
+      '每個強者，<br><span>都從第一次開始。</span>',
+      '你的身體<br><span>在等你。</span>',
+    ],
+    today:[
+      '今天已完成，<br><span>妳做到了。</span>',
+      '打卡成功，<br><span>今天的妳最美。</span>',
+      '訓練已完成，<br><span>為自己鼓個掌。</span>',
+      '身體記住了<br><span>今天的努力。</span>',
+    ],
+    streak3:[
+      `連續 ${streak} 天，<br><span>習慣正在成形。</span>`,
+      `${streak} 天不間斷，<br><span>妳比昨天更強。</span>`,
+      `連續 ${streak} 天，<br><span>這就是妳的實力。</span>`,
+    ],
+    streak7:[
+      `整整 ${streak} 天，<br><span>妳已經不一樣了。</span>`,
+      `${streak} 天的堅持，<br><span>背影越來越挺。</span>`,
+      `${streak} 天連續，<br><span>了不起的呆呆。</span>`,
+    ],
+    yesterday:[
+      '昨天有練，<br><span>今天繼續。</span>',
+      '休息一天剛好，<br><span>肌肉在修復中。</span>',
+      '昨天打好基礎，<br><span>今天再加一層。</span>',
+    ],
+    gap2:[
+      '充好電了，<br><span>今天全力輸出。</span>',
+      '身體休息夠了，<br><span>回來繼續。</span>',
+      '短暫休息沒關係，<br><span>妳還在這裡。</span>',
+    ],
+    gap4:[
+      '有點久了，<br><span>但今天回來就好。</span>',
+      '不管停多久，<br><span>開始就對了。</span>',
+      '每次重新開始<br><span>都需要勇氣。</span>',
+    ],
+    gap7:[
+      '好久不見，<br><span>妳回來了。</span>',
+      '身體一直在等妳，<br><span>今天別讓它失望。</span>',
+      '重新出發，<br><span>從今天算起。</span>',
+    ],
+    morning:[
+      '清晨最清醒，<br><span>先練再說。</span>',
+      '一早就動，<br><span>今天整天都贏了。</span>',
+    ],
+    night:[
+      '今天最後一件事，<br><span>為自己做。</span>',
+      '夜晚是給努力的人，<br><span>妳就是其中一個。</span>',
+    ],
+  };
+  let msg='';
+  if(!last){
+    msg=pick(MSGS.none);
+  }else{
     const diff=Math.floor((new Date(todayStr())-new Date(last.date))/86400000);
-    if(diff===0)sub='今天已完成訓練 💪';
-    else if(diff===1)sub='昨天訓練過，繼續保持！';
-    else sub=`距離上次訓練已 ${diff} 天`;
+    if(diff===0){
+      msg=pick(MSGS.today);
+    }else if(streak>=7){
+      msg=pick(MSGS.streak7);
+    }else if(streak>=3){
+      msg=pick(MSGS.streak3);
+    }else if(diff===1){
+      msg=pick(hr<11?[...MSGS.yesterday,...MSGS.morning]:MSGS.yesterday);
+    }else if(diff<=3){
+      msg=pick(MSGS.gap2);
+    }else if(diff<=6){
+      msg=pick(MSGS.gap4);
+    }else{
+      msg=pick(hr>=21?[...MSGS.gap7,...MSGS.night]:MSGS.gap7);
+    }
   }
-  document.getElementById('hdr-sub').textContent=sub;
+  const ge=document.getElementById('ov-greeting');
+  const me=document.getElementById('ov-msg');
+  if(ge)ge.textContent=greet;
+  if(me)me.innerHTML=msg;
+  // stats
+  const se=document.getElementById('ov-streak');
+  const mo=document.getElementById('ov-month');
+  const to=document.getElementById('ov-total');
+  if(se)se.textContent=streak;
+  if(mo)mo.textContent=thisMonth;
+  if(to)to.textContent=total;
+  // week dots (Mon–Sun, target 3 workouts)
+  const now=new Date();const dow=now.getDay();
+  const monday=new Date(now);monday.setDate(now.getDate()-(dow===0?6:dow-1));
+  const dotsEl=document.getElementById('ov-week-dots');
+  const wcEl=document.getElementById('ov-week-count');
+  if(dotsEl){
+    let wkCount=0;let dots='';
+    for(let i=0;i<7;i++){
+      const dd=new Date(monday);dd.setDate(monday.getDate()+i);
+      const iso=`${dd.getFullYear()}-${p2(dd.getMonth()+1)}-${p2(dd.getDate())}`;
+      const isToday=iso===todayStr();const hasSess=dateSet.has(iso);
+      if(hasSess)wkCount++;
+      const cls=hasSess?'ov-dot done':(isToday?'ov-dot today':'ov-dot');
+      dots+=`<div class="${cls}"></div>`;
+    }
+    dotsEl.innerHTML=dots;
+    if(wcEl)wcEl.textContent=`${wkCount} / 3 天`;
+  }
+  // next badge
+  let nextBadge=OV_BADGES[OV_BADGES.length-1];let prevThresh=0;
+  for(let i=0;i<OV_BADGES.length;i++){
+    if(total<OV_BADGES[i].n){nextBadge=OV_BADGES[i];prevThresh=i>0?OV_BADGES[i-1].n:0;break;}
+  }
+  const pct=Math.min(100,Math.round(((total-prevThresh)/(nextBadge.n-prevThresh))*100))||0;
+  const bi=document.getElementById('ov-badge-icon');const bn=document.getElementById('ov-badge-name');
+  const bf=document.getElementById('ov-badge-fill');const bs=document.getElementById('ov-badge-sub');
+  if(bi)bi.textContent=nextBadge.icon;
+  if(bn)bn.textContent=nextBadge.name;
+  if(bf)setTimeout(()=>{bf.style.width=pct+'%'},80);
+  if(bs)bs.textContent=`${total}/${nextBadge.n}`;
   setSyncState(syncState);
   updateCloudBanner();
-  document.getElementById('stats-row').innerHTML=`
-    <div class="stat-card"><div class="stat-num">${WK.length}</div><div class="stat-label">總訓練次</div></div>
-    <div class="stat-card"><div class="stat-num">${thisMonth}</div><div class="stat-label">本月次數</div></div>
-    <div class="stat-card"><div class="stat-num">${streak}🔥</div><div class="stat-label">連續天數</div></div>`;
-  // 今日計畫提示
-  const goals=getGoals();
-  const todayDow=new Date().getDay();
-  const todayPlan=(goals.weekPlan||{})[todayDow]||'休息';
-  const bannerEl=document.getElementById('today-plan-banner');
-  if(bannerEl){
-    if(todayPlan!=='休息'){
-      bannerEl.hidden=false;
-      bannerEl.innerHTML=`<div class="today-plan-card">
-        <div><div style="font-size:12px;color:var(--p2);font-weight:600">今日計畫</div>
-        <div style="font-size:20px;font-weight:700;margin-top:2px" style="color:${PLAN_TC[todayPlan]}">${todayPlan}日 💪</div></div>
-        <button class="btn btn-ghost" style="padding:8px 14px;font-size:13px" onclick="goTab('add',document.querySelector('[data-tab=add]'))">開始訓練</button>
-      </div>`;
-    }else{bannerEl.hidden=true;}
-  }
-  document.getElementById('recent-list').innerHTML=sorted.slice(0,4).map(s=>sessionCard(s,false)).join('')||'<div class="empty">尚無訓練紀錄</div>';
+  document.getElementById('recent-list').innerHTML=sorted.slice(0,2).map(s=>sessionCard(s,false)).join('')||'<div class="empty" style="padding:20px 0;text-align:center;color:rgba(240,236,228,.25);font-size:14px">還沒有訓練紀錄<br><span style="font-size:12px;opacity:.6">點上方按鈕開始第一次訓練</span></div>';
 }
 
 // ── LOG ──
@@ -1505,78 +1664,92 @@ const EXERCISE_INFO={
 
 // ── 預設訓練菜單（主項目 + 輔助項目分開）──
 // 設計原則：理髮師駝背改善 + 減脂 + 2-3天/週
-// swap: {type:'swap', label, sets, r, options:[name,...]}
-// supplementary: {pick:N, items:[{name,sets,r},...]}
+// 公式：臀胸日=臀×2+胸×1+三頭×1+輔1-2 / 腿背日=腿×2+背×1+二頭×1+輔1-2
+// 臀日：硬舉類為主 / 腿日：一重一輕 / 全部無地板動作
 const PRESET_MENUS=[
-  {id:'pm1',name:'A 日・臀+胸',icon:'🍑',
-   desc:'臀部主軸＋胸推・臉拉矯正駝背',
+  {id:'pm1',name:'A 日・臀+推',icon:'🍑',
+   desc:'臀×2・推（胸/肩）×1・三頭×1・輔項1-2',
    main:[
-     {name:'高腳杯深蹲',sets:4,r:10},
-     {type:'swap',label:'胸部',sets:4,r:10,options:['啞鈴胸推','機械胸推']},
-     {name:'臀橋',sets:3,r:15}
+     {type:'swap',label:'臀部 ①（硬舉類）',sets:3,r:10,options:['啞鈴羅馬尼亞硬舉','壺鈴硬舉']},
+     {type:'swap',label:'臀部 ②（換口味）',sets:3,r:12,options:['盪壺','分腿蹲','臀外展機']},
+     {type:'swap',label:'推（胸或肩）',sets:3,r:10,options:['啞鈴胸推','機械胸推','啞鈴肩推','機械肩推']},
+     {type:'swap',label:'手臂・三頭',sets:3,r:12,options:['三頭下壓','滑輪下壓']}
    ],
-   supplementary:{pick:2,items:[
+   supplementary:{pick:1,items:[
      {name:'臉拉',sets:3,r:15},
      {name:'臀外展機',sets:3,r:12},
-     {name:'啞鈴肩推',sets:3,r:10},
-     {name:'機械肩推',sets:3,r:10},
-     {name:'死蟲',sets:3,r:10}
+     {name:'勾腿機器',sets:3,r:12},
+     {name:'髖外展',sets:3,r:15}
    ]}},
   {id:'pm2',name:'B 日・腿+背',icon:'🦵',
-   desc:'後鏈強化＋背部拉力・矯正前扣肩',
+   desc:'腿×2（重＋輕）・背×1・二頭×1・輔項1-2',
    main:[
-     {name:'壺鈴硬舉',sets:4,r:10},
-     {type:'swap',label:'背部',sets:4,r:10,options:['水平划船','坐姿划船','引體向上（機械）']},
-     {name:'分腿蹲',sets:3,r:8}
+     {type:'swap',label:'腿部 ①（主力）',sets:4,r:10,options:['高腳杯深蹲','分腿蹲','腿推機']},
+     {type:'swap',label:'腿部 ②（降重/收尾）',sets:3,r:15,options:['盪壺','勾腿機器']},
+     {type:'swap',label:'背部',sets:3,r:10,options:['水平划船','坐姿划船','引體向上（機械）']},
+     {type:'swap',label:'手臂・二頭',sets:3,r:12,options:['啞鈴二頭彎舉','機械二頭彎舉']}
    ],
-   supplementary:{pick:2,items:[
+   supplementary:{pick:1,items:[
      {name:'臉拉',sets:3,r:15},
-     {name:'滑輪下拉',sets:3,r:10},
-     {name:'單邊啞鈴划船',sets:3,r:10},
-     {name:'鳥狗',sets:3,r:10},
-     {name:'棒式',sets:3,r:30}
+     {name:'臀外展機',sets:3,r:12},
+     {name:'勾腿機器',sets:3,r:12},
+     {name:'髖外展',sets:3,r:15}
    ]}},
   {id:'pm3',name:'C 日・臀+背',icon:'💪',
-   desc:'拉力優先・適合三天版第三天',
+   desc:'臀×2・背×1・二頭×1・輔項1-2',
    main:[
-     {name:'臀橋',sets:4,r:15},
-     {type:'swap',label:'背部',sets:4,r:10,options:['坐姿划船','水平划船','引體向上（機械）']},
-     {name:'高腳杯深蹲',sets:3,r:10}
+     {type:'swap',label:'臀部 ①（硬舉類）',sets:3,r:10,options:['啞鈴羅馬尼亞硬舉','壺鈴硬舉']},
+     {type:'swap',label:'臀部 ②（換口味）',sets:3,r:12,options:['盪壺','分腿蹲','臀外展機']},
+     {type:'swap',label:'背部',sets:3,r:10,options:['坐姿划船','水平划船','引體向上（機械）']},
+     {type:'swap',label:'手臂・二頭',sets:3,r:12,options:['啞鈴二頭彎舉','機械二頭彎舉']}
    ],
-   supplementary:{pick:2,items:[
+   supplementary:{pick:1,items:[
      {name:'臉拉',sets:3,r:15},
-     {name:'單邊啞鈴划船',sets:3,r:10},
      {name:'臀外展機',sets:3,r:12},
-     {name:'死蟲',sets:3,r:10},
-     {name:'棒式',sets:3,r:30}
+     {name:'勾腿機器',sets:3,r:12},
+     {name:'髖外展',sets:3,r:15}
    ]}},
-  {id:'pm4',name:'D 日・腿+胸',icon:'🏋️',
-   desc:'腿推為主＋胸部・肩胛穩定輔助',
+  {id:'pm4',name:'D 日・腿+推',icon:'🏋️',
+   desc:'腿×2（重＋輕）・推（胸/肩）×1・三頭×1・輔項1-2',
    main:[
-     {name:'分腿蹲',sets:4,r:8},
-     {type:'swap',label:'胸部',sets:4,r:10,options:['機械胸推','啞鈴胸推']},
-     {name:'腿推機',sets:3,r:10}
+     {type:'swap',label:'腿部 ①（主力）',sets:4,r:10,options:['腿推機','分腿蹲','高腳杯深蹲']},
+     {type:'swap',label:'腿部 ②（降重/收尾）',sets:3,r:15,options:['盪壺','勾腿機器']},
+     {type:'swap',label:'推（胸或肩）',sets:3,r:10,options:['機械胸推','啞鈴胸推','啞鈴肩推','機械肩推']},
+     {type:'swap',label:'手臂・三頭',sets:3,r:12,options:['三頭下壓','滑輪下壓']}
    ],
-   supplementary:{pick:2,items:[
+   supplementary:{pick:1,items:[
      {name:'臉拉',sets:3,r:15},
-     {name:'啞鈴肩推',sets:3,r:10},
-     {name:'機械肩推',sets:3,r:10},
      {name:'臀外展機',sets:3,r:12},
-     {name:'死蟲',sets:3,r:10}
+     {name:'勾腿機器',sets:3,r:12},
+     {name:'髖外展',sets:3,r:15}
+   ]}},
+  {id:'pm6',name:'E 日・純上肢',icon:'🦾',
+   desc:'推（胸）×1・推（肩）×1・背×1・二頭×1・三頭×1・輔1-2',
+   main:[
+     {type:'swap',label:'推 ①（胸）',sets:3,r:10,options:['機械胸推','啞鈴胸推']},
+     {type:'swap',label:'推 ②（肩）',sets:3,r:10,options:['機械肩推','啞鈴肩推']},
+     {type:'swap',label:'拉（背）',sets:3,r:10,options:['水平划船','坐姿划船','引體向上（機械）']},
+     {type:'swap',label:'手臂・二頭',sets:3,r:12,options:['啞鈴二頭彎舉','機械二頭彎舉']},
+     {type:'swap',label:'手臂・三頭',sets:3,r:12,options:['三頭下壓','滑輪下壓']}
+   ],
+   supplementary:{pick:1,items:[
+     {name:'臉拉',sets:3,r:15},
+     {name:'臀外展機',sets:3,r:12},
+     {name:'勾腿機器',sets:3,r:12},
+     {name:'髖外展',sets:3,r:15}
    ]}},
   {id:'pm5',name:'✦ 駝背矯正日',icon:'🧘',
-   desc:'輕鬆恢復・改善前扣＆駝背',
+   desc:'輕鬆恢復・改善前扣駝背・無地板',
    main:[
      {name:'臉拉',sets:4,r:15},
      {type:'swap',label:'背部',sets:3,r:12,options:['水平划船','坐姿划船']},
-     {name:'臀橋',sets:3,r:15}
+     {name:'臀外展機',sets:3,r:15}
    ],
-   supplementary:{pick:2,items:[
-     {name:'鳥狗',sets:3,r:10},
-     {name:'死蟲',sets:3,r:10},
-     {name:'棒式',sets:3,r:30},
-     {name:'單邊啞鈴划船',sets:3,r:10},
-     {name:'臀外展機',sets:3,r:12}
+   supplementary:{pick:1,items:[
+     {name:'臉拉',sets:3,r:15},
+     {name:'臀外展機',sets:3,r:12},
+     {name:'勾腿機器',sets:3,r:12},
+     {name:'髖外展',sets:3,r:15}
    ]}}
 ];
 const CUSTOM_MENUS_KEY='daodao_menus';
