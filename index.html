@@ -155,7 +155,7 @@ textarea.form-input{resize:none}
 
 /* ══ MINIMAL CHARCOAL GOLD ══ */
 /* Nav pill — solid, zero blur */
-.nav{bottom:20px;left:50%;transform:translateX(-50%);right:auto;width:auto;max-width:calc(100vw - 28px);height:auto;background:#111;border:1px solid rgba(245,158,11,.25);border-radius:52px;box-shadow:none;padding:6px 10px calc(6px + env(safe-area-inset-bottom,0px));gap:2px}
+.nav{bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);right:auto;width:auto;max-width:calc(100vw - 28px);height:auto;background:#111;border:1px solid rgba(245,158,11,.25);border-radius:52px;box-shadow:none;padding:6px 10px;gap:2px}
 .nav-btn{border-radius:40px;padding:8px 13px;color:rgba(240,236,228,.32);font-size:10px;white-space:nowrap;transition:background .12s,color .12s}
 .nav-btn.active{background:rgba(245,158,11,.18);color:#f0ece4}
 .nav-btn:active{opacity:.55}
@@ -249,6 +249,84 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 /* Consec weeks gold */
 .consec-weeks{background:rgba(245,158,11,.1) !important;border:1px solid rgba(245,158,11,.25) !important;color:#f59e0b !important}
 /* Chart grid override */
+/* Rest timer pill */
+#rest-timer{position:fixed;top:66px;left:50%;transform:translateX(-50%);background:#111;border:1px solid rgba(245,158,11,.35);color:#f59e0b;padding:7px 18px;border-radius:24px;font-size:13px;font-weight:700;z-index:300;display:flex;align-items:center;gap:8px;white-space:nowrap;transition:opacity .25s,transform .25s}
+#rest-timer.rt-hidden{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(-12px)}
+#rest-timer .rt-stop{background:none;border:none;color:rgba(240,236,228,.4);font-size:18px;padding:0 0 0 4px;cursor:pointer;line-height:1}
+/* 1RM hint */
+.orm-hint{font-size:10px;color:rgba(240,236,228,.28);line-height:1;margin-top:2px;text-align:center;min-height:12px}
+/* Quick adjust bar */
+.quick-adj{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:6px 0 2px}
+.qa-btn{background:#161616;border:1px solid #2a2a2a;color:rgba(240,236,228,.5);font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;font-family:inherit;transition:color .1s}
+.qa-btn:active{background:#1f1f1f;color:#f59e0b}
+/* Chart time filter */
+.chart-filter{display:flex;gap:5px;margin-bottom:12px}
+.cf-btn{flex:1;padding:7px 2px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid #2a2a2a;background:#161616;color:rgba(240,236,228,.38);cursor:pointer;font-family:inherit;transition:background .1s,color .1s}
+.cf-btn.active{background:rgba(245,158,11,.12);color:#f59e0b;border-color:rgba(245,158,11,.3)}
+/* Copy session btn */
+.copy-btn{background:transparent;border:1px solid #2a2a2a;color:rgba(240,236,228,.38);font-size:11px;padding:5px 12px;border-radius:8px;cursor:pointer;font-family:inherit;margin-right:6px}
+.copy-btn:active{color:#f59e0b;border-color:rgba(245,158,11,.4)}
+/* Menu & Library tab */
+.menu-card{background:#111;border:1px solid #1f1f1f;border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.menu-card-hd{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.menu-icon{font-size:28px;line-height:1}
+.menu-name{font-size:15px;font-weight:700;color:#f0ece4}
+.menu-desc{font-size:11px;color:rgba(240,236,228,.38);margin-top:2px}
+/* Exercise section divider */
+.menu-sec-lbl{font-size:10px;font-weight:700;letter-spacing:.7px;display:flex;align-items:center;gap:7px;margin:10px 0 5px}
+.menu-sec-lbl span{white-space:nowrap}
+.menu-sec-lbl::after{content:'';flex:1;height:1px;background:#1f1f1f}
+.lbl-main{color:#f59e0b}
+.lbl-sub{color:rgba(240,236,228,.28)}
+/* Exercise check rows */
+.menu-chk-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid #161616}
+.menu-chk-row:last-child{border-bottom:none}
+.menu-chk{width:17px;height:17px;accent-color:#f59e0b;cursor:pointer;flex-shrink:0}
+.menu-chk-name{flex:1;font-size:13px;color:rgba(240,236,228,.75);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.menu-chk-name:active{color:#f59e0b}
+.menu-chk-meta{font-size:11px;color:rgba(240,236,228,.28);white-space:nowrap}
+/* Apply bar */
+/* Swap chips */
+.swap-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.swap-chip{font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;border:1px solid #2a2a2a;color:rgba(240,236,228,.4);background:#161616;transition:all .1s;-webkit-tap-highlight-color:transparent}
+.swap-chip.sc-active{background:rgba(245,158,11,.12);color:#f59e0b;border-color:rgba(245,158,11,.35);font-weight:700}
+.swap-chip:active{opacity:.7}
+/* Pick-N supplementary */
+.pick-hint{font-size:10px;color:rgba(240,236,228,.28);margin-left:4px}
+.menu-chk:disabled+.menu-chk-name{opacity:.3}
+/* Apply bar */
+.menu-apply-bar{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid #1f1f1f}
+.menu-apply-btn{flex:1;background:#f59e0b;color:#080808;border:none;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit}
+.menu-apply-btn:active{opacity:.75}
+.menu-selall-btn{background:#161616;border:1px solid #2a2a2a;color:rgba(240,236,228,.4);font-size:12px;padding:9px 12px;border-radius:10px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.menu-selall-btn:active{color:#f59e0b}
+.create-menu-card{background:transparent;border:1px dashed #2a2a2a;border-radius:14px;padding:16px;text-align:center;cursor:pointer;color:rgba(240,236,228,.3);font-size:13px;font-weight:600;margin-bottom:10px}
+.create-menu-card:active{border-color:rgba(245,158,11,.4);color:#f59e0b}
+/* Exercise demo bottom sheet */
+.ex-demo-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:400;display:flex;align-items:flex-end;justify-content:center}
+.ex-demo-overlay[hidden]{display:none}
+.ex-demo-sheet{background:#0d0d0d;border:1px solid #222;border-radius:24px 24px 0 0;padding:24px 20px calc(36px + env(safe-area-inset-bottom,0px));width:100%;max-width:560px;max-height:80vh;overflow-y:auto}
+.demo-title{font-size:22px;font-weight:800;color:#f0ece4;margin-bottom:4px}
+.demo-muscle{font-size:12px;color:#f59e0b;font-weight:700;letter-spacing:.4px;margin-bottom:16px}
+.demo-cue{display:flex;gap:10px;margin-bottom:12px;font-size:14px;line-height:1.55;color:rgba(240,236,228,.72)}
+.demo-cue-num{min-width:22px;height:22px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.28);color:#f59e0b;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.yt-link{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;background:#161616;border:1px solid #2a2a2a;border-radius:12px;color:rgba(240,236,228,.55);font-size:14px;font-weight:600;cursor:pointer;margin-top:16px;text-decoration:none}
+.yt-link:active{background:#222;color:#f0ece4}
+.demo-close{display:block;width:100%;padding:12px;background:transparent;border:1px solid #222;border-radius:12px;color:rgba(240,236,228,.4);font-size:14px;cursor:pointer;margin-top:8px;font-family:inherit}
+.demo-close:active{background:#1a1a1a}
+/* Demo lib cards */
+.demo-lib-card{background:#111;border:1px solid #1f1f1f;border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.demo-lib-card:active{opacity:.7}
+.demo-lib-name{font-size:14px;font-weight:600;color:#f0ece4}
+.demo-lib-muscle{font-size:11px;color:#f59e0b;margin-top:2px}
+/* Create menu modal */
+.create-menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:400;display:flex;align-items:flex-end;justify-content:center}
+.create-menu-overlay[hidden]{display:none}
+.create-menu-sheet{background:#0d0d0d;border:1px solid #222;border-radius:24px 24px 0 0;padding:24px 20px calc(36px + env(safe-area-inset-bottom,0px));width:100%;max-width:560px;max-height:85vh;overflow-y:auto}
+.cm-ex-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cm-ex-name{flex:1;font-size:14px;color:#f0ece4}
+.cm-ex-sets{width:50px;background:#161616;border:1px solid #2a2a2a;border-radius:8px;color:#f0ece4;font-size:14px;text-align:center;padding:6px 4px;font-family:inherit}
+.cm-ex-rm{background:none;border:none;color:#ff6b6b;font-size:18px;cursor:pointer;padding:2px 6px}
 </style>
 </head>
 <body>
@@ -264,6 +342,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
   </defs>
 </svg>
 <div class="toast" id="toast"></div>
+<div id="rest-timer" class="rt-hidden">
+  <span>⏱</span><span id="rest-count">90</span><span style="color:rgba(240,236,228,.45);font-weight:400">s 休息中</span>
+  <button class="rt-stop" onclick="stopRestTimer()">×</button>
+</div>
 
 <!-- Setup Modal -->
 <div class="modal-overlay" id="setup-modal" hidden>
@@ -339,14 +421,25 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 <div id="tab-chart" class="tab-content" hidden>
   <div class="page-header"><h1>成長曲線</h1><p>追蹤進步歷程</p></div>
   <div class="section" style="padding-top:14px">
-    <div class="sec-title">本月出席日曆</div>
+    <div class="sec-title">出席日曆</div>
     <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <button onclick="calShift(-1)" style="background:none;border:none;color:#f59e0b;font-size:22px;padding:0 8px;cursor:pointer;line-height:1">‹</button>
+        <span id="cal-month-lbl" style="color:#f0ece4;font-size:15px;font-weight:700;letter-spacing:.5px"></span>
+        <button onclick="calShift(1)" style="background:none;border:none;color:#f59e0b;font-size:22px;padding:0 8px;cursor:pointer;line-height:1">›</button>
+      </div>
       <div class="cal-dow"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
       <div class="calendar" id="calendar"></div>
       <p class="hint" style="margin-top:8px"><span style="display:inline-block;width:10px;height:10px;background:var(--p);border-radius:2px;margin-right:5px;vertical-align:middle"></span>訓練日</p>
     </div>
     <div class="sec-title">動作重量進步</div>
     <div class="card">
+      <div class="chart-filter">
+        <button class="cf-btn" onclick="setChartRange('1m',this)">1個月</button>
+        <button class="cf-btn" onclick="setChartRange('3m',this)">3個月</button>
+        <button class="cf-btn" onclick="setChartRange('6m',this)">6個月</button>
+        <button class="cf-btn active" onclick="setChartRange('all',this)">全部</button>
+      </div>
       <label class="form-label">選擇動作</label>
       <div style="position:relative;margin-bottom:14px">
         <input class="form-input" id="ex-select-input" placeholder="搜尋動作…" autocomplete="off"
@@ -360,6 +453,51 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     <div class="sec-title">每週訓練頻率</div>
     <div class="card">
       <div class="chart-wrap"><canvas id="freq-chart"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: 菜單庫 -->
+<div id="tab-menu" class="tab-content" hidden>
+  <div class="page-header"><h1>菜單庫</h1><p>選菜單套用・查動作示範</p></div>
+  <div class="section" style="padding-top:14px">
+    <div class="sec-title">訓練菜單</div>
+    <div id="menu-list"></div>
+    <div class="create-menu-card" onclick="openCreateMenu()">＋ 新增自訂菜單</div>
+    <div class="sec-title" style="margin-top:4px">動作示範庫</div>
+    <div class="card" style="padding:10px 14px 6px">
+      <input class="form-input" id="demo-search" placeholder="搜尋動作（如：深蹲）…" oninput="filterDemoLib(this.value)" style="margin-bottom:8px">
+    </div>
+    <div id="demo-list"></div>
+  </div>
+</div>
+
+<!-- Exercise demo bottom sheet -->
+<div class="ex-demo-overlay" id="ex-demo-overlay" hidden onclick="if(event.target===this)closeExDemo()">
+  <div class="ex-demo-sheet" id="ex-demo-sheet">
+    <div id="ex-demo-content"></div>
+    <button class="demo-close" onclick="closeExDemo()">關閉</button>
+  </div>
+</div>
+
+<!-- Create menu bottom sheet -->
+<div class="create-menu-overlay" id="create-menu-overlay" hidden onclick="if(event.target===this)closeCreateMenu()">
+  <div class="create-menu-sheet">
+    <div style="font-size:18px;font-weight:800;color:#f0ece4;margin-bottom:16px">新增菜單</div>
+    <label class="form-label">菜單名稱</label>
+    <input class="form-input" id="cm-name" placeholder="例：腿臀日 B" style="margin-bottom:12px">
+    <label class="form-label">圖示（emoji）</label>
+    <input class="form-input" id="cm-icon" placeholder="🏋️" style="margin-bottom:12px;max-width:80px">
+    <label class="form-label">動作（輸入後按 Enter 新增）</label>
+    <div style="position:relative;margin-bottom:6px">
+      <input class="form-input" id="cm-ex-input" placeholder="搜尋動作名稱…" autocomplete="off"
+        oninput="filterCmDd(this)" onfocus="filterCmDd(this)" onblur="hideCmDd(200)" style="margin-bottom:0">
+      <div class="ex-dropdown" id="cm-ex-dd" hidden></div>
+    </div>
+    <div id="cm-ex-list" style="margin-bottom:14px"></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-primary" onclick="saveCustomMenu()" style="flex:1">儲存菜單</button>
+      <button class="btn btn-ghost" onclick="closeCreateMenu()" style="padding:12px 18px">取消</button>
     </div>
   </div>
 </div>
@@ -393,6 +531,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
   <button class="nav-btn" data-tab="chart" onclick="goTab('chart',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>圖表
   </button>
+  <button class="nav-btn" data-tab="menu" onclick="goTab('menu',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h10M4 18h8"/></svg>菜單
+  </button>
   <button class="nav-btn" data-tab="goal" onclick="goTab('goal',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg>目標
   </button>
@@ -402,9 +543,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 // ── 動作資料庫（依部位）──
 const EXERCISE_DB={
   '腿部':['壺鈴硬舉','啞鈴羅馬尼亞硬舉','分腿蹲','高腳杯深蹲','徒手深蹲','腿推機','勾腿機器','盪壺','單腿後踢'],
-  '背部':['水平划船','站姿屈體划船','坐姿划船機','單邊啞鈴划船','滑輪下拉','引體向上'],
-  '胸部':['啞鈴臥推','器械坐姿胸推'],
-  '肩膀':['肩推','站姿啞鈴肩推','器械坐姿肩推','臉拉'],
+  '背部':['水平划船','站姿屈體划船','坐姿划船','單邊啞鈴划船','滑輪下拉','引體向上','引體向上（機械）'],
+  '胸部':['啞鈴胸推','機械胸推','啞鈴臥推','器械坐姿胸推'],
+  '肩膀':['啞鈴肩推','機械肩推','站姿啞鈴肩推','器械坐姿肩推','臉拉'],
   '手臂':['啞鈴二頭彎舉','機械二頭彎舉','三頭下壓','滑輪下壓'],
   '臀部':['臀橋','臀外展機','髖外展'],
   '核心':['死蟲','鳥狗','棒式']
@@ -567,6 +708,7 @@ function goTab(tab,btn){
   if(tab==='log')renderLog();
   if(tab==='chart')renderCharts();
   if(tab==='goal')renderGoals();
+  if(tab==='menu')renderMenuTab();
   // Background refresh from GAS
   if(getGASUrl()){
     apiLoad().then(fresh=>{
@@ -695,11 +837,12 @@ function sessionCard(s,showDel){
   }).join('');
   const noteHtml=s.note?`<p style="font-size:12px;color:#6b7280;margin-top:6px;font-style:italic">${s.note}</p>`:'';
   const delBtn=showDel?`<button class="btn-sm" style="margin-top:10px" onclick="delSession('${s.id}',event)">刪除此筆</button>`:'';
+  const copyBtn=`<button class="copy-btn" onclick="copySessionToToday('${s.id}',event)">複製為今日訓練</button>`;
   return`<div class="session-item" onclick="toggle(this)">
     <div class="session-date">${fmtDate(s.date)}</div>
     <div class="session-title">${s.exercises.length} 個動作</div>
     <div class="session-tags">${tags}${more}</div>
-    <div class="session-detail">${detail}${noteHtml}${delBtn}</div>
+    <div class="session-detail">${detail}${noteHtml}<div style="margin-top:10px">${copyBtn}${delBtn}</div></div>
   </div>`;
 }
 function toggle(el){el.classList.toggle('open');}
@@ -754,6 +897,7 @@ function toggleSetDone(btn){
   const done=row.classList.contains('set-done');
   btn.textContent=done?'✓':'○';btn.classList.toggle('done',done);
   scheduleDraftSave();
+  if(done)startRestTimer();
 }
 function initAdd(){
   const raw=localStorage.getItem(DRAFT_KEY);
@@ -790,6 +934,13 @@ function addExercise(){
       <thead><tr><th>#</th><th>重量(kg)</th><th>次數</th><th>RPE</th><th></th><th></th></tr></thead>
       <tbody id="tb-${id}"></tbody>
     </table>
+    <div class="quick-adj">
+      <span style="font-size:10px;color:rgba(240,236,228,.25);white-space:nowrap;letter-spacing:.3px">快調</span>
+      <button class="qa-btn" onclick="adjAllSets('${id}','w',-2.5)">W−2.5</button>
+      <button class="qa-btn" onclick="adjAllSets('${id}','w',2.5)">W+2.5</button>
+      <button class="qa-btn" onclick="adjAllSets('${id}','r',-1)">R−1</button>
+      <button class="qa-btn" onclick="adjAllSets('${id}','r',1)">R+1</button>
+    </div>
     <button class="btn btn-ghost ex-add-set" style="width:100%;font-size:13px;padding:8px 12px" onclick="addSet('${id}')">+ 新增組數</button>`;
   document.getElementById('ex-container').appendChild(div);
   _dragInit(document.getElementById('dh-'+id), id);
@@ -803,8 +954,9 @@ function addSet(exId){
   const tr=document.createElement('tr');tr.className='set-row';
   tr.innerHTML=`
     <td class="set-n">${n}</td>
-    <td><input class="set-inp" type="text" inputmode="decimal" placeholder="—" data-f="w" value="${pw}" oninput="scheduleDraftSave()"></td>
-    <td><input class="set-inp" type="text" inputmode="numeric" placeholder="—" data-f="r" value="${pr}" oninput="scheduleDraftSave()"></td>
+    <td><input class="set-inp" type="text" inputmode="decimal" placeholder="—" data-f="w" value="${pw}" oninput="scheduleDraftSave();upd1rm(this.closest('tr'))">
+        <div class="orm-hint" data-1rm></div></td>
+    <td><input class="set-inp" type="text" inputmode="numeric" placeholder="—" data-f="r" value="${pr}" oninput="scheduleDraftSave();upd1rm(this.closest('tr'))"></td>
     <td><input class="set-inp" type="text" inputmode="decimal" placeholder="—" data-f="rpe" oninput="scheduleDraftSave()"></td>
     <td><button class="check-btn" onclick="toggleSetDone(this)">○</button></td>
     <td><button style="background:none;border:none;color:#d1d5db;font-size:15px;padding:2px 4px;cursor:pointer" onclick="rmSet(this)">✕</button></td>`;
@@ -905,16 +1057,22 @@ function saveWorkout(){
 
 // ── CHARTS ──
 let exChart=null,freqChart=null;
+let calOffset=0; // months from current
+function calShift(delta){calOffset+=delta;renderCal();}
 function renderCharts(){renderCal();populateSelect();renderExChart();renderFreq();}
 function renderCal(){
   const dateSet=new Set(WK.map(w=>w.date));
-  const td=todayStr(),now=new Date();
-  const y=now.getFullYear(),m=now.getMonth();
-  const first=new Date(y,m,1),last=new Date(y,m+1,0);
+  const td=todayStr(),base=new Date();
+  const y=base.getFullYear(),m=base.getMonth()+calOffset;
+  const ref=new Date(y,m,1);
+  const ry=ref.getFullYear(),rm=ref.getMonth();
+  const first=new Date(ry,rm,1),last=new Date(ry,rm+1,0);
+  const lbl=document.getElementById('cal-month-lbl');
+  if(lbl)lbl.textContent=`${ry} 年 ${rm+1} 月`;
   let html='';
   for(let i=0;i<first.getDay();i++)html+='<div></div>';
   for(let d=1;d<=last.getDate();d++){
-    const iso=`${y}-${p2(m+1)}-${p2(d)}`;
+    const iso=`${ry}-${p2(rm+1)}-${p2(d)}`;
     html+=`<div class="cal-cell${dateSet.has(iso)?' has-w':''}${iso===td?' today':''}" title="${iso}"></div>`;
   }
   document.getElementById('calendar').innerHTML=html;
@@ -958,11 +1116,26 @@ function pickChartEx(name){
   const dd=document.getElementById('chart-dd');if(dd)dd.hidden=true;
   renderExChart();
 }
+let chartRange='all';
+function setChartRange(r,btn){
+  chartRange=r;
+  document.querySelectorAll('.cf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderExChart();
+}
 function renderExChart(){
   const name=document.getElementById('ex-select').value;if(!name)return;
-  const pts=[];
+  let pts=[];
   WK.forEach(w=>w.exercises.forEach(ex=>{if(ex.name===name){const mw=maxW(ex);if(mw!==null)pts.push({date:w.date,mw});}}));
   pts.sort((a,b)=>a.date.localeCompare(b.date));
+  if(chartRange!=='all'){
+    const cut=new Date();
+    if(chartRange==='1m')cut.setMonth(cut.getMonth()-1);
+    else if(chartRange==='3m')cut.setMonth(cut.getMonth()-3);
+    else if(chartRange==='6m')cut.setMonth(cut.getMonth()-6);
+    const cutStr=cut.toISOString().slice(0,10);
+    pts=pts.filter(p=>p.date>=cutStr);
+  }
   if(exChart){exChart.destroy();exChart=null;}
   const ctx=document.getElementById('ex-chart').getContext('2d');
   const grad=ctx.createLinearGradient(0,0,0,220);
@@ -1287,6 +1460,446 @@ function loadTodayPlan(){
   });
   document.getElementById('plan-bar').hidden=true;
   showToast('✅ 已套用今日計畫，去訓練現場填實際數字！');
+}
+
+// ── 動作示範資料庫 ──
+const EXERCISE_INFO={
+  '壺鈴硬舉':{muscle:'腿部・後鏈',cues:['雙腳與肩同寬，壺鈴置於雙腳之間','髖部往後推，保持背部平直不拱腰','起身時臀部夾緊，髖部往前推送完成動作']},
+  '啞鈴羅馬尼亞硬舉':{muscle:'腿後・臀部',cues:['雙腳微屈膝，啞鈴沿大腿下滑','髖部往後推，感受腿後側延伸','背部始終保持中立，不要拱背']},
+  '分腿蹲':{muscle:'腿部・臀部',cues:['前腳踩穩，後腳腳背貼地','前膝沿腳尖方向彎曲','下沉時後膝接近但不碰地面']},
+  '高腳杯深蹲':{muscle:'腿部・臀部',cues:['雙腳略寬於肩，腳尖朝外約30度','壺鈴置胸前，手肘向下夾','下蹲時膝蓋推向腳尖，保持胸口抬起']},
+  '徒手深蹲':{muscle:'腿部・臀部',cues:['雙腳與肩同寬，腳尖微外八','膝蓋朝腳尖方向，不要內扣','大腿蹲至平行地面，背部保持中立']},
+  '腿推機':{muscle:'腿部',cues:['腳掌踩在踏板中上部位','膝蓋對齊腳尖，不要內扣','推起時膝蓋保留微彎，不要鎖死']},
+  '勾腿機器':{muscle:'腿後側',cues:['腳踝墊放在阿基里斯腱位置','勾腿時保持控制，不要甩動','在最高點停頓1秒感受腿後收縮']},
+  '盪壺':{muscle:'全身・臀部',cues:['髖部前推產生爆發力，而非手臂拉','壺鈴在髖部高度時夾緊臀部','下擺時髖部往後坐，背部保持中立']},
+  '單腿後踢':{muscle:'臀部',cues:['四足跪姿，核心收緊保持骨盆穩定','一腿往後上方踢，感受臀部收縮','不要讓骨盆旋轉或腰部過度後仰']},
+  '水平划船':{muscle:'背部・後三角',cues:['上身前傾約45度，背部挺直','手肘往身體兩側後拉，感受肩胛夾緊','放下時完全伸展手臂感受背闊']},
+  '站姿屈體划船':{muscle:'背部',cues:['雙腳與肩同寬，上身前傾45-60度','啞鈴往腹部方向拉，手肘貼身體','背部保持平直，不要用腰部彈震']},
+  '坐姿划船機':{muscle:'背部・二頭',cues:['挺胸坐直，腳踩踏板膝蓋微彎','往肚臍方向拉，感受背部發力','緩慢放回，充分伸展背闊']},
+  '單邊啞鈴划船':{muscle:'背部',cues:['一手支撐凳子，上身平行地面','啞鈴往腰側拉，手肘朝後上方','放下時手臂完全伸直感受背部伸展']},
+  '滑輪下拉':{muscle:'背闊・二頭',cues:['雙手寬握距，挺胸微後仰','手肘往下往後拉，感受背闊','放回時手臂充分伸展，別讓肩膀聳起']},
+  '引體向上':{muscle:'背闊・二頭',cues:['雙手與肩同寬或略寬','往上拉時胸口往橫杆靠近','用背發力而非手臂，下去時要控制']},
+  '啞鈴臥推':{muscle:'胸部・三頭',cues:['雙腳踩地，腰部微弓，肩胛夾緊','啞鈴從肩膀高度下放，手肘約45度','上推時手肘不要完全鎖死']},
+  '器械坐姿胸推':{muscle:'胸部・三頭',cues:['坐正，背貼椅背，腳踩穩地面','把手握在胸部高度，手肘與地面平行','推出時不要聳肩，感受胸部發力']},
+  '肩推':{muscle:'肩膀・三頭',cues:['雙手握啞鈴在耳朵旁，手肘朝前','往上推直，不要讓腰部過度後仰','下放時手肘回到90度']},
+  '站姿啞鈴肩推':{muscle:'肩膀',cues:['核心收緊，避免腰部後仰代償','啞鈴在耳朵旁，往正上方推','下放時控制速度']},
+  '器械坐姿肩推':{muscle:'肩膀',cues:['調整座椅至手肘90度位置','推出時感受三角肌前束與中束','不要鎖死手肘，保留微彎']},
+  '臉拉':{muscle:'後三角・外旋肌',cues:['站或坐在繩索前，雙手各握一側','往臉的方向拉，手肘往後展開','感受後三角與夾肩胛，保持挺胸']},
+  '啞鈴二頭彎舉':{muscle:'二頭肌',cues:['手肘貼緊身體兩側，不要用身體晃','彎舉到最高點時旋轉手腕，小指朝上','緩慢放下，充分感受二頭伸展']},
+  '機械二頭彎舉':{muscle:'二頭肌',cues:['上臂貼緊靠墊，固定手肘位置','完整的動作範圍，充分彎曲與伸展','不要讓肩膀前傾代償']},
+  '三頭下壓':{muscle:'三頭肌',cues:['手肘固定在身體兩側，不要晃動','往下壓到手臂完全伸展','緩慢還原，不要讓手肘飛出去']},
+  '滑輪下壓':{muscle:'三頭肌',cues:['手肘緊貼身體，固定不動','往下壓時感受三頭肌收縮','放回時手肘仍保持貼身']},
+  '臀橋':{muscle:'臀部・腿後',cues:['仰躺屈膝，腳跟貼地腳掌踩穩','抬起骨盆，頂點時夾緊臀部2秒','不要讓膝蓋往內塌']},
+  '臀外展機':{muscle:'臀中肌',cues:['坐正，膝蓋彎曲90度','往外展開時感受臀部外側肌肉','慢慢回來，全程控制不要甩']},
+  '髖外展':{muscle:'臀中肌',cues:['側躺，下方腿微彎支撐','上方腿伸直，往上舉約30-45度','感受臀中肌收縮，不要用腰旋轉']},
+  '死蟲':{muscle:'核心・深層肌',cues:['仰躺，手臂伸直指天，腿抬高90度','對側手腳同時往地面延伸，腰背貼地','呼氣時往下，吸氣回來，動作要慢']},
+  '鳥狗':{muscle:'核心・背部',cues:['四足跪姿，手在肩下，膝在髖下','對側手腳同時伸展至與地面平行','保持骨盆水平，不要旋轉或晃動']},
+  '棒式':{muscle:'核心全面',cues:['前臂撐地，身體從頭到腳呈一直線','肚臍往脊椎方向收緊，不要撅屁股','正常呼吸，不要憋氣，目視地面']},
+  '啞鈴胸推':{muscle:'胸部・三頭',cues:['仰躺，雙腳踩地，腰部微弓','啞鈴從肩膀高度下放，手肘約45度','上推時不完全鎖死，保持胸部張力']},
+  '機械胸推':{muscle:'胸部・三頭',cues:['坐正，背貼椅背，把手在胸部高度','推出時不要聳肩，感受胸部發力','緩慢回程，不要讓重量完全卸下']},
+  '啞鈴肩推':{muscle:'肩膀・三頭',cues:['啞鈴在耳朵旁，手肘朝前方','核心收緊，避免腰部後仰代償','往上推直，控制下放不要太快']},
+  '機械肩推':{muscle:'肩膀・三頭',cues:['調整座椅至手肘90度位置','推出時感受三角肌前束與中束','不要鎖死手肘，保留微彎']},
+  '坐姿划船':{muscle:'背部・二頭',cues:['挺胸坐直，腳踩踏板膝蓋微彎','往肚臍方向拉，感受背部發力','緩慢放回，充分伸展背闊']},
+  '引體向上（機械）':{muscle:'背闊・二頭',cues:['調整配重讓你可以完成8-12下','雙手寬握距，挺胸往上拉','手肘往斜後方收，感受背闊縮緊']}
+};
+
+// ── 預設訓練菜單（主項目 + 輔助項目分開）──
+// 設計原則：理髮師駝背改善 + 減脂 + 2-3天/週
+// swap: {type:'swap', label, sets, r, options:[name,...]}
+// supplementary: {pick:N, items:[{name,sets,r},...]}
+const PRESET_MENUS=[
+  {id:'pm1',name:'A 日・臀+胸',icon:'🍑',
+   desc:'臀部主軸＋胸推・臉拉矯正駝背',
+   main:[
+     {name:'高腳杯深蹲',sets:4,r:10},
+     {type:'swap',label:'胸部',sets:4,r:10,options:['啞鈴胸推','機械胸推']},
+     {name:'臀橋',sets:3,r:15}
+   ],
+   supplementary:{pick:2,items:[
+     {name:'臉拉',sets:3,r:15},
+     {name:'臀外展機',sets:3,r:12},
+     {name:'啞鈴肩推',sets:3,r:10},
+     {name:'機械肩推',sets:3,r:10},
+     {name:'死蟲',sets:3,r:10}
+   ]}},
+  {id:'pm2',name:'B 日・腿+背',icon:'🦵',
+   desc:'後鏈強化＋背部拉力・矯正前扣肩',
+   main:[
+     {name:'壺鈴硬舉',sets:4,r:10},
+     {type:'swap',label:'背部',sets:4,r:10,options:['水平划船','坐姿划船','引體向上（機械）']},
+     {name:'分腿蹲',sets:3,r:8}
+   ],
+   supplementary:{pick:2,items:[
+     {name:'臉拉',sets:3,r:15},
+     {name:'滑輪下拉',sets:3,r:10},
+     {name:'單邊啞鈴划船',sets:3,r:10},
+     {name:'鳥狗',sets:3,r:10},
+     {name:'棒式',sets:3,r:30}
+   ]}},
+  {id:'pm3',name:'C 日・臀+背',icon:'💪',
+   desc:'拉力優先・適合三天版第三天',
+   main:[
+     {name:'臀橋',sets:4,r:15},
+     {type:'swap',label:'背部',sets:4,r:10,options:['坐姿划船','水平划船','引體向上（機械）']},
+     {name:'高腳杯深蹲',sets:3,r:10}
+   ],
+   supplementary:{pick:2,items:[
+     {name:'臉拉',sets:3,r:15},
+     {name:'單邊啞鈴划船',sets:3,r:10},
+     {name:'臀外展機',sets:3,r:12},
+     {name:'死蟲',sets:3,r:10},
+     {name:'棒式',sets:3,r:30}
+   ]}},
+  {id:'pm4',name:'D 日・腿+胸',icon:'🏋️',
+   desc:'腿推為主＋胸部・肩胛穩定輔助',
+   main:[
+     {name:'分腿蹲',sets:4,r:8},
+     {type:'swap',label:'胸部',sets:4,r:10,options:['機械胸推','啞鈴胸推']},
+     {name:'腿推機',sets:3,r:10}
+   ],
+   supplementary:{pick:2,items:[
+     {name:'臉拉',sets:3,r:15},
+     {name:'啞鈴肩推',sets:3,r:10},
+     {name:'機械肩推',sets:3,r:10},
+     {name:'臀外展機',sets:3,r:12},
+     {name:'死蟲',sets:3,r:10}
+   ]}},
+  {id:'pm5',name:'✦ 駝背矯正日',icon:'🧘',
+   desc:'輕鬆恢復・改善前扣＆駝背',
+   main:[
+     {name:'臉拉',sets:4,r:15},
+     {type:'swap',label:'背部',sets:3,r:12,options:['水平划船','坐姿划船']},
+     {name:'臀橋',sets:3,r:15}
+   ],
+   supplementary:{pick:2,items:[
+     {name:'鳥狗',sets:3,r:10},
+     {name:'死蟲',sets:3,r:10},
+     {name:'棒式',sets:3,r:30},
+     {name:'單邊啞鈴划船',sets:3,r:10},
+     {name:'臀外展機',sets:3,r:12}
+   ]}}
+];
+const CUSTOM_MENUS_KEY='daodao_menus';
+function getCustomMenus(){return JSON.parse(localStorage.getItem(CUSTOM_MENUS_KEY)||'[]');}
+function saveCustomMenus(arr){localStorage.setItem(CUSTOM_MENUS_KEY,JSON.stringify(arr));}
+
+// ── 菜單Tab渲染 ──
+function renderMenuTab(){
+  renderMenuList();renderDemoLib('');
+}
+function renderMenuList(){
+  const el=document.getElementById('menu-list');if(!el)return;
+  const custom=getCustomMenus();
+  const allMenus=[...PRESET_MENUS,...custom];
+  el.innerHTML=allMenus.map(m=>menuCard(m)).join('');
+}
+function menuCard(m){
+  const isCustom=!!m._custom;
+  let rows='',idx=0;
+  const sub=m.supplementary;
+  const pickN=sub&&sub.pick?sub.pick:null;
+  const subItems=sub?(sub.items||sub):[];
+  const mainItems=m.main||m.exercises||[];
+  const mainCount=mainItems.length;
+  const subCount=Array.isArray(subItems)?subItems.length:0;
+  const defaultChecked=mainCount+(pickN||subCount);
+
+  if(m.main){
+    rows+=`<div class="menu-sec-lbl lbl-main"><span>主項目</span></div>`;
+    mainItems.forEach(ex=>{
+      if(ex.type==='swap'){
+        // Swappable exercise row
+        const chips=ex.options.map((opt,oi)=>{
+          const safeOpt=opt.replace(/'/g,"\\'");
+          return`<span class="swap-chip${oi===0?' sc-active':''}" data-opt-idx="${oi}"
+            onclick="selectSwap('${m.id}',${idx},${oi});openExDemo('${safeOpt}')">${opt}</span>`;
+        }).join('');
+        rows+=`<div class="menu-chk-row">
+          <input type="checkbox" class="menu-chk" id="chk-${m.id}-${idx}" data-menu="${m.id}" checked>
+          <div style="flex:1">
+            <div style="font-size:10px;color:rgba(240,236,228,.3);font-weight:700;letter-spacing:.4px;margin-bottom:3px">${ex.label} <span style="color:rgba(240,236,228,.18)">點選擇</span></div>
+            <div class="swap-chips" id="swap-${m.id}-${idx}">${chips}</div>
+          </div>
+          <span class="menu-chk-meta">${ex.sets}×${ex.r}下</span>
+        </div>`;
+      }else{
+        const safeN=ex.name.replace(/'/g,"\\'");
+        rows+=`<div class="menu-chk-row">
+          <input type="checkbox" class="menu-chk" id="chk-${m.id}-${idx}" data-menu="${m.id}" checked>
+          <span class="menu-chk-name" onclick="openExDemo('${safeN}')">${ex.name}</span>
+          <span class="menu-chk-meta">${ex.sets}×${ex.r}下</span>
+        </div>`;
+      }
+      idx++;
+    });
+    // Supplementary section
+    const pickLabel=pickN?`・選 <span id="pick-cnt-${m.id}">0</span>/${pickN}`:'';
+    rows+=`<div class="menu-sec-lbl lbl-sub" style="margin-top:8px"><span>輔助項目${pickLabel}</span></div>`;
+    const suppStartIdx=idx;
+    subItems.forEach(ex=>{
+      const safeN=ex.name.replace(/'/g,"\\'");
+      // Default: first pickN items checked
+      const defChecked=pickN?(idx-suppStartIdx<pickN):true;
+      rows+=`<div class="menu-chk-row">
+        <input type="checkbox" class="menu-chk" id="chk-${m.id}-${idx}" data-menu="${m.id}" data-supp="${m.id}"
+          ${defChecked?'checked':''} onchange="pickSuppCheck('${m.id}',${pickN||99})">
+        <span class="menu-chk-name" onclick="openExDemo('${safeN}')">${ex.name}</span>
+        <span class="menu-chk-meta">${ex.sets}×${ex.r}下</span>
+      </div>`;
+      idx++;
+    });
+  }else{
+    (m.exercises||[]).forEach(ex=>{
+      const safeN=(ex.name||'').replace(/'/g,"\\'");
+      rows+=`<div class="menu-chk-row">
+        <input type="checkbox" class="menu-chk" id="chk-${m.id}-${idx}" data-menu="${m.id}" checked>
+        <span class="menu-chk-name" onclick="openExDemo('${safeN}')">${ex.name}</span>
+        <span class="menu-chk-meta">${ex.sets||3}×${ex.r||'—'}下</span>
+      </div>`;
+      idx++;
+    });
+  }
+
+  const totalSlots=idx;
+  return`<div class="menu-card" id="mc-${m.id}">
+    <div class="menu-card-hd">
+      <span class="menu-icon">${m.icon||'📋'}</span>
+      <div style="flex:1">
+        <div class="menu-name">${m.name}</div>
+        <div class="menu-desc">${m.desc||''}</div>
+      </div>
+      ${isCustom?`<button onclick="delCustomMenu('${m.id}');event.stopPropagation()" style="background:none;border:none;color:rgba(255,107,107,.45);font-size:18px;cursor:pointer;padding:2px 6px">✕</button>`:''}
+    </div>
+    <div id="chk-rows-${m.id}" onchange="updMenuSelCount('${m.id}')">${rows}</div>
+    <div class="menu-apply-bar">
+      <button class="menu-selall-btn" onclick="toggleSelAll('${m.id}',${totalSlots})">全/清</button>
+      <button class="menu-apply-btn" id="apply-btn-${m.id}" onclick="applySelectedMenu('${m.id}')">
+        套用已勾選 (<span id="sel-cnt-${m.id}">${defaultChecked}</span>)
+      </button>
+    </div>
+  </div>`;
+}
+
+function selectSwap(menuId,idx,optIdx){
+  const container=document.getElementById(`swap-${menuId}-${idx}`);if(!container)return;
+  container.querySelectorAll('.swap-chip').forEach((c,i)=>c.classList.toggle('sc-active',i===optIdx));
+}
+function pickSuppCheck(menuId,max){
+  const chks=[...document.querySelectorAll(`[data-supp="${menuId}"]`)];
+  const checked=chks.filter(c=>c.checked);
+  if(checked.length>max){
+    // Uncheck the last one that was just checked
+    event.target.checked=false;
+    showToast(`輔助最多選 ${max} 個`);
+    return;
+  }
+  updMenuSelCount(menuId);
+}
+function updMenuSelCount(menuId){
+  // Count main slots checked + supp checked
+  const cnt=document.querySelectorAll(`[data-menu="${menuId}"]:checked`).length;
+  const el=document.getElementById('sel-cnt-'+menuId);if(el)el.textContent=cnt;
+}
+function toggleSelAll(menuId){
+  const chks=[...document.querySelectorAll(`[data-menu="${menuId}"]`)];
+  const allChecked=chks.every(c=>c.checked);
+  chks.forEach(c=>c.checked=!allChecked);
+  updMenuSelCount(menuId);
+}
+function applySelectedMenu(menuId){
+  const allMenus=[...PRESET_MENUS,...getCustomMenus()];
+  const m=allMenus.find(x=>x.id===menuId);if(!m)return;
+  const mainItems=m.main||[];
+  const subItems=(m.supplementary?.items)||m.supplementary||m.exercises||[];
+  const allSlots=[...mainItems,...(Array.isArray(subItems)?subItems:[])];
+  const selected=[];
+  let idx=0;
+  allSlots.forEach(slot=>{
+    const chk=document.getElementById(`chk-${menuId}-${idx}`);
+    if(chk&&chk.checked){
+      if(slot.type==='swap'){
+        const swapEl=document.getElementById(`swap-${menuId}-${idx}`);
+        const activeChip=swapEl?.querySelector('.sc-active');
+        const optIdx=activeChip?parseInt(activeChip.dataset.optIdx):0;
+        const chosenName=slot.options[optIdx];
+        selected.push({name:chosenName,sets:slot.sets,r:slot.r});
+      }else{
+        selected.push(slot);
+      }
+    }
+    idx++;
+  });
+  if(!selected.length){showToast('請至少勾選一個動作');return;}
+  goTab('add',document.querySelector('[data-tab=add]'));
+  setTimeout(()=>{
+    document.getElementById('new-date').value=todayStr();
+    document.getElementById('new-note').value='';
+    document.getElementById('ex-container').innerHTML='';exIdx=0;
+    selected.forEach(ex=>{
+      addExercise();const curId='ex'+exIdx;
+      const inp=document.getElementById(curId).querySelector('.ex-name-input');
+      inp.value=ex.name;onNameChange(inp,curId);
+      const tb=document.getElementById('tb-'+curId);tb.innerHTML='';
+      const cnt=Math.max(1,ex.sets||3);
+      for(let i=0;i<cnt;i++){
+        addSet(curId);
+        if(ex.r)tb.rows[i].querySelector('[data-f=r]').value=ex.r;
+      }
+    });
+    showToast('✅ 已套用 '+selected.length+' 個動作，去填重量！');
+  },60);
+}
+function delCustomMenu(id){
+  if(!confirm('刪除這個菜單？'))return;
+  saveCustomMenus(getCustomMenus().filter(m=>m.id!==id));
+  renderMenuList();
+}
+
+// ── 動作示範 ──
+function openExDemo(name){
+  const info=EXERCISE_INFO[name];
+  const content=document.getElementById('ex-demo-content');if(!content)return;
+  const cues=(info?.cues||[]).map((c,i)=>`<div class="demo-cue"><div class="demo-cue-num">${i+1}</div><div>${c}</div></div>`).join('');
+  const ytQuery=encodeURIComponent(name+' 重訓 教學');
+  content.innerHTML=`
+    <div class="demo-title">${name}</div>
+    <div class="demo-muscle">${info?.muscle||'—'}</div>
+    ${cues||'<p style="color:rgba(240,236,228,.4);font-size:13px">暫無示範資料</p>'}
+    <a href="https://www.youtube.com/results?search_query=${ytQuery}" target="_blank" class="yt-link">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4444"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-2.7A3.38 3.38 0 0012.76 2a3.38 3.38 0 00-3.06 2A4.83 4.83 0 016 6.69 4.83 4.83 0 012 10.27v3.46a4.83 4.83 0 014 3.58A3.38 3.38 0 0012.76 22a3.38 3.38 0 003.06-4.69 4.83 4.83 0 014-3.58v-3.46a4.83 4.83 0 01-4.23-3.58z"/><polygon fill="#fff" points="10 15 15 12 10 9 10 15"/></svg>
+      YouTube 示範影片
+    </a>`;
+  document.getElementById('ex-demo-overlay').hidden=false;
+}
+function closeExDemo(){document.getElementById('ex-demo-overlay').hidden=true;}
+
+// ── 動作示範庫列表 ──
+function renderDemoLib(query){
+  const el=document.getElementById('demo-list');if(!el)return;
+  const q=(query||'').toLowerCase().trim();
+  const allNames=Object.keys(EXERCISE_INFO);
+  const filtered=q?allNames.filter(n=>n.toLowerCase().includes(q)):allNames;
+  el.innerHTML=filtered.map(n=>`<div class="demo-lib-card" onclick="openExDemo('${n.replace(/'/g,"\\'")}')">
+    <div><div class="demo-lib-name">${n}</div><div class="demo-lib-muscle">${EXERCISE_INFO[n].muscle}</div></div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,158,11,.6)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+  </div>`).join('')||'<div class="empty">找不到符合的動作</div>';
+}
+function filterDemoLib(q){renderDemoLib(q);}
+
+// ── 建立自訂菜單 ──
+let _cmExArr=[];
+function openCreateMenu(){
+  _cmExArr=[];
+  document.getElementById('cm-name').value='';
+  document.getElementById('cm-icon').value='📋';
+  document.getElementById('cm-ex-input').value='';
+  renderCmExList();
+  document.getElementById('create-menu-overlay').hidden=false;
+}
+function closeCreateMenu(){document.getElementById('create-menu-overlay').hidden=true;}
+function renderCmExList(){
+  const el=document.getElementById('cm-ex-list');if(!el)return;
+  el.innerHTML=_cmExArr.map((ex,i)=>`<div class="cm-ex-row">
+    <span class="cm-ex-name">${ex.name}</span>
+    <input class="cm-ex-sets" type="text" inputmode="numeric" value="${ex.sets}" onchange="_cmExArr[${i}].sets=parseInt(this.value)||3" placeholder="組">
+    <button class="cm-ex-rm" onclick="_cmExArr.splice(${i},1);renderCmExList()">✕</button>
+  </div>`).join('')||'<div style="font-size:12px;color:rgba(240,236,228,.28);padding:6px 0">尚未新增動作</div>';
+}
+function filterCmDd(inp){
+  const q=inp.value.toLowerCase().trim();
+  const dd=document.getElementById('cm-ex-dd');if(!dd)return;
+  const allNames=[...new Set([...Object.keys(EXERCISE_INFO),...Object.values(EXERCISE_DB).flat()])];
+  const hits=q?allNames.filter(n=>n.toLowerCase().includes(q)):allNames.slice(0,12);
+  dd.innerHTML=hits.map(n=>`<div class="ex-dd-item" onmousedown="addCmEx('${n.replace(/'/g,"\\'")}')"> ${n}</div>`).join('');
+  dd.hidden=false;
+}
+function hideCmDd(d){setTimeout(()=>{const dd=document.getElementById('cm-ex-dd');if(dd)dd.hidden=true;},d||200);}
+function addCmEx(name){
+  if(!_cmExArr.find(e=>e.name===name))_cmExArr.push({name,sets:3,r:10});
+  renderCmExList();
+  document.getElementById('cm-ex-input').value='';
+  const dd=document.getElementById('cm-ex-dd');if(dd)dd.hidden=true;
+}
+function saveCustomMenu(){
+  const name=document.getElementById('cm-name').value.trim();
+  if(!name){showToast('請輸入菜單名稱');return;}
+  if(!_cmExArr.length){showToast('請新增至少一個動作');return;}
+  const icon=document.getElementById('cm-icon').value.trim()||'📋';
+  const m={id:'c'+Date.now(),name,icon,desc:'自訂菜單',exercises:_cmExArr.map(e=>({...e})),_custom:true};
+  const arr=getCustomMenus();arr.push(m);saveCustomMenus(arr);
+  closeCreateMenu();renderMenuList();
+  showToast('✅ 菜單「'+name+'」已儲存！');
+}
+
+// ── 1RM 估算 ──
+function upd1rm(row){
+  const w=parseFloat(row.querySelector('[data-f=w]').value);
+  const r=parseInt(row.querySelector('[data-f=r]').value);
+  const el=row.querySelector('[data-1rm]');if(!el)return;
+  if(w>0&&r>0){const orm=Math.round(w*(1+r/30)*2)/2;el.textContent='~'+orm+'kg';}
+  else el.textContent='';
+}
+
+// ── 組間休息計時器 ──
+let _restTimer=null,_restSec=90;
+function startRestTimer(){
+  stopRestTimer();_restSec=90;
+  const el=document.getElementById('rest-timer');
+  const cnt=document.getElementById('rest-count');
+  el.classList.remove('rt-hidden');cnt.textContent=_restSec;
+  _restTimer=setInterval(()=>{
+    _restSec--;cnt.textContent=_restSec;
+    if(_restSec<=0){
+      stopRestTimer();showToast('💪 休息結束，繼續下一組！');
+      navigator.vibrate&&navigator.vibrate([200,100,200]);
+    }
+  },1000);
+}
+function stopRestTimer(){
+  if(_restTimer){clearInterval(_restTimer);_restTimer=null;}
+  const el=document.getElementById('rest-timer');
+  if(el)el.classList.add('rt-hidden');
+}
+
+// ── 快速調整全組重量/次數 ──
+function adjAllSets(exId,field,delta){
+  const tb=document.getElementById('tb-'+exId);if(!tb)return;
+  [...tb.rows].forEach(row=>{
+    const inp=row.querySelector('[data-f='+field+']');if(!inp)return;
+    const v=parseFloat(inp.value);
+    if(!isNaN(v)){
+      const nv=field==='r'?Math.max(1,Math.round(v+delta)):Math.round((v+delta)*2)/2;
+      inp.value=nv;upd1rm(row);
+    }
+  });
+  scheduleDraftSave();
+}
+
+// ── 複製訓練為今日 ──
+function copySessionToToday(id,e){
+  if(e)e.stopPropagation();
+  const s=WK.find(w=>w.id===id);if(!s)return;
+  goTab('add',document.querySelector('[data-tab=add]'));
+  setTimeout(()=>{
+    document.getElementById('new-date').value=todayStr();
+    document.getElementById('new-note').value=s.note||'';
+    document.getElementById('ex-container').innerHTML='';exIdx=0;
+    s.exercises.forEach(ex=>{
+      addExercise();const curId='ex'+exIdx;
+      const blk=document.getElementById(curId);
+      const inp=blk.querySelector('.ex-name-input');
+      inp.value=ex.name;onNameChange(inp,curId);
+      const tb=document.getElementById('tb-'+curId);tb.innerHTML='';
+      ex.sets.forEach((st,i)=>{
+        addSet(curId);const row=tb.rows[i];
+        if(st.w!==null&&st.w!==undefined)row.querySelector('[data-f=w]').value=st.w;
+        if(st.r!==null&&st.r!==undefined)row.querySelector('[data-f=r]').value=st.r;
+        if(st.rpe)row.querySelector('[data-f=rpe]').value=st.rpe;
+        upd1rm(row);
+      });
+    });
+    showToast('✅ 已複製，微調後儲存！');
+  },60);
 }
 
 // ── INIT ──
