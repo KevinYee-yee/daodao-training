@@ -118,6 +118,19 @@ textarea.form-input{resize:none}
 .drag-handle{width:28px;height:32px;display:flex;align-items:center;justify-content:center;color:#c4b5fd;flex-shrink:0;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .drag-handle svg{pointer-events:none}
 .ex-block.is-dragging{opacity:.35}
+.ex-block.ex-collapsed .sets-tbl,.ex-block.ex-collapsed .last-perf,.ex-block.ex-collapsed .ex-add-set{display:none}
+.ex-block.ex-collapsed{padding-bottom:8px}
+.sets-tbl{table-layout:fixed}
+.sets-tbl th:first-child,.sets-tbl td:first-child{width:20px}
+.sets-tbl th:nth-child(3),.sets-tbl td:nth-child(3){width:58px}
+.sets-tbl th:nth-child(4),.sets-tbl td:nth-child(4){width:62px}
+.sets-tbl th:nth-child(5),.sets-tbl td:nth-child(5){width:30px;text-align:center}
+.sets-tbl th:nth-child(6),.sets-tbl td:nth-child(6){width:26px;text-align:center}
+.set-done td{opacity:.45}
+.set-done .set-inp{background:#f0fdf4;border-color:#86efac}
+.check-btn{background:none;border:none;font-size:17px;padding:2px 4px;cursor:pointer;color:#d1d5db;line-height:1}
+.check-btn.done{color:var(--green)}
+.draft-bar{background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;font-size:13px}
 .ex-name-wrap{flex:1;position:relative}
 .ex-dropdown{position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--card);border:1.5px solid var(--p);border-radius:10px;z-index:50;max-height:220px;overflow-y:auto;box-shadow:0 6px 20px rgba(0,0,0,.14)}
 .ex-dd-cat{font-size:10px;font-weight:700;color:var(--muted);padding:8px 12px 4px;text-transform:uppercase;letter-spacing:.6px;background:var(--bg);position:sticky;top:0}
@@ -184,14 +197,14 @@ textarea.form-input{resize:none}
       <button class="btn btn-ghost" style="padding:8px 16px;font-size:13px;flex-shrink:0;margin-left:10px" onclick="loadTodayPlan()">套用</button>
     </div>
     <label class="form-label">訓練日期</label>
-    <input type="date" class="form-input" id="new-date" style="margin-bottom:16px">
+    <input type="date" class="form-input" id="new-date" style="margin-bottom:16px" onchange="scheduleDraftSave()">
     <label class="form-label">動作</label>
     <div id="ex-container"></div>
     <button class="btn btn-ghost btn-full" onclick="addExercise()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增動作
     </button>
     <label class="form-label">備註（暖身、有氧等）</label>
-    <textarea class="form-input" id="new-note" rows="3" placeholder="例：暖身死蟲2組，快走20分鐘"></textarea>
+    <textarea class="form-input" id="new-note" rows="3" placeholder="例：暖身死蟲2組，快走20分鐘" oninput="scheduleDraftSave()"></textarea>
     <div style="height:16px"></div>
     <button class="btn btn-primary" onclick="saveWorkout()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>儲存訓練
@@ -540,13 +553,64 @@ function delSession(id,e){
 
 // ── ADD ──
 let exIdx=0;
+const DRAFT_KEY='daodao_draft';
+let _draftTimer=null;
+function scheduleDraftSave(){clearTimeout(_draftTimer);_draftTimer=setTimeout(saveDraft,800);}
+function saveDraft(){
+  const date=document.getElementById('new-date').value;
+  const note=document.getElementById('new-note').value;
+  const exercises=[...document.getElementById('ex-container').querySelectorAll('.ex-block')].map(blk=>({
+    name:blk.querySelector('.ex-name-input').value,
+    sets:[...blk.querySelectorAll('tbody tr')].map(row=>({
+      w:row.querySelector('[data-f=w]').value,
+      r:row.querySelector('[data-f=r]').value,
+      rpe:row.querySelector('[data-f=rpe]').value,
+      done:row.classList.contains('set-done')
+    }))
+  }));
+  localStorage.setItem(DRAFT_KEY,JSON.stringify({date,note,exercises}));
+}
+function clearDraft(){localStorage.removeItem(DRAFT_KEY);}
+function restoreDraft(draft){
+  document.getElementById('new-date').value=draft.date||todayStr();
+  document.getElementById('new-note').value=draft.note||'';
+  document.getElementById('ex-container').innerHTML='';exIdx=0;
+  (draft.exercises||[]).forEach(ex=>{
+    addExercise();const curId='ex'+exIdx;
+    const blk=document.getElementById(curId);
+    const inp=blk.querySelector('.ex-name-input');
+    inp.value=ex.name||'';if(ex.name)onNameChange(inp,curId);
+    const tb=document.getElementById('tb-'+curId);tb.innerHTML='';
+    (ex.sets||[]).forEach((s,i)=>{
+      addSet(curId);const row=tb.rows[i];
+      row.querySelector('[data-f=w]').value=s.w||'';
+      row.querySelector('[data-f=r]').value=s.r||'';
+      row.querySelector('[data-f=rpe]').value=s.rpe||'';
+      if(s.done){row.classList.add('set-done');const b=row.querySelector('.check-btn');if(b){b.textContent='✓';b.classList.add('done');}}
+    });
+  });
+}
+function toggleSetDone(btn){
+  const row=btn.closest('tr');row.classList.toggle('set-done');
+  const done=row.classList.contains('set-done');
+  btn.textContent=done?'✓':'○';btn.classList.toggle('done',done);
+  scheduleDraftSave();
+}
 function initAdd(){
+  const raw=localStorage.getItem(DRAFT_KEY);
+  if(raw){
+    const draft=JSON.parse(raw);
+    const container=document.getElementById('ex-container');
+    container.innerHTML='';exIdx=0;
+    const bar=document.createElement('div');bar.className='draft-bar';bar.id='draft-notice';
+    bar.innerHTML=`<span>📝 有未完成的訓練草稿</span><span style="display:flex;gap:8px"><button class="btn-sm" style="background:var(--pa);color:var(--p2);border-radius:8px;padding:6px 12px;border:none;font-size:12px;cursor:pointer" onclick="restoreDraft(${JSON.stringify(draft).replace(/"/g,'&quot;')});document.getElementById('draft-notice').remove()">繼續</button><button class="btn-sm" style="padding:6px 12px;font-size:12px" onclick="clearDraft();document.getElementById('draft-notice').remove()">捨棄</button></span>`;
+    document.getElementById('ex-container').before(bar);
+    initPlanBar();addExercise();return;
+  }
   document.getElementById('new-date').value=todayStr();
   document.getElementById('new-note').value='';
   document.getElementById('ex-container').innerHTML='';
-  exIdx=0;
-  initPlanBar();
-  addExercise();
+  exIdx=0;initPlanBar();addExercise();
 }
 function addExercise(){
   exIdx++;const id=`ex${exIdx}`;
@@ -564,10 +628,10 @@ function addExercise(){
     </div>
     <div id="lp-${id}" class="last-perf" hidden></div>
     <table class="sets-tbl">
-      <thead><tr><th>#</th><th>重量(kg)</th><th>次數</th><th>RPE</th><th></th></tr></thead>
+      <thead><tr><th>#</th><th>重量(kg)</th><th>次數</th><th>RPE</th><th></th><th></th></tr></thead>
       <tbody id="tb-${id}"></tbody>
     </table>
-    <button class="btn btn-ghost" style="width:100%;font-size:13px;padding:8px 12px" onclick="addSet('${id}')">+ 新增組數</button>`;
+    <button class="btn btn-ghost ex-add-set" style="width:100%;font-size:13px;padding:8px 12px" onclick="addSet('${id}')">+ 新增組數</button>`;
   document.getElementById('ex-container').appendChild(div);
   _dragInit(document.getElementById('dh-'+id), id);
   addSet(id);
@@ -580,10 +644,11 @@ function addSet(exId){
   const tr=document.createElement('tr');tr.className='set-row';
   tr.innerHTML=`
     <td class="set-n">${n}</td>
-    <td><input class="set-inp" type="number" inputmode="decimal" step="0.5" min="0" placeholder="—" data-f="w" value="${pw}"></td>
-    <td><input class="set-inp" type="number" inputmode="numeric" min="0" placeholder="—" data-f="r" value="${pr}"></td>
-    <td><input class="set-inp" type="number" inputmode="numeric" min="1" max="10" placeholder="—" data-f="rpe"></td>
-    <td><button style="background:none;border:none;color:#d1d5db;font-size:16px;padding:4px 6px;cursor:pointer" onclick="rmSet(this)">✕</button></td>`;
+    <td><input class="set-inp" type="number" inputmode="decimal" step="0.5" placeholder="—" data-f="w" value="${pw}" oninput="scheduleDraftSave()"></td>
+    <td><input class="set-inp" type="number" inputmode="numeric" min="0" placeholder="—" data-f="r" value="${pr}" oninput="scheduleDraftSave()"></td>
+    <td><input class="set-inp" type="number" inputmode="decimal" step="0.5" min="0" max="10" placeholder="—" data-f="rpe" oninput="scheduleDraftSave()"></td>
+    <td><button class="check-btn" onclick="toggleSetDone(this)">○</button></td>
+    <td><button style="background:none;border:none;color:#d1d5db;font-size:15px;padding:2px 4px;cursor:pointer" onclick="rmSet(this)">✕</button></td>`;
   tb.appendChild(tr);
 }
 function rmSet(btn){
@@ -666,7 +731,7 @@ function saveWorkout(){
   const note=document.getElementById('new-note').value.trim();
   const session={id:uid(),date,exercises,note};
   // Optimistic update
-  WK.push(session);setCache(WK);
+  WK.push(session);setCache(WK);clearDraft();
   showToast(getGASUrl()?'✅ 儲存並同步中…':'✅ 已儲存（本地）');
   setTimeout(()=>{initAdd();goTab('log',document.querySelector('[data-tab=log]'));},700);
   // Background sync
@@ -795,6 +860,8 @@ function _dragBegin(touch,exId){
   const rect=el.getBoundingClientRect();
   el.classList.add('is-dragging');
   navigator.vibrate&&navigator.vibrate(40);
+  // collapse others
+  document.querySelectorAll('.ex-block').forEach(b=>{if(b!==el)b.classList.add('ex-collapsed');});
   const g=el.cloneNode(true);
   g.style.cssText=`position:fixed;top:${rect.top}px;left:${rect.left}px;width:${rect.width}px;z-index:999;pointer-events:none;opacity:.92;box-shadow:0 12px 36px rgba(139,92,246,.35);transform:scale(1.03);border-radius:16px;transition:none`;
   document.body.appendChild(g);
@@ -817,6 +884,8 @@ function _dragEnd(){
   const midY=_drag.ghost.getBoundingClientRect().top+_drag.ghost.getBoundingClientRect().height/2;
   _drag.el.classList.remove('is-dragging');
   _drag.ghost.remove();
+  // restore collapsed
+  document.querySelectorAll('.ex-block.ex-collapsed').forEach(b=>b.classList.remove('ex-collapsed'));
   let insertBefore=null;
   for(const b of blocks){
     if(b===_drag.el)continue;
