@@ -173,6 +173,13 @@ textarea.form-input{resize:none}
 <div id="tab-add" class="tab-content" hidden>
   <div class="page-header"><h1>新增訓練</h1><p>記錄今天的訓練內容</p></div>
   <div class="form-sec">
+    <div id="plan-bar" hidden style="background:linear-gradient(135deg,#ede9fe,#fce7f3);border-radius:14px;padding:13px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;border:1px solid #ddd6fe">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--p2)">📋 今日計畫已備好</div>
+        <div id="plan-bar-names" style="font-size:12px;color:var(--muted);margin-top:3px"></div>
+      </div>
+      <button class="btn btn-ghost" style="padding:8px 16px;font-size:13px;flex-shrink:0;margin-left:10px" onclick="loadTodayPlan()">套用</button>
+    </div>
     <label class="form-label">訓練日期</label>
     <input type="date" class="form-input" id="new-date" style="margin-bottom:16px">
     <label class="form-label">動作</label>
@@ -535,6 +542,7 @@ function initAdd(){
   document.getElementById('new-note').value='';
   document.getElementById('ex-container').innerHTML='';
   exIdx=0;
+  initPlanBar();
   addExercise();
 }
 function addExercise(){
@@ -764,6 +772,48 @@ function renderFreq(){
   },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
     scales:{x:{grid:{display:false},ticks:{font:{size:11}}},
       y:{beginAtZero:true,ticks:{stepSize:1,font:{size:11}},grid:{color:'#f0ebff'}}}}});
+}
+
+// ── 今日計畫 ──
+const TODAY_PLAN={
+  date:'2026-05-25',
+  note:'昨天打羽球，腿稍微有點累',
+  exercises:[
+    {name:'高腳杯深蹲', sets:4, w:8,  r:10},
+    {name:'分腿蹲',     sets:3, w:8,  r:8},
+    {name:'臀外展機',   sets:3, w:36, r:12},
+    {name:'水平划船',   sets:3, w:23, r:10},
+    {name:'死蟲',       sets:3, w:null,r:10}
+  ]
+};
+function initPlanBar(){
+  const bar=document.getElementById('plan-bar');
+  if(!bar)return;
+  if(todayStr()===TODAY_PLAN.date){
+    bar.hidden=false;
+    document.getElementById('plan-bar-names').textContent=TODAY_PLAN.exercises.map(e=>e.name).join('・');
+  }else{bar.hidden=true;}
+}
+function loadTodayPlan(){
+  document.getElementById('new-date').value=TODAY_PLAN.date;
+  document.getElementById('new-note').value=TODAY_PLAN.note;
+  document.getElementById('ex-container').innerHTML='';
+  exIdx=0;
+  TODAY_PLAN.exercises.forEach(ex=>{
+    addExercise();
+    const curId='ex'+exIdx;
+    const blk=document.getElementById(curId);
+    const inp=blk.querySelector('.ex-name-input');
+    inp.value=ex.name;
+    onNameChange(inp,curId);
+    for(let i=1;i<ex.sets;i++)addSet(curId);
+    blk.querySelectorAll('tbody tr').forEach(row=>{
+      if(ex.w!==null)row.querySelector('[data-f=w]').value=ex.w;
+      if(ex.r!==null)row.querySelector('[data-f=r]').value=ex.r;
+    });
+  });
+  document.getElementById('plan-bar').hidden=true;
+  showToast('✅ 已套用今日計畫，去訓練現場填實際數字！');
 }
 
 // ── INIT ──
