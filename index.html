@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>呆呆訓練日誌</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -61,13 +61,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang TC','Noto Sans TC',s
 
 .form-sec{padding:14px}
 .form-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;display:block}
-.form-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;background:var(--card);color:var(--text);outline:none;transition:border-color .2s;-webkit-appearance:none;font-family:inherit}
+.form-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:16px;background:var(--card);color:var(--text);outline:none;transition:border-color .2s;-webkit-appearance:none;font-family:inherit}
 .form-input:focus{border-color:var(--p)}
 textarea.form-input{resize:none}
 
 .ex-block{background:var(--card);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:var(--shadow);border:1.5px solid var(--border)}
 .ex-block-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.ex-name-input{flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-weight:600;outline:none;-webkit-appearance:none;font-family:inherit}
+.ex-name-input{flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:16px;font-weight:600;outline:none;-webkit-appearance:none;font-family:inherit}
 .ex-name-input:focus{border-color:var(--p)}
 .btn-rm{width:32px;height:32px;border:none;border-radius:8px;background:#fee2e2;color:var(--red);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;flex-shrink:0}
 
@@ -76,7 +76,7 @@ textarea.form-input{resize:none}
 .sets-tbl th:first-child{text-align:left;width:22px}
 .set-row td{padding:3px 3px}
 .set-n{font-size:12px;color:var(--muted);text-align:center;padding-top:10px}
-.set-inp{width:100%;padding:8px 6px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;text-align:center;outline:none;-webkit-appearance:none;font-family:inherit}
+.set-inp{width:100%;padding:8px 6px;border:1.5px solid var(--border);border-radius:8px;font-size:16px;text-align:center;outline:none;-webkit-appearance:none;font-family:inherit}
 .set-inp:focus{border-color:var(--p)}
 
 .last-perf{font-size:12px;color:var(--muted);background:#faf5ff;border-radius:8px;padding:7px 10px;margin-bottom:9px;line-height:1.5}
@@ -149,7 +149,7 @@ textarea.form-input{resize:none}
 
 /* ══ MINIMAL CHARCOAL GOLD ══ */
 /* Nav pill — solid, zero blur */
-.nav{bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);right:auto;width:auto;max-width:calc(100vw - 28px);height:auto;background:#111;border:1px solid rgba(245,158,11,.25);border-radius:52px;box-shadow:none;padding:6px 10px;gap:2px}
+.nav{bottom:max(16px,env(safe-area-inset-bottom,16px));left:50%;transform:translateX(-50%);right:auto;width:auto;max-width:calc(100vw - 28px);height:auto;background:#111;border:1px solid rgba(245,158,11,.25);border-radius:52px;box-shadow:none;padding:6px 10px;gap:2px;will-change:transform}
 .nav-btn{border-radius:40px;padding:8px 9px;color:rgba(240,236,228,.32);font-size:10px;white-space:nowrap;transition:background .12s,color .12s}
 .nav-btn.active{background:rgba(245,158,11,.18);color:#f0ece4}
 .nav-btn:active{opacity:.55}
