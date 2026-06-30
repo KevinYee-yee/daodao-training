@@ -589,6 +589,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     <div id="diet-list"></div>
     <div class="sec-title" style="margin-top:4px">體重紀錄</div>
     <div class="card">
+      <div style="margin-bottom:12px">
+        <label class="form-label">日期</label>
+        <input class="form-input" type="date" id="weight-date" style="color:#f0ece4;background:#161616" onchange="renderWeightEntry()">
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
         <div>
           <label class="form-label">🌅 早上體重 (kg)</label>
@@ -2157,14 +2161,20 @@ function renderWeightEntry(){
   const arr=getWeightData();
   const inpAm=document.getElementById('weight-am');
   const inpPm=document.getElementById('weight-pm');
+  const inpDate=document.getElementById('weight-date');
   if(!inpAm||!inpPm)return;
   const today=todayStr();
-  const todayRec=arr.find(d=>d.date===today);
-  const ref=todayRec||(arr.length?arr[arr.length-1]:null);
-  if(ref){
+  if(inpDate&&!inpDate.value)inpDate.value=today;
+  const sel=inpDate?inpDate.value:today;
+  const selRec=arr.find(d=>d.date===sel);
+  const ref=selRec||(arr.length?arr[arr.length-1]:null);
+  inpAm.placeholder='—';inpPm.placeholder='—';
+  if(selRec){
+    if(selRec.am)inpAm.placeholder=selRec.am+' kg';
+    if(selRec.pm)inpPm.placeholder=selRec.pm+' kg';
+  } else if(ref){
     if(ref.am)inpAm.placeholder=ref.am+' kg';
     else if(ref.kg)inpAm.placeholder=ref.kg+' kg';
-    if(ref.pm)inpPm.placeholder=ref.pm+' kg';
   }
 }
 
@@ -2203,17 +2213,18 @@ function renderWeightChart2(){
 function saveWeight(slot){
   slot=slot||'am';
   const inp=document.getElementById('weight-'+slot);
+  const dateEl=document.getElementById('weight-date');
   const kg=parseFloat(inp.value);
   if(!kg||kg<20||kg>200){showToast('請輸入有效體重（20–200）');return;}
+  const dateStr=(dateEl&&dateEl.value)||todayStr();
   const arr=getWeightData();
-  const today=todayStr();
-  const idx=arr.findIndex(d=>d.date===today);
-  if(idx>=0){arr[idx][slot]=kg;}else{const r={date:today};r[slot]=kg;arr.push(r);}
+  const idx=arr.findIndex(d=>d.date===dateStr);
+  if(idx>=0){arr[idx][slot]=kg;}else{const r={date:dateStr};r[slot]=kg;arr.push(r);}
   saveWeightData(arr);
   inp.value='';inp.placeholder=kg+' kg';
   renderWeightChart2();
   renderBodyGoalsUI();
-  showToast('✅ '+(slot==='am'?'🌅 早上':'🌙 晚上')+' 體重 '+kg+' kg 已記錄');
+  showToast('✅ '+(slot==='am'?'🌅 早上':'🌙 晚上')+' 體重 '+kg+' kg（'+dateStr+'）已記錄');
 }
 
 function renderDietList(){
@@ -2316,16 +2327,58 @@ function closeAddFood(){document.getElementById('food-add-overlay').hidden=true;
 
 function handleFoodPhoto(input){
   const file=input.files[0];if(!file)return;
+  const gasUrl=localStorage.getItem('daodao_cfg');
   const reader=new FileReader();
   reader.onload=e=>{
     const img=new Image();
     img.onload=()=>{
-      const canvas=document.createElement('canvas');
-      const maxSize=160;const scale=Math.min(maxSize/img.width,maxSize/img.height);
-      canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);
-      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-      _foodThumb=canvas.toDataURL('image/jpeg',0.75);
+      // 縮圖（顯示用）
+      const thumb=document.createElement('canvas');
+      const ts=Math.min(160/img.width,160/img.height);
+      thumb.width=Math.round(img.width*ts);thumb.height=Math.round(img.height*ts);
+      thumb.getContext('2d').drawImage(img,0,0,thumb.width,thumb.height);
+      _foodThumb=thumb.toDataURL('image/jpeg',0.75);
       document.getElementById('food-photo-preview').innerHTML=`<img src="${_foodThumb}" style="width:54px;height:54px;object-fit:cover;border-radius:8px">`;
+
+      if(!gasUrl){showToast('請先設定 GAS 網址才能辨識食物');return;}
+
+      // 分析用圖（較大解析度）
+      const ac=document.createElement('canvas');
+      const as=Math.min(1,800/Math.max(img.width,img.height));
+      ac.width=Math.round(img.width*as);ac.height=Math.round(img.height*as);
+      ac.getContext('2d').drawImage(img,0,0,ac.width,ac.height);
+      const b64=ac.toDataURL('image/jpeg',0.85).split(',')[1];
+
+      // 顯示分析中
+      const nameInp=document.getElementById('food-name-input');
+      if(nameInp){nameInp.value='';nameInp.placeholder='🔍 AI 辨識中…';nameInp.disabled=true;}
+      ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{
+        const el=document.getElementById(id);if(el){el.value='';el.placeholder='…';}
+      });
+
+      // POST 到 GAS
+      fetch(gasUrl,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'analyzeFood',imageBase64:b64,mimeType:'image/jpeg'})
+      }).then(r=>r.json()).then(data=>{
+        if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
+        if(data.ok){
+          if(nameInp)nameInp.value=data.name||'';
+          const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
+          set('food-kcal',data.kcal);set('food-protein',data.protein);
+          set('food-carbs',data.carbs);set('food-fat',data.fat);
+          if(data.portion){const pl=document.getElementById('food-portion');if(pl)pl.placeholder=data.portion;}
+          showToast('✅ 辨識完成：'+( data.name||'食物'));
+        } else {
+          showToast('⚠️ 辨識失敗，請手動輸入');
+          if(nameInp)nameInp.placeholder='食物名稱';
+          ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{
+            const el=document.getElementById(id);if(el)el.placeholder='—';
+          });
+        }
+      }).catch(()=>{
+        if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
+        showToast('⚠️ 辨識失敗，請手動輸入');
+      });
     };
     img.src=e.target.result;
   };
