@@ -2472,29 +2472,52 @@ function renderWeightList(){
   const el=document.getElementById('weight-list-rows');if(!el)return;
   const arr=getWeightData().slice().sort((a,b)=>b.date.localeCompare(a.date));
   if(!arr.length){el.innerHTML='<div style="padding:12px 16px;font-size:13px;color:rgba(240,236,228,.35)">尚無記錄</div>';return;}
-  el.innerHTML=arr.map((r,i)=>{
+  // Header
+  const header=`<div style="display:grid;grid-template-columns:1.8fr 1.1fr 1.1fr 1.6fr 1.6fr;padding:6px 16px;gap:4px;border-top:1px solid #1e1e1e">
+    <div style="font-size:10px;color:rgba(240,236,228,.3);font-weight:700">日期</div>
+    <div style="font-size:10px;color:rgba(240,236,228,.3);text-align:center">🌅早</div>
+    <div style="font-size:10px;color:rgba(240,236,228,.3);text-align:center">🌙晚</div>
+    <div style="font-size:10px;color:rgba(240,236,228,.3);text-align:center">夜間降幅</div>
+    <div style="font-size:10px;color:rgba(240,236,228,.3);text-align:center">晨間趨勢</div>
+  </div>`;
+  const rows=arr.map((r,i)=>{
     const am=r.am??r.kg??null;
     const pm=r.pm??null;
-    let diffTxt='—';let color='rgba(240,236,228,.4)';let tip='';
-    // 差值 = 本日早上 - 前一天晚上（隔夜體重變化）
+    // 夜間降幅：本日早 - 前日晚（應為負值，正常睡眠水分代謝）
     const prevPm=arr[i+1]?.pm??null;
+    let nightTxt='—';let nightColor='rgba(240,236,228,.35)';let nightTip='';
     if(am!==null&&prevPm!==null){
-      const d=am-prevPm;
-      const sign=d>=0?'+':'';
-      diffTxt=sign+d.toFixed(1)+'kg';
-      if(d<=-0.3){color='#4ade80';tip='燃脂良好';}
-      else if(d<0.3){color='#a3e635';tip='水分穩定';}
-      else if(d<0.8){color='#f59e0b';tip='水分稍增';}
-      else{color='#f87171';tip='注意水腫';}
+      const drop=am-prevPm; // 通常為負（早<前日晚）
+      const dropAbs=Math.abs(drop);
+      if(drop>0){
+        nightTxt='+'+drop.toFixed(1);nightColor='#f87171';nightTip='水腫';
+      }else if(dropAbs<0.2){
+        nightTxt=drop.toFixed(1);nightColor='#f59e0b';nightTip='降幅偏小';
+      }else if(dropAbs<=0.7){
+        nightTxt=drop.toFixed(1);nightColor='#a3e635';nightTip='正常';
+      }else{
+        nightTxt=drop.toFixed(1);nightColor='#f59e0b';nightTip='注意補水';
+      }
+    }
+    // 晨間趨勢：本日早 - 前日早（真實體重變化）
+    const prevAm=arr[i+1]?.am??arr[i+1]?.kg??null;
+    let mornTxt='—';let mornColor='rgba(240,236,228,.35)';
+    if(am!==null&&prevAm!==null){
+      const d=am-prevAm;
+      const sign=d>=0?'↑':' ↓';
+      mornTxt=(d>=0?'+':'')+d.toFixed(1)+sign;
+      mornColor=d<=-0.1?'#4ade80':d<=0.2?'#a3e635':d<=0.5?'#f59e0b':'#f87171';
     }
     const isEven=i%2===0;
-    return `<div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 2fr;padding:9px 16px;gap:4px;background:${isEven?'transparent':'rgba(255,255,255,.02)'};border-top:1px solid #161616">
+    return `<div style="display:grid;grid-template-columns:1.8fr 1.1fr 1.1fr 1.6fr 1.6fr;padding:8px 16px;gap:4px;background:${isEven?'transparent':'rgba(255,255,255,.02)'};border-top:1px solid #161616">
       <div style="font-size:12px;color:#f0ece4;font-weight:600">${r.date.slice(5)}</div>
       <div style="font-size:12px;color:rgba(240,236,228,.7);text-align:center">${am??'—'}</div>
       <div style="font-size:12px;color:rgba(240,236,228,.7);text-align:center">${pm??'—'}</div>
-      <div style="font-size:11px;font-weight:700;color:${color}">${diffTxt}${tip?` <span style="font-weight:400;color:rgba(240,236,228,.35)">${tip}</span>`:''}</div>
+      <div style="font-size:11px;font-weight:700;color:${nightColor};text-align:center">${nightTxt}${nightTip?`<br><span style="font-size:9px;font-weight:400;color:rgba(240,236,228,.3)">${nightTip}</span>`:''}</div>
+      <div style="font-size:11px;font-weight:700;color:${mornColor};text-align:center">${mornTxt}</div>
     </div>`;
   }).join('');
+  el.innerHTML=header+rows;
 }
 
 function saveWeight(slot){
