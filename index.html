@@ -190,6 +190,8 @@ textarea.form-input{resize:none}
 .btn-primary{background:#f59e0b;border:none;box-shadow:none;color:#080808;font-weight:800}
 .btn-ghost{background:transparent;color:#f59e0b;border:1px solid rgba(245,158,11,.35)}
 .btn:active{opacity:.7 !important}
+.cardio-type-btn{background:#161616;border:1px solid #2a2a2a;color:rgba(240,236,228,.6);border-radius:10px;padding:8px 4px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;width:100%}
+.cardio-type-btn.active{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.5);color:#10b981}
 .btn-rm{background:transparent;color:#ff6b6b;border:1px solid rgba(255,107,107,.25)}
 .btn-sm{background:transparent;color:#ff6b6b;border:1px solid rgba(255,107,107,.25)}
 /* Sync bar */
@@ -587,6 +589,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
   <div class="section" style="padding-top:14px">
     <div class="sec-title">本週訓練</div>
     <div class="card" id="freq-progress"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="sec-title" style="margin-bottom:0">本週有氧</div>
+      <button onclick="openAddCardio()" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#10b981;font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;cursor:pointer;font-family:inherit">＋ 記錄有氧</button>
+    </div>
+    <div class="card" id="cardio-progress" style="padding:14px 16px"></div>
     <div class="sec-title">週計畫</div>
     <div class="card">
       <p style="font-size:12px;color:var(--muted);margin-bottom:10px">點擊切換訓練部位，長按重置</p>
@@ -691,6 +698,39 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     </div>
     <button id="food-save-btn" class="btn btn-primary" onclick="saveFoodEntry()">儲存飲食</button>
     <button class="btn btn-ghost btn-full" onclick="closeAddFood()" style="margin-top:8px">取消</button>
+  </div>
+</div>
+
+<!-- 有氧記錄 overlay -->
+<div id="cardio-overlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(4px)" onclick="if(event.target===this)closeAddCardio()">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:#1a1a1a;border-radius:20px 20px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));max-height:85vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h3 style="font-size:17px;font-weight:700;color:#f0ece4;margin:0" id="cardio-sheet-title">記錄有氧</h3>
+      <button onclick="closeAddCardio()" style="background:none;border:none;color:rgba(240,236,228,.4);font-size:22px;cursor:pointer;padding:0;line-height:1">×</button>
+    </div>
+    <div style="margin-bottom:12px">
+      <label class="form-label">日期</label>
+      <input class="form-input" type="date" id="cardio-date" style="color:#f0ece4;background:#161616">
+    </div>
+    <div style="margin-bottom:12px">
+      <label class="form-label">類型</label>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px" id="cardio-type-btns">
+        <button class="cardio-type-btn active" data-type="跑步" onclick="selectCardioType(this)">🏃 跑步</button>
+        <button class="cardio-type-btn" data-type="騎車" onclick="selectCardioType(this)">🚴 騎車</button>
+        <button class="cardio-type-btn" data-type="游泳" onclick="selectCardioType(this)">🏊 游泳</button>
+        <button class="cardio-type-btn" data-type="其他" onclick="selectCardioType(this)">💪 其他</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div><label class="form-label">時間(分鐘)</label><input class="form-input" type="number" id="cardio-duration" placeholder="30" inputmode="numeric"></div>
+      <div><label class="form-label">消耗(kcal) 選填</label><input class="form-input" type="number" id="cardio-kcal" placeholder="—" inputmode="numeric"></div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label class="form-label">備註(選填)</label>
+      <input class="form-input" type="text" id="cardio-note" placeholder="配速、路線等">
+    </div>
+    <button class="btn btn-primary" onclick="saveCardioEntry()" style="background:#10b981;border-color:#10b981">儲存有氧</button>
+    <button class="btn btn-ghost btn-full" onclick="closeAddCardio()" style="margin-top:8px">取消</button>
   </div>
 </div>
 
@@ -861,6 +901,110 @@ async function apiSaveWeight(record){
 async function apiSaveDiet(date,meals){
   await apiPost('saveDiet',{date,meals});
 }
+// ── 有氧記錄 ──
+const CARDIO_KEY='daodao_cardio_v1';
+function getCardioData(){return JSON.parse(localStorage.getItem(CARDIO_KEY)||'[]');}
+function saveCardioData(d){localStorage.setItem(CARDIO_KEY,JSON.stringify(d));}
+
+function getThisWeekCardio(){
+  const now=new Date(),dow=now.getDay();
+  const mon=new Date(now);mon.setDate(now.getDate()-(dow===0?6:dow-1));mon.setHours(0,0,0,0);
+  const sun=new Date(mon);sun.setDate(mon.getDate()+6);sun.setHours(23,59,59,999);
+  return getCardioData().filter(r=>{const d=new Date(r.date);return d>=mon&&d<=sun;});
+}
+
+let _cardioEditId=null;
+function openAddCardio(editId){
+  _cardioEditId=editId||null;
+  const ov=document.getElementById('cardio-overlay');
+  const title=document.getElementById('cardio-sheet-title');
+  document.getElementById('cardio-date').value=todayStr();
+  document.getElementById('cardio-duration').value='';
+  document.getElementById('cardio-kcal').value='';
+  document.getElementById('cardio-note').value='';
+  document.querySelectorAll('.cardio-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.type==='跑步'));
+  if(editId){
+    const r=getCardioData().find(c=>c.id===editId);
+    if(r){
+      title.textContent='編輯有氧';
+      document.getElementById('cardio-date').value=r.date;
+      document.getElementById('cardio-duration').value=r.duration||'';
+      document.getElementById('cardio-kcal').value=r.kcal||'';
+      document.getElementById('cardio-note').value=r.note||'';
+      document.querySelectorAll('.cardio-type-btn').forEach(b=>b.classList.toggle('active',b.dataset.type===r.type));
+    }
+  }else{title.textContent='記錄有氧';}
+  ov.style.display='block';
+}
+function closeAddCardio(){document.getElementById('cardio-overlay').style.display='none';}
+function selectCardioType(btn){document.querySelectorAll('.cardio-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+
+function saveCardioEntry(){
+  const date=document.getElementById('cardio-date').value||todayStr();
+  const type=document.querySelector('.cardio-type-btn.active')?.dataset.type||'跑步';
+  const duration=parseInt(document.getElementById('cardio-duration').value)||0;
+  const kcal=parseInt(document.getElementById('cardio-kcal').value)||null;
+  const note=document.getElementById('cardio-note').value.trim();
+  if(!duration){showToast('請輸入時間（分鐘）');return;}
+  const arr=getCardioData();
+  if(_cardioEditId){
+    const idx=arr.findIndex(c=>c.id===_cardioEditId);
+    if(idx>=0)arr[idx]={...arr[idx],date,type,duration,kcal,note};
+  }else{
+    arr.push({id:uid(),date,type,duration,kcal,note});
+  }
+  saveCardioData(arr);
+  apiSaveCardio(arr.find(c=>c.date===date&&c.type===type)||arr[arr.length-1]);
+  renderCardioProgress();
+  closeAddCardio();
+  showToast('✅ '+type+' '+duration+'分鐘已記錄');
+}
+
+function renderCardioProgress(){
+  const el=document.getElementById('cardio-progress');if(!el)return;
+  const week=getThisWeekCardio();
+  const target=2;
+  const done=week.length;
+  const color=done>=target?'#10b981':'#6ee7b7';
+  const pct=Math.min(done/target*100,100).toFixed(1);
+  const types={'跑步':'🏃','騎車':'🚴','游泳':'🏊','其他':'💪'};
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:16px">
+    <div style="position:relative;width:72px;height:72px;flex-shrink:0">
+      <svg viewBox="0 0 36 36" style="width:72px;height:72px;transform:rotate(-90deg)">
+        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1a3a2a" stroke-width="3"/>
+        <circle cx="18" cy="18" r="15.9" fill="none" stroke="${color}" stroke-width="3"
+          stroke-dasharray="${pct} 100" stroke-linecap="round"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <span style="font-size:20px;font-weight:700;color:${color}">${done}</span>
+        <span style="font-size:10px;color:rgba(240,236,228,.4)">/${target}</span>
+      </div>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700;color:#f0ece4">${done>=target?'🎉 有氧達標！':'本週有氧進度'}</div>
+      <div style="font-size:12px;color:rgba(240,236,228,.45);margin-top:2px">目標每週 ${target} 次</div>
+      ${week.length?`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">${week.map(r=>`<div onclick="openAddCardio('${r.id}')" style="background:#0d2a1f;border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:4px 8px;font-size:11px;color:#6ee7b7;cursor:pointer">${types[r.type]||'💪'} ${r.type} ${r.duration}分</div>`).join('')}</div>`:'<div style="font-size:12px;color:rgba(240,236,228,.3);margin-top:6px">尚無記錄，加油！</div>'}
+    </div>
+  </div>`;
+}
+
+async function apiSaveCardio(record){
+  await apiPost('saveCardio',{record});
+}
+async function syncCardioFromGAS(){
+  const url=getGASUrl();if(!url)return;
+  try{
+    const res=await fetch(url+'?action=getCardio');
+    const json=await res.json();
+    if(!json.ok||!json.records)return;
+    const local=getCardioData();
+    const map={};
+    local.forEach(r=>{map[r.id]=r;});
+    json.records.forEach(r=>{if(!map[r.id])map[r.id]=r;});
+    saveCardioData(Object.values(map).sort((a,b)=>a.date.localeCompare(b.date)));
+  }catch(e){}
+}
+
 async function syncWeightFromGAS(){
   const url=getGASUrl();if(!url)return;
   try{
@@ -1675,7 +1819,7 @@ function showCelebration(session){
   setTimeout(()=>ov.remove(),4500);
 }
 
-function renderGoals(){renderFreqProgress();renderWeekPlanUI();renderAchievements();}
+function renderGoals(){renderFreqProgress();renderCardioProgress();renderWeekPlanUI();renderAchievements();}
 
 function renderFreqProgress(){
   const el=document.getElementById('freq-progress');if(!el)return;
@@ -2739,6 +2883,7 @@ if(getGASUrl()){
   apiLoad().then(fresh=>{WK=fresh;renderOverview();});
   syncWeightFromGAS().then(()=>renderBodyTab());
   syncDietFromGAS().then(()=>renderBodyTab());
+  syncCardioFromGAS().then(()=>renderCardioProgress());
 }
 </script>
 </body>
