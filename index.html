@@ -611,7 +611,22 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
       </div>
       <div class="chart-wrap" style="height:180px"><canvas id="weight-chart"></canvas></div>
     </div>
-    <div class="sec-title">目標設定</div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <button onclick="toggleWeightList()" id="weight-list-toggle" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:none;border:none;color:#f0ece4;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
+        <span>體重紀錄清單</span>
+        <span id="weight-list-arrow" style="color:rgba(240,236,228,.4);font-size:11px;transition:transform .2s">▼</span>
+      </button>
+      <div id="weight-list-body" hidden>
+        <div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 2fr;padding:6px 16px 8px;gap:4px">
+          <div style="font-size:10px;font-weight:700;color:rgba(240,236,228,.3);letter-spacing:.4px">日期</div>
+          <div style="font-size:10px;font-weight:700;color:rgba(240,236,228,.3);letter-spacing:.4px;text-align:center">🌅早</div>
+          <div style="font-size:10px;font-weight:700;color:rgba(240,236,228,.3);letter-spacing:.4px;text-align:center">🌙晚</div>
+          <div style="font-size:10px;font-weight:700;color:rgba(240,236,228,.3);letter-spacing:.4px">差值 / 建議</div>
+        </div>
+        <div id="weight-list-rows"></div>
+      </div>
+    </div>
+    <div class="sec-title" style="margin-top:12px">目標設定</div>
     <div class="card" id="body-goals-card" style="padding:16px"></div>
   </div>
 </div>
@@ -620,12 +635,18 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 <div class="food-add-overlay" id="food-add-overlay" hidden onclick="if(event.target===this)closeAddFood()">
   <div class="food-add-sheet">
     <div style="font-size:18px;font-weight:800;color:#f0ece4;margin-bottom:16px">新增飲食</div>
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
       <div id="food-photo-preview"><div style="width:54px;height:54px;background:#161616;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;color:rgba(240,236,228,.2)">📷</div></div>
-      <label style="flex:1;background:#161616;border:1px solid #2a2a2a;border-radius:10px;padding:11px 14px;font-size:13px;color:rgba(240,236,228,.45);cursor:pointer;display:block;text-align:center">
-        📷 拍照 / 選圖
-        <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handleFoodPhoto(this)">
-      </label>
+      <div style="flex:1;display:flex;gap:8px">
+        <label style="flex:1;background:#161616;border:1px solid #2a2a2a;border-radius:10px;padding:10px 6px;font-size:12px;color:rgba(240,236,228,.45);cursor:pointer;display:block;text-align:center;font-weight:600">
+          📷 拍照
+          <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handleFoodPhoto(this)">
+        </label>
+        <label style="flex:1;background:#161616;border:1px solid #2a2a2a;border-radius:10px;padding:10px 6px;font-size:12px;color:rgba(240,236,228,.45);cursor:pointer;display:block;text-align:center;font-weight:600">
+          🖼 上傳
+          <input type="file" accept="image/*" style="display:none" onchange="handleFoodPhoto(this)">
+        </label>
+      </div>
     </div>
     <label class="form-label">食物名稱</label>
     <div style="position:relative;margin-bottom:12px">
@@ -2210,6 +2231,43 @@ function renderWeightChart2(){
   });
 }
 
+function toggleWeightList(){
+  const body=document.getElementById('weight-list-body');
+  const arrow=document.getElementById('weight-list-arrow');
+  if(!body)return;
+  const open=body.hidden;
+  body.hidden=!open;
+  if(arrow)arrow.style.transform=open?'rotate(180deg)':'';
+  if(open)renderWeightList();
+}
+
+function renderWeightList(){
+  const el=document.getElementById('weight-list-rows');if(!el)return;
+  const arr=getWeightData().slice().sort((a,b)=>b.date.localeCompare(a.date));
+  if(!arr.length){el.innerHTML='<div style="padding:12px 16px;font-size:13px;color:rgba(240,236,228,.35)">尚無記錄</div>';return;}
+  el.innerHTML=arr.map((r,i)=>{
+    const am=r.am??r.kg??null;
+    const pm=r.pm??null;
+    let diffTxt='—';let color='rgba(240,236,228,.4)';let tip='';
+    if(am&&pm){
+      const d=(pm-am);
+      const sign=d>=0?'+':'';
+      diffTxt=sign+d.toFixed(1)+'kg';
+      if(d<0.3){color='#4ade80';tip='水分穩定';}
+      else if(d<0.8){color='#a3e635';tip='正常範圍';}
+      else if(d<1.5){color='#f59e0b';tip='晚餐留意鹽分';}
+      else{color='#f87171';tip='注意水腫';}
+    }
+    const isEven=i%2===0;
+    return `<div style="display:grid;grid-template-columns:2fr 1.2fr 1.2fr 2fr;padding:9px 16px;gap:4px;background:${isEven?'transparent':'rgba(255,255,255,.02)'};border-top:1px solid #161616">
+      <div style="font-size:12px;color:#f0ece4;font-weight:600">${r.date.slice(5)}</div>
+      <div style="font-size:12px;color:rgba(240,236,228,.7);text-align:center">${am??'—'}</div>
+      <div style="font-size:12px;color:rgba(240,236,228,.7);text-align:center">${pm??'—'}</div>
+      <div style="font-size:11px;font-weight:700;color:${color}">${diffTxt}${tip?` <span style="font-weight:400;color:rgba(240,236,228,.35)">${tip}</span>`:''}</div>
+    </div>`;
+  }).join('');
+}
+
 function saveWeight(slot){
   slot=slot||'am';
   const inp=document.getElementById('weight-'+slot);
@@ -2224,6 +2282,7 @@ function saveWeight(slot){
   inp.value='';inp.placeholder=kg+' kg';
   renderWeightChart2();
   renderBodyGoalsUI();
+  if(!document.getElementById('weight-list-body').hidden)renderWeightList();
   showToast('✅ '+(slot==='am'?'🌅 早上':'🌙 晚上')+' 體重 '+kg+' kg（'+dateStr+'）已記錄');
 }
 
