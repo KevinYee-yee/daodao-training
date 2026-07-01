@@ -447,6 +447,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     </div>
     <div class="ov-dots" id="ov-week-dots"></div>
   </div>
+  <!-- Weekly training + cardio rings -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px;margin-bottom:4px">
+    <div class="card" id="freq-progress" style="padding:14px"></div>
+    <div class="card" id="cardio-progress" style="padding:14px;cursor:pointer" onclick="openAddCardio()"></div>
+  </div>
   <!-- Next badge teaser -->
   <div class="ov-badge-card" id="ov-badge-card">
     <div class="ov-badge-icon" id="ov-badge-icon">🌱</div>
@@ -462,47 +467,18 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     <span class="ov-recent-title">最近訓練</span>
     <button class="ov-see-all" onclick="goTab('log',document.querySelector('[data-tab=log]'))">查看全部 ›</button>
   </div>
-  <div style="padding:0 16px 24px" id="recent-list"></div>
+  <div style="padding:0 16px 4px" id="recent-list"></div>
+  <!-- Achievements -->
+  <div style="padding:0 16px 8px"><div class="sec-title">成就徽章</div></div>
+  <div class="badge-grid" id="badges-grid" style="padding:0 16px 100px"></div>
 </div>
 
 <!-- TAB: 紀錄 -->
 <div id="tab-log" class="tab-content" hidden>
   <div class="page-header"><h1>訓練紀錄</h1><p>所有歷史訓練</p></div>
-  <div class="section" style="padding-top:14px"><div id="all-list"></div></div>
-</div>
-
-<!-- TAB: 新增 -->
-<div id="tab-add" class="tab-content" hidden>
-  <div class="page-header"><h1>新增訓練</h1><p>記錄今天的訓練內容</p></div>
-  <div class="form-sec">
-    <div id="plan-bar" hidden style="background:linear-gradient(135deg,#ede9fe,#fce7f3);border-radius:14px;padding:13px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;border:1px solid #ddd6fe">
-      <div>
-        <div style="font-size:13px;font-weight:700;color:var(--p2)">📋 今日計畫已備好</div>
-        <div id="plan-bar-names" style="font-size:12px;color:var(--muted);margin-top:3px"></div>
-      </div>
-      <button class="btn btn-ghost" style="padding:8px 16px;font-size:13px;flex-shrink:0;margin-left:10px" onclick="loadTodayPlan()">套用</button>
-    </div>
-    <label class="form-label">訓練日期</label>
-    <input type="date" class="form-input" id="new-date" style="margin-bottom:16px" onchange="scheduleDraftSave()">
-    <label class="form-label">動作</label>
-    <div id="ex-container"></div>
-    <button class="btn btn-ghost btn-full" onclick="addExercise()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增動作
-    </button>
-    <label class="form-label">備註（暖身、有氧等）</label>
-    <textarea class="form-input" id="new-note" rows="3" placeholder="例：暖身死蟲2組，快走20分鐘" oninput="scheduleDraftSave()"></textarea>
-    <div style="height:16px"></div>
-    <button class="btn btn-primary" onclick="saveWorkout()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>儲存訓練
-    </button>
-  </div>
-</div>
-
-<!-- TAB: 圖表 -->
-<div id="tab-chart" class="tab-content" hidden>
-  <div class="page-header"><h1>成長曲線</h1><p>追蹤進步歷程</p></div>
   <div class="section" style="padding-top:14px">
-    <div class="sec-title">出席日曆</div>
+    <div id="all-list"></div>
+    <div class="sec-title" style="margin-top:8px">出席日曆</div>
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <button onclick="calShift(-1)" style="background:none;border:none;color:#f59e0b;font-size:22px;padding:0 8px;cursor:pointer;line-height:1">‹</button>
@@ -532,16 +508,43 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
       <div id="chart-stats"></div>
     </div>
     <div class="sec-title">每週訓練頻率</div>
-    <div class="card">
+    <div class="card" style="margin-bottom:100px">
       <div class="chart-wrap"><canvas id="freq-chart"></canvas></div>
     </div>
   </div>
 </div>
 
+<!-- TAB: 新增 -->
+<div id="tab-add" class="tab-content" hidden>
+  <div class="page-header"><h1>新增訓練</h1><p>記錄今天的訓練內容</p></div>
+  <div class="form-sec">
+    <div id="plan-bar" hidden></div>
+    <label class="form-label">訓練日期</label>
+    <input type="date" class="form-input" id="new-date" style="margin-bottom:16px" onchange="scheduleDraftSave()">
+    <label class="form-label">動作</label>
+    <div id="ex-container"></div>
+    <button class="btn btn-ghost btn-full" onclick="addExercise()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增動作
+    </button>
+    <label class="form-label">備註（暖身、有氧等）</label>
+    <textarea class="form-input" id="new-note" rows="3" placeholder="例：暖身死蟲2組，快走20分鐘" oninput="scheduleDraftSave()"></textarea>
+    <div style="height:16px"></div>
+    <button class="btn btn-primary" onclick="saveWorkout()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>儲存訓練
+    </button>
+  </div>
+</div>
+
+
 <!-- TAB: 菜單庫 -->
 <div id="tab-menu" class="tab-content" hidden>
   <div class="page-header"><h1>菜單庫</h1><p>選菜單套用・查動作示範</p></div>
   <div class="section" style="padding-top:14px">
+    <div class="sec-title">週計劃</div>
+    <div class="card" style="margin-bottom:4px">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">點擊切換訓練部位，長按重置</p>
+      <div class="week-plan-grid" id="week-plan-ui"></div>
+    </div>
     <div class="sec-title">訓練菜單</div>
     <div id="menu-list"></div>
     <div class="create-menu-card" onclick="openCreateMenu()">＋ 新增自訂菜單</div>
@@ -583,26 +586,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
   </div>
 </div>
 
-<!-- TAB: 目標 -->
-<div id="tab-goal" class="tab-content" hidden>
-  <div class="page-header"><h1>目標 &amp; 成就</h1><p>讓訓練更有動力</p></div>
-  <div class="section" style="padding-top:14px">
-    <div class="sec-title">本週訓練</div>
-    <div class="card" id="freq-progress"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div class="sec-title" style="margin-bottom:0">本週有氧</div>
-      <button onclick="openAddCardio()" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#10b981;font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;cursor:pointer;font-family:inherit">＋ 記錄有氧</button>
-    </div>
-    <div class="card" id="cardio-progress" style="padding:14px 16px"></div>
-    <div class="sec-title">週計畫</div>
-    <div class="card">
-      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">點擊切換訓練部位，長按重置</p>
-      <div class="week-plan-grid" id="week-plan-ui"></div>
-    </div>
-    <div class="sec-title">成就徽章</div>
-    <div class="badge-grid" id="badges-grid"></div>
-  </div>
-</div>
 
 <!-- TAB: 體態 -->
 <div id="tab-body" class="tab-content" hidden>
@@ -744,14 +727,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
   <button class="nav-btn" data-tab="add" onclick="goTab('add',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>新增
   </button>
-  <button class="nav-btn" data-tab="chart" onclick="goTab('chart',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>圖表
-  </button>
   <button class="nav-btn" data-tab="menu" onclick="goTab('menu',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h10M4 18h8"/></svg>菜單
-  </button>
-  <button class="nav-btn" data-tab="goal" onclick="goTab('goal',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg>目標
   </button>
   <button class="nav-btn" data-tab="body" onclick="goTab('body',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>體態
@@ -963,28 +940,27 @@ function saveCardioEntry(){
 function renderCardioProgress(){
   const el=document.getElementById('cardio-progress');if(!el)return;
   const week=getThisWeekCardio();
-  const target=2;
-  const done=week.length;
+  const target=2;const done=week.length;
   const color=done>=target?'#10b981':'#6ee7b7';
   const pct=Math.min(done/target*100,100).toFixed(1);
   const types={'跑步':'🏃','騎車':'🚴','游泳':'🏊','其他':'💪'};
-  el.innerHTML=`<div style="display:flex;align-items:center;gap:16px">
-    <div style="position:relative;width:72px;height:72px;flex-shrink:0">
-      <svg viewBox="0 0 36 36" style="width:72px;height:72px;transform:rotate(-90deg)">
+  el.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+    <div style="position:relative;width:64px;height:64px">
+      <svg viewBox="0 0 36 36" style="width:64px;height:64px;transform:rotate(-90deg)">
         <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1a3a2a" stroke-width="3"/>
         <circle cx="18" cy="18" r="15.9" fill="none" stroke="${color}" stroke-width="3"
           stroke-dasharray="${pct} 100" stroke-linecap="round"/>
       </svg>
       <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-        <span style="font-size:20px;font-weight:700;color:${color}">${done}</span>
-        <span style="font-size:10px;color:rgba(240,236,228,.4)">/${target}</span>
+        <span style="font-size:18px;font-weight:700;color:${color}">${done}</span>
+        <span style="font-size:9px;color:rgba(240,236,228,.4)">/${target}</span>
       </div>
     </div>
-    <div style="flex:1">
-      <div style="font-size:14px;font-weight:700;color:#f0ece4">${done>=target?'🎉 有氧達標！':'本週有氧進度'}</div>
-      <div style="font-size:12px;color:rgba(240,236,228,.45);margin-top:2px">目標每週 ${target} 次</div>
-      ${week.length?`<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">${week.map(r=>`<div onclick="openAddCardio('${r.id}')" style="background:#0d2a1f;border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:4px 8px;font-size:11px;color:#6ee7b7;cursor:pointer">${types[r.type]||'💪'} ${r.type} ${r.duration}分</div>`).join('')}</div>`:'<div style="font-size:12px;color:rgba(240,236,228,.3);margin-top:6px">尚無記錄，加油！</div>'}
+    <div style="text-align:center">
+      <div style="font-size:12px;font-weight:700;color:#f0ece4">🏃 有氧</div>
+      <div style="font-size:11px;color:rgba(240,236,228,.4);margin-top:2px">${done>=target?'達標 🎉':'點擊記錄'}</div>
     </div>
+    ${week.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;justify-content:center">${week.map(r=>`<div onclick="openAddCardio('${r.id}');event.stopPropagation()" style="background:#0d2a1f;border:1px solid rgba(16,185,129,.2);border-radius:6px;padding:2px 6px;font-size:10px;color:#6ee7b7">${types[r.type]||'💪'}${r.duration}分</div>`).join('')}</div>`:''}
   </div>`;
 }
 
@@ -1068,23 +1044,17 @@ function goTab(tab,btn){
   document.querySelectorAll('.tab-content').forEach(el=>el.hidden=true);
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+tab).hidden=false;
-  btn.classList.add('active');
-  // Render with cache first, then refresh
+  if(btn)btn.classList.add('active');
   WK=getCache();
-  if(tab==='overview')renderOverview();
-  if(tab==='log')renderLog();
-  if(tab==='chart')renderCharts();
-  if(tab==='goal')renderGoals();
-  if(tab==='menu')renderMenuTab();
+  if(tab==='overview'){renderOverview();renderFreqProgress();renderCardioProgress();renderAchievements();}
+  if(tab==='log'){renderLog();renderCharts();}
+  if(tab==='menu'){renderMenuTab();renderWeekPlanUI();}
   if(tab==='body')renderBodyTab();
-  // Background refresh from GAS
   if(getGASUrl()){
     apiLoad().then(fresh=>{
       WK=fresh;
-      if(tab==='overview')renderOverview();
-      if(tab==='log')renderLog();
-      if(tab==='chart')renderCharts();
-      if(tab==='goal')renderGoals();
+      if(tab==='overview'){renderOverview();renderFreqProgress();}
+      if(tab==='log'){renderLog();renderCharts();}
     });
   }
 }
@@ -1826,27 +1796,23 @@ function renderFreqProgress(){
   const goals=getGoals(),done=getThisWeekSessions(),target=goals.weeklyTarget||3;
   const pct=Math.min(done/target*100,100).toFixed(1);
   const color=done>=target?'var(--green)':'var(--p)';
-  el.innerHTML=`<div style="display:flex;align-items:center;gap:20px">
-    <div style="position:relative;width:80px;height:80px;flex-shrink:0">
-      <svg viewBox="0 0 36 36" style="width:80px;height:80px;transform:rotate(-90deg)">
-        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#ede9fe" stroke-width="3"/>
+  el.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+    <div style="position:relative;width:64px;height:64px">
+      <svg viewBox="0 0 36 36" style="width:64px;height:64px;transform:rotate(-90deg)">
+        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2a1f3a" stroke-width="3"/>
         <circle cx="18" cy="18" r="15.9" fill="none" stroke="${color}" stroke-width="3"
           stroke-dasharray="${pct} 100" stroke-linecap="round"/>
       </svg>
       <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-        <span style="font-size:22px;font-weight:700;color:${color}">${done}</span>
-        <span style="font-size:10px;color:var(--muted)">/${target}</span>
+        <span style="font-size:18px;font-weight:700;color:${color}">${done}</span>
+        <span style="font-size:9px;color:rgba(240,236,228,.4)">/${target}</span>
       </div>
     </div>
-    <div style="flex:1">
-      <div style="font-size:15px;font-weight:700">${done>=target?'🎉 本週達標！':'本週訓練進度'}</div>
-      <div style="font-size:12px;color:var(--muted);margin-top:3px">${done>=target?'棒棒，繼續保持！':'目標每週 '+target+' 次'}</div>
-      ${getConsecWeeks()>=2?`<div class="consec-weeks" style="margin-top:8px">🔥 連續 ${getConsecWeeks()} 週達成</div>`:''}
-      <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
-        <span style="font-size:11px;color:var(--muted)">週目標</span>
-        <div style="display:flex;gap:4px">${[1,2,3,4,5].map(i=>`<div onclick="setWeekTarget(${i})" style="width:28px;height:28px;border-radius:50%;background:${i<=target?'var(--p)':'#f0ebff'};color:${i<=target?'#fff':'var(--muted)'};font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:600;transition:background .2s">${i}</div>`).join('')}</div>
-      </div>
+    <div style="text-align:center">
+      <div style="font-size:12px;font-weight:700;color:#f0ece4">🏋️ 重訓</div>
+      <div style="font-size:11px;color:rgba(240,236,228,.4);margin-top:2px">${done>=target?'達標 🎉':'每週 '+target+' 次'}</div>
     </div>
+    <div style="display:flex;gap:3px">${[1,2,3,4,5].map(i=>`<div onclick="setWeekTarget(${i});event.stopPropagation()" style="width:20px;height:20px;border-radius:50%;background:${i<=target?'var(--p)':'rgba(139,92,246,.15)'};color:${i<=target?'#fff':'rgba(240,236,228,.3)'};font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-weight:600">${i}</div>`).join('')}</div>
   </div>`;
 }
 function setWeekTarget(n){const g=getGoals();g.weeklyTarget=n;saveGoals(g);renderGoals();showToast('週目標設為 '+n+' 次');}
