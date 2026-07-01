@@ -390,6 +390,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     <div class="step-item"><div class="step-num">4</div><div>複製「Web 應用程式網址」貼到下方</div></div>
     <label class="form-label" style="margin-top:4px">Google Apps Script 網址</label>
     <input class="form-input" type="url" id="gas-input" placeholder="https://script.google.com/macros/s/...">
+    <label class="form-label" style="margin-top:12px">Gemini API Key（拍照辨識食物用）</label>
+    <input class="form-input" id="gemini-key-input" placeholder="貼上你的 Gemini API Key" autocomplete="off">
+    <div style="font-size:12px;color:rgba(240,236,228,.35);margin-top:4px">從 <strong>aistudio.google.com/apikey</strong> 取得</div>
     <div class="modal-actions">
       <button class="btn btn-primary" onclick="saveGASUrl()">連線並同步</button>
       <button class="btn btn-ghost btn-full" onclick="skipSetup()">暫不設定（僅本地儲存）</button>
@@ -884,6 +887,8 @@ function goTab(tab,btn){
 // ── SETUP ──
 function openSetup(){
   document.getElementById('gas-input').value=getGASUrl();
+  const gk=document.getElementById('gemini-key-input');
+  if(gk)gk.value=getCfg().geminiKey||'';
   document.getElementById('setup-modal').hidden=false;
 }
 function skipSetup(){
@@ -894,7 +899,10 @@ function skipSetup(){
 async function saveGASUrl(){
   const url=document.getElementById('gas-input').value.trim();
   if(!url){showToast('請貼上網址');return;}
-  const cfg=getCfg();cfg.gasUrl=url;cfg.setupSeen=true;saveCfg(cfg);
+  const geminiKeyEl=document.getElementById('gemini-key-input');
+  const cfg=getCfg();cfg.gasUrl=url;cfg.setupSeen=true;
+  if(geminiKeyEl&&geminiKeyEl.value.trim())cfg.geminiKey=geminiKeyEl.value.trim();
+  saveCfg(cfg);
   document.getElementById('setup-modal').hidden=true;
   showToast('連線測試中…');
   // Test & optionally seed
@@ -2432,24 +2440,42 @@ function handleFoodPhoto(input){
         const el=document.getElementById(id);if(el){el.value='';el.placeholder='…';}
       });
 
-      // POST 到 GAS
-      fetch(gasUrl,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'analyzeFood',imageBase64:b64,mimeType:'image/jpeg'})
+      // 直接呼叫 Gemini API（繞過 GAS POST redirect 問題）
+      const cfg2=getCfg();
+      const geminiKey=cfg2.geminiKey||'';
+      if(!geminiKey){showToast('請在設定中填入 Gemini API Key');if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}return;}
+      const geminiUrl='https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key='+geminiKey;
+      fetch(geminiUrl,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          contents:[{parts:[
+            {inline_data:{mime_type:'image/jpeg',data:b64}},
+            {text:'這是一張食物照片。請估算這份食物的營養成分，以JSON格式回覆，只需JSON不要其他文字：{"name":"食物名稱（中文）","portion":"份量描述","kcal":熱量整數,"protein":蛋白質g整數,"carbs":碳水g整數,"fat":脂肪g整數}'}
+          ]}],
+          generationConfig:{thinkingConfig:{thinkingBudget:0}}
+        })
       }).then(r=>r.json()).then(data=>{
         if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
-        if(data.ok){
-          if(nameInp)nameInp.value=data.name||'';
+        if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
+        ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{const el=document.getElementById(id);if(el)el.placeholder='—';});
+        // 支援 Gemini 直接回應格式
+        let parsed=null;
+        if(data.candidates&&data.candidates[0]){
+          const parts=data.candidates[0].content.parts;
+          const tp=parts.find(p=>!p.thought&&p.text)||parts[0];
+          const m=(tp.text||'').match(/\{[\s\S]*?\}/);
+          if(m){try{parsed=JSON.parse(m[0]);}catch(e){}}
+        } else if(data.ok&&data.name){
+          parsed=data;
+        }
+        if(parsed){
+          if(nameInp)nameInp.value=parsed.name||'';
           const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
-          set('food-kcal',data.kcal);set('food-protein',data.protein);
-          set('food-carbs',data.carbs);set('food-fat',data.fat);
-          if(data.portion){const pl=document.getElementById('food-portion');if(pl)pl.placeholder=data.portion;}
-          showToast('✅ 辨識完成：'+( data.name||'食物'));
+          set('food-kcal',parsed.kcal);set('food-protein',parsed.protein);
+          set('food-carbs',parsed.carbs);set('food-fat',parsed.fat);
+          if(parsed.portion){const pl=document.getElementById('food-portion');if(pl)pl.placeholder=parsed.portion;}
+          showToast('✅ 辨識完成：'+(parsed.name||'食物'));
         } else {
           showToast('⚠️ 辨識失敗，請手動輸入');
-          if(nameInp)nameInp.placeholder='食物名稱';
-          ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{
-            const el=document.getElementById(id);if(el)el.placeholder='—';
-          });
         }
       }).catch(()=>{
         if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
@@ -2528,8 +2554,8 @@ function saveFoodEntry(){
   if(!c.gasUrl){
     c.gasUrl='https://script.google.com/macros/s/AKfycbyJ0ICHZP4Gw-VILHyskJeeH3O7J7EWA3bwEhfXaCIlfJKJ6sQnniFmJ03s8fxHvIiTlA/exec';
     c.setupSeen=true;
-    saveCfg(c);
   }
+  saveCfg(c);
 })();
 const cfg=getCfg();
 if(!cfg.setupSeen){
