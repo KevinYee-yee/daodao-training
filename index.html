@@ -861,6 +861,38 @@ async function apiSaveWeight(record){
 async function apiSaveDiet(date,meals){
   await apiPost('saveDiet',{date,meals});
 }
+async function syncWeightFromGAS(){
+  const url=getGASUrl();if(!url)return;
+  try{
+    const res=await fetch(url+'?action=getWeight');
+    const json=await res.json();
+    if(!json.ok||!json.records)return;
+    const local=getWeightData();
+    const map={};
+    local.forEach(r=>{map[r.date]=r;});
+    json.records.forEach(r=>{
+      if(!map[r.date]){map[r.date]=r;}
+      else{
+        if(r.am!==null&&map[r.date].am==null)map[r.date].am=r.am;
+        if(r.pm!==null&&map[r.date].pm==null)map[r.date].pm=r.pm;
+      }
+    });
+    saveWeightData(Object.values(map).sort((a,b)=>a.date.localeCompare(b.date)));
+  }catch(e){}
+}
+async function syncDietFromGAS(){
+  const url=getGASUrl();if(!url)return;
+  try{
+    const res=await fetch(url+'?action=getDiet');
+    const json=await res.json();
+    if(!json.ok||!json.records)return;
+    const local=JSON.parse(localStorage.getItem('daodao_diet_v1')||'{}');
+    json.records.forEach(r=>{
+      if(!local[r.date]||local[r.date].length===0)local[r.date]=r.meals;
+    });
+    localStorage.setItem('daodao_diet_v1',JSON.stringify(local));
+  }catch(e){}
+}
 function setSyncState(state){
   syncState=state;
   const bar=document.getElementById('sync-bar');
@@ -2703,6 +2735,8 @@ renderOverview();
 initAdd();
 if(getGASUrl()){
   apiLoad().then(fresh=>{WK=fresh;renderOverview();});
+  syncWeightFromGAS().then(()=>renderBodyTab());
+  syncDietFromGAS().then(()=>renderBodyTab());
 }
 </script>
 </body>
