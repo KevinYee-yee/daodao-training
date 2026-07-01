@@ -2366,13 +2366,15 @@ function renderWeightList(){
     const am=r.am??r.kg??null;
     const pm=r.pm??null;
     let diffTxt='—';let color='rgba(240,236,228,.4)';let tip='';
-    if(am&&pm){
-      const d=(pm-am);
+    // 差值 = 本日早上 - 前一天晚上（隔夜體重變化）
+    const prevPm=arr[i+1]?.pm??null;
+    if(am!==null&&prevPm!==null){
+      const d=am-prevPm;
       const sign=d>=0?'+':'';
       diffTxt=sign+d.toFixed(1)+'kg';
-      if(d<0.3){color='#4ade80';tip='水分穩定';}
-      else if(d<0.8){color='#a3e635';tip='正常範圍';}
-      else if(d<1.5){color='#f59e0b';tip='晚餐留意鹽分';}
+      if(d<=-0.3){color='#4ade80';tip='燃脂良好';}
+      else if(d<0.3){color='#a3e635';tip='水分穩定';}
+      else if(d<0.8){color='#f59e0b';tip='水分稍增';}
       else{color='#f87171';tip='注意水腫';}
     }
     const isEven=i%2===0;
