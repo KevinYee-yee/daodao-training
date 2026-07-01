@@ -119,9 +119,10 @@ textarea.form-input{resize:none}
 
 .sets-tbl{table-layout:fixed}
 .sets-tbl th:first-child,.sets-tbl td:first-child{width:20px}
-.sets-tbl th:nth-child(3),.sets-tbl td:nth-child(3){width:72px}
-.sets-tbl th:nth-child(4),.sets-tbl td:nth-child(4){width:32px;text-align:center}
-.sets-tbl th:nth-child(5),.sets-tbl td:nth-child(5){width:28px;text-align:center}
+.sets-tbl th:nth-child(3),.sets-tbl td:nth-child(3){width:60px}
+.sets-tbl th:nth-child(4),.sets-tbl td:nth-child(4){width:44px}
+.sets-tbl th:nth-child(5),.sets-tbl td:nth-child(5){width:32px;text-align:center}
+.sets-tbl th:nth-child(6),.sets-tbl td:nth-child(6){width:28px;text-align:center}
 .set-done td{opacity:.45}
 .set-done .set-inp{background:#f0fdf4;border-color:#86efac}
 .check-btn{background:none;border:none;font-size:17px;padding:2px 4px;cursor:pointer;color:#d1d5db;line-height:1}
@@ -159,11 +160,11 @@ textarea.form-input{resize:none}
 .page-header p{color:rgba(240,236,228,.4);font-size:13px}
 .gear-btn{background:#1a1a1a;border:1px solid #2a2a2a}
 /* Cards & surfaces */
-.card{background:#111;border:1px solid #1f1f1f;box-shadow:none;border-radius:16px}
-.stat-card{background:#111;border:1px solid #1f1f1f;box-shadow:none;border-radius:14px}
+.card{background:#1a1a1a;border:1px solid #2a2a2a;box-shadow:none;border-radius:16px}
+.stat-card{background:#1a1a1a;border:1px solid #2a2a2a;box-shadow:none;border-radius:14px}
 .stat-num{color:var(--p)}.stat-label{color:var(--muted)}
 /* Session list */
-.session-item{background:#111;border:1px solid #1f1f1f;border-radius:14px;transition:opacity .1s}
+.session-item{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;transition:opacity .1s}
 .session-item:active{opacity:.7}
 .session-date{color:var(--muted)}.session-title{color:var(--text)}
 .tag{background:rgba(245,158,11,.12);color:#f59e0b;border:none}
@@ -175,7 +176,7 @@ textarea.form-input{resize:none}
 .form-input:focus{border-color:var(--p);background:#161616;box-shadow:none}
 .form-input::placeholder{color:rgba(240,236,228,.22)}
 .form-label{color:rgba(240,236,228,.5)}
-.ex-block{background:#111;border:1px solid #222;border-radius:14px}
+.ex-block{background:#1c1c1c;border:1px solid #2e2e2e;border-radius:14px}
 .ex-name-input{background:#161616;border:1px solid #2a2a2a;color:var(--text);border-radius:10px}
 .ex-name-input:focus{border-color:var(--p);background:#161616}
 .ex-name-input::placeholder{color:rgba(240,236,228,.22)}
@@ -258,7 +259,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 .copy-btn{background:transparent;border:1px solid #2a2a2a;color:rgba(240,236,228,.38);font-size:11px;padding:5px 12px;border-radius:8px;cursor:pointer;font-family:inherit;margin-right:6px}
 .copy-btn:active{color:#f59e0b;border-color:rgba(245,158,11,.4)}
 /* Menu & Library tab */
-.menu-card{background:#111;border:1px solid #1f1f1f;border-radius:14px;padding:14px 16px;margin-bottom:10px}
+.menu-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;padding:14px 16px;margin-bottom:10px}
 .menu-card-hd{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .menu-icon{font-size:28px;line-height:1}
 .menu-name{font-size:15px;font-weight:700;color:#f0ece4}
@@ -356,9 +357,21 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 .food-add-sheet{background:#0d0d0d;border:1px solid #222;border-radius:24px 24px 0 0;padding:24px 20px calc(36px + env(safe-area-inset-bottom,0px));width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
 .body-macro-bar{height:4px;background:#1f1f1f;border-radius:2px;margin-top:4px;overflow:hidden}
 .body-macro-fill{height:100%;border-radius:2px;transition:width .4s}
-.body-diet-item{background:#111;border:1px solid #1f1f1f;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.body-diet-item{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
 .body-kcal-bar{height:6px;background:#1f1f1f;border-radius:3px;margin-bottom:10px;overflow:hidden}
 .body-kcal-fill{height:100%;border-radius:3px;transition:width .4s}
+/* Drag handle */
+.drag-handle{background:none;border:none;color:rgba(240,236,228,.2);font-size:18px;padding:4px 6px;cursor:grab;touch-action:none;line-height:1;flex-shrink:0}
+.drag-handle:active{cursor:grabbing;color:rgba(245,158,11,.6)}
+.ex-block.dragging{opacity:.4;border-style:dashed}
+.ex-block.drag-over{border-color:rgba(245,158,11,.6);background:#222}
+/* Ex-block all-done */
+.ex-block.all-done{border-color:rgba(74,222,128,.35);background:#1a2218}
+.ex-block.all-done .ex-name-input{color:#4ade80}
+/* Undo toast */
+.toast-undo{position:fixed;bottom:calc(90px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#1c1c1c;border:1px solid #2e2e2e;color:#f0ece4;padding:10px 16px;border-radius:14px;font-size:13px;display:flex;align-items:center;gap:10px;z-index:998;white-space:nowrap;transition:opacity .25s}
+.toast-undo.hidden{opacity:0;pointer-events:none}
+.undo-btn{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#f59e0b;font-size:12px;font-weight:700;padding:5px 12px;border-radius:8px;cursor:pointer;font-family:inherit}
 </style>
 </head>
 <body>
@@ -374,6 +387,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
   </defs>
 </svg>
 <div class="toast" id="toast"></div>
+<div class="toast-undo hidden" id="toast-undo">
+  <span id="toast-undo-msg"></span>
+  <button class="undo-btn" onclick="undoDelete()">撤銷</button>
+</div>
 <div id="rest-timer" class="rt-hidden">
   <span>⏱</span><span id="rest-count">90</span><span style="color:rgba(240,236,228,.45);font-weight:400">s 休息中</span>
   <button class="rt-stop" onclick="stopRestTimer()">×</button>
@@ -832,6 +849,18 @@ async function apiSeed(workouts){
   }catch(e){setSyncState('err');return false;}
 }
 
+async function apiPost(action,data){
+  const url=getGASUrl();if(!url)return;
+  try{
+    await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...data}),redirect:'follow'});
+  }catch(e){}
+}
+async function apiSaveWeight(record){
+  await apiPost('saveWeight',{record});
+}
+async function apiSaveDiet(date,meals){
+  await apiPost('saveDiet',{date,meals});
+}
 function setSyncState(state){
   syncState=state;
   const bar=document.getElementById('sync-bar');
@@ -1114,11 +1143,49 @@ function sessionCard(s,showDel){
   </div>`;
 }
 function toggle(el){el.classList.toggle('open');}
+let _deletedSession=null,_undoTimer=null;
 function delSession(id,e){
   e.stopPropagation();
-  if(!confirm('確定刪除這筆訓練記錄？'))return;
-  WK=WK.filter(w=>w.id!==id);setCache(WK);renderLog();
-  showToast('已刪除');apiDel(id);
+  const s=WK.find(w=>w.id===id);if(!s)return;
+  _deletedSession=s;
+  WK=WK.filter(w=>w.id!==id);setCache(WK);renderLog();renderOverview();
+  apiDel(id);
+  showUndoToast('訓練已刪除',()=>{
+    if(_deletedSession){WK.push(_deletedSession);WK.sort((a,b)=>b.date.localeCompare(a.date));setCache(WK);renderLog();renderOverview();apiAdd(_deletedSession);_deletedSession=null;}
+  });
+}
+let _pendingRmBlk=null;
+function rmExBlock(id){
+  const blk=document.getElementById(id);if(!blk)return;
+  const container=document.getElementById('ex-container');
+  const idx=[...container.querySelectorAll('.ex-block')].indexOf(blk);
+  _pendingRmBlk={html:blk.outerHTML,idx};
+  blk.remove();
+  showUndoToast('動作已刪除',()=>{
+    if(_pendingRmBlk){
+      const c=document.getElementById('ex-container');
+      const blocks=[...c.querySelectorAll('.ex-block')];
+      const tmp=document.createElement('div');tmp.innerHTML=_pendingRmBlk.html;
+      const restored=tmp.firstChild;
+      if(_pendingRmBlk.idx>=blocks.length)c.appendChild(restored);
+      else c.insertBefore(restored,blocks[_pendingRmBlk.idx]);
+      _pendingRmBlk=null;
+    }
+  });
+}
+function showUndoToast(msg,undoCb){
+  clearTimeout(_undoTimer);
+  _undoCb=undoCb;
+  const el=document.getElementById('toast-undo');
+  const msgEl=document.getElementById('toast-undo-msg');
+  if(el&&msgEl){msgEl.textContent=msg;el.classList.remove('hidden');}
+  _undoTimer=setTimeout(()=>{if(el)el.classList.add('hidden');_undoCb=null;},4000);
+}
+let _undoCb=null;
+function undoDelete(){
+  clearTimeout(_undoTimer);
+  if(_undoCb)_undoCb();_undoCb=null;
+  const el=document.getElementById('toast-undo');if(el)el.classList.add('hidden');
 }
 
 // ── ADD ──
@@ -1166,6 +1233,13 @@ function toggleSetDone(btn){
   btn.textContent=done?'✓':'○';btn.classList.toggle('done',done);
   scheduleDraftSave();
   if(done)startRestTimer();
+  // check if all sets in this block are done
+  const blk=btn.closest('.ex-block');
+  if(blk){
+    const rows=[...blk.querySelectorAll('tbody tr')];
+    const allDone=rows.length>0&&rows.every(r=>r.classList.contains('set-done'));
+    blk.classList.toggle('all-done',allDone);
+  }
 }
 function initAdd(){
   const raw=localStorage.getItem(DRAFT_KEY);
@@ -1189,16 +1263,17 @@ function addExercise(){
   div.className='ex-block';div.id=id;
   div.innerHTML=`
     <div class="ex-block-header">
+      <button class="drag-handle" data-drag="${id}" ontouchstart="dragTouchStart(event,'${id}')" ontouchmove="dragTouchMove(event)" ontouchend="dragTouchEnd(event)">⠿</button>
       <div class="ex-name-wrap">
         <input class="ex-name-input" placeholder="搜尋動作（如：壺鈴）" autocomplete="off"
           oninput="filterExDd(this,'${id}')" onfocus="showExDd(this,'${id}')" onblur="hideExDd('${id}',200)">
         <div class="ex-dropdown" id="dd-${id}" hidden></div>
       </div>
-      <button class="btn-rm" onclick="document.getElementById('${id}').remove()">✕</button>
+      <button class="btn-rm" onclick="rmExBlock('${id}')">✕</button>
     </div>
     <div id="lp-${id}" class="last-perf" hidden></div>
     <table class="sets-tbl">
-      <thead><tr><th>#</th><th>重量(kg)</th><th>次數</th><th></th><th></th></tr></thead>
+      <thead><tr><th>#</th><th>重量(kg)</th><th>次數</th><th>RPE</th><th></th><th></th></tr></thead>
       <tbody id="tb-${id}"></tbody>
     </table>
     <div class="quick-adj">
@@ -1223,6 +1298,7 @@ function addSet(exId){
     <td><input class="set-inp" type="text" inputmode="decimal" placeholder="—" data-f="w" value="${pw}" oninput="scheduleDraftSave();upd1rm(this.closest('tr'))">
         <div class="orm-hint" data-1rm></div></td>
     <td><input class="set-inp" type="text" inputmode="numeric" placeholder="—" data-f="r" value="${pr}" oninput="scheduleDraftSave();upd1rm(this.closest('tr'))"></td>
+    <td><input class="set-inp" type="text" inputmode="numeric" placeholder="—" data-f="rpe" style="font-size:13px" oninput="scheduleDraftSave()"></td>
     <td><button class="check-btn" onclick="toggleSetDone(this)">○</button></td>
     <td><button style="background:none;border:none;color:#d1d5db;font-size:15px;padding:2px 4px;cursor:pointer" onclick="rmSet(this)">✕</button></td>`;
   tb.appendChild(tr);
@@ -2078,6 +2154,7 @@ function startRestTimer(){
     if(_restSec<=0){
       stopRestTimer();showToast('💪 休息結束，繼續下一組！');
       navigator.vibrate&&navigator.vibrate([200,100,200]);
+      if(Notification.permission==='granted'){try{new Notification('⏱ 休息結束！',{body:'準備下一組 💪',icon:'/favicon.ico',silent:false});}catch(e){}}
     }
   },1000);
 }
@@ -2291,6 +2368,7 @@ function saveWeight(slot){
   renderWeightChart2();
   renderBodyGoalsUI();
   if(!document.getElementById('weight-list-body').hidden)renderWeightList();
+  apiSaveWeight({date:dateStr,am:arr.find(d=>d.date===dateStr)?.am||null,pm:arr.find(d=>d.date===dateStr)?.pm||null});
   showToast('✅ '+(slot==='am'?'🌅 早上':'🌙 晚上')+' 體重 '+kg+' kg（'+dateStr+'）已記錄');
 }
 
@@ -2311,8 +2389,14 @@ function renderDietList(){
 }
 
 function deleteFoodEntry(idx){
-  const arr=getTodayDiet();arr.splice(idx,1);saveTodayDiet(arr);
-  renderDietList();renderTodaySummary();showToast('已刪除');
+  const arr=getTodayDiet();
+  const deleted=arr[idx];
+  arr.splice(idx,1);saveTodayDiet(arr);
+  apiSaveDiet(todayStr(),arr);
+  renderDietList();renderTodaySummary();
+  showUndoToast('飲食已刪除',()=>{
+    const a2=getTodayDiet();a2.splice(idx,0,deleted);saveTodayDiet(a2);apiSaveDiet(todayStr(),a2);renderDietList();renderTodaySummary();
+  });
 }
 
 function renderBodyGoalsUI(){
@@ -2544,10 +2628,62 @@ function saveFoodEntry(){
     showToast('✅ '+name+' 已記錄！');
   }
   saveTodayDiet(arr);
+  apiSaveDiet(todayStr(),arr);
   closeAddFood();renderDietList();renderTodaySummary();
 }
 
+// ── DRAG REORDER ──
+let _dragSrc=null,_dragTouchEl=null,_dragTouchClone=null,_dragTouchOffY=0;
+function dragTouchStart(e,id){
+  _dragSrc=document.getElementById(id);
+  _dragTouchOffY=e.touches[0].clientY-_dragSrc.getBoundingClientRect().top;
+  _dragTouchClone=_dragSrc.cloneNode(true);
+  _dragTouchClone.style.cssText='position:fixed;left:14px;right:14px;z-index:999;opacity:.85;pointer-events:none;transform:scale(1.02);transition:none;border:1.5px solid rgba(245,158,11,.5)';
+  document.body.appendChild(_dragTouchClone);
+  _dragSrc.classList.add('dragging');
+  e.preventDefault();
+}
+function dragTouchMove(e){
+  if(!_dragTouchClone||!_dragSrc)return;
+  const y=e.touches[0].clientY;
+  _dragTouchClone.style.top=(y-_dragTouchOffY)+'px';
+  const container=document.getElementById('ex-container');
+  const blocks=[...container.querySelectorAll('.ex-block:not(.dragging)')];
+  let target=null;
+  blocks.forEach(b=>{
+    const r=b.getBoundingClientRect();
+    if(y>r.top&&y<r.bottom)target=b;
+    b.classList.remove('drag-over');
+  });
+  if(target){target.classList.add('drag-over');}
+  e.preventDefault();
+}
+function dragTouchEnd(e){
+  if(!_dragTouchClone||!_dragSrc)return;
+  _dragTouchClone.remove();_dragTouchClone=null;
+  _dragSrc.classList.remove('dragging');
+  const y=e.changedTouches[0].clientY;
+  const container=document.getElementById('ex-container');
+  const blocks=[...container.querySelectorAll('.ex-block:not(.dragging)')];
+  let target=null;
+  blocks.forEach(b=>{
+    b.classList.remove('drag-over');
+    const r=b.getBoundingClientRect();
+    if(y>r.top&&y<r.bottom)target=b;
+  });
+  if(target&&target!==_dragSrc){
+    const srcIdx=[...container.children].indexOf(_dragSrc);
+    const tgtIdx=[...container.children].indexOf(target);
+    if(srcIdx<tgtIdx)target.after(_dragSrc);else target.before(_dragSrc);
+  }
+  _dragSrc=null;
+}
+
 // ── INIT ──
+// Request notification permission for rest timer
+if('Notification' in window&&Notification.permission==='default'){
+  setTimeout(()=>Notification.requestPermission(),2000);
+}
 // 預設寫入 GAS URL（已設定好）
 (function(){
   const c=getCfg();
