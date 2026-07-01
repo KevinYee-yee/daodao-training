@@ -634,7 +634,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 <!-- Food add bottom sheet -->
 <div class="food-add-overlay" id="food-add-overlay" hidden onclick="if(event.target===this)closeAddFood()">
   <div class="food-add-sheet">
-    <div style="font-size:18px;font-weight:800;color:#f0ece4;margin-bottom:16px">新增飲食</div>
+    <div id="food-sheet-title" style="font-size:18px;font-weight:800;color:#f0ece4;margin-bottom:16px">新增飲食</div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
       <div id="food-photo-preview"><div style="width:54px;height:54px;background:#161616;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;color:rgba(240,236,228,.2)">📷</div></div>
       <div style="flex:1;display:flex;gap:8px">
@@ -669,7 +669,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
       <div><label class="form-label">碳水(g)</label><input class="form-input" type="number" id="food-carbs" placeholder="—" inputmode="decimal"></div>
       <div><label class="form-label">脂肪(g)</label><input class="form-input" type="number" id="food-fat" placeholder="—" inputmode="decimal"></div>
     </div>
-    <button class="btn btn-primary" onclick="saveFoodEntry()">儲存飲食</button>
+    <button id="food-save-btn" class="btn btn-primary" onclick="saveFoodEntry()">儲存飲食</button>
     <button class="btn btn-ghost btn-full" onclick="closeAddFood()" style="margin-top:8px">取消</button>
   </div>
 </div>
@@ -2291,14 +2291,14 @@ function renderDietList(){
   const el=document.getElementById('diet-list');if(!el)return;
   if(!meals.length){el.innerHTML='<div class="empty" style="padding:16px 0">今日尚未記錄飲食</div>';return;}
   el.innerHTML=meals.map((m,i)=>`
-    <div class="body-diet-item">
+    <div class="body-diet-item" onclick="openAddFood(${i})" style="cursor:pointer">
       ${m.thumb?`<img src="${m.thumb}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0">`
         :`<div style="width:44px;height:44px;background:#161616;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px">🍽️</div>`}
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:600;color:#f0ece4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.name}</div>
         <div style="font-size:11px;color:rgba(240,236,228,.4);margin-top:2px">${Math.round(m.kcal)} kcal &nbsp;蛋白 ${Math.round(m.protein)}g &nbsp;碳 ${Math.round(m.carbs)}g &nbsp;脂 ${Math.round(m.fat)}g</div>
       </div>
-      <button onclick="deleteFoodEntry(${i})" style="background:none;border:none;color:rgba(255,107,107,.45);font-size:18px;padding:4px;cursor:pointer;flex-shrink:0">✕</button>
+      <button onclick="event.stopPropagation();deleteFoodEntry(${i})" style="background:none;border:none;color:rgba(255,107,107,.45);font-size:18px;padding:4px;cursor:pointer;flex-shrink:0">✕</button>
     </div>`).join('');
 }
 
@@ -2372,21 +2372,38 @@ function saveBodyGoals(){
 }
 
 // ── 飲食新增 bottom sheet ──
-let _foodThumb=null,_foodPer100g=null,_foodSearchResults=[];
+let _foodThumb=null,_foodPer100g=null,_foodSearchResults=[],_editFoodIdx=-1;
 let _foodSearchTimer=null;
-function openAddFood(){
+function openAddFood(editIdx){
   _foodThumb=null;_foodPer100g=null;_foodSearchResults=[];
+  _editFoodIdx=(editIdx!=null)?editIdx:-1;
   ['food-name-input','food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('food-portion').value='100';
   document.getElementById('food-photo-preview').innerHTML='<div style="width:54px;height:54px;background:#161616;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;color:rgba(240,236,228,.2)">📷</div>';
   document.getElementById('food-dd').hidden=true;
+  const titleEl=document.getElementById('food-sheet-title');
+  const saveBtnEl=document.getElementById('food-save-btn');
+  if(_editFoodIdx>=0){
+    const m=getTodayDiet()[_editFoodIdx];
+    if(m){
+      const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+      set('food-name-input',m.name);set('food-kcal',m.kcal);
+      set('food-protein',m.protein);set('food-carbs',m.carbs);set('food-fat',m.fat);
+      if(m.thumb){_foodThumb=m.thumb;document.getElementById('food-photo-preview').innerHTML=`<img src="${m.thumb}" style="width:54px;height:54px;object-fit:cover;border-radius:8px">`;}
+    }
+    if(titleEl)titleEl.textContent='編輯飲食';
+    if(saveBtnEl)saveBtnEl.textContent='更新飲食';
+  } else {
+    if(titleEl)titleEl.textContent='新增飲食';
+    if(saveBtnEl)saveBtnEl.textContent='儲存飲食';
+  }
   document.getElementById('food-add-overlay').hidden=false;
 }
-function closeAddFood(){document.getElementById('food-add-overlay').hidden=true;}
+function closeAddFood(){document.getElementById('food-add-overlay').hidden=true;_editFoodIdx=-1;}
 
 function handleFoodPhoto(input){
   const file=input.files[0];if(!file)return;
-  const gasUrl=localStorage.getItem('daodao_cfg');
+  const gasUrl=getGASUrl();
   const reader=new FileReader();
   reader.onload=e=>{
     const img=new Image();
@@ -2493,10 +2510,15 @@ function saveFoodEntry(){
   const carbs=parseFloat(document.getElementById('food-carbs').value)||0;
   const fat=parseFloat(document.getElementById('food-fat').value)||0;
   const arr=getTodayDiet();
-  arr.push({id:uid(),name,kcal,protein,carbs,fat,thumb:_foodThumb});
+  if(_editFoodIdx>=0&&_editFoodIdx<arr.length){
+    arr[_editFoodIdx]={...arr[_editFoodIdx],name,kcal,protein,carbs,fat,thumb:_foodThumb||arr[_editFoodIdx].thumb};
+    showToast('✅ '+name+' 已更新！');
+  } else {
+    arr.push({id:uid(),name,kcal,protein,carbs,fat,thumb:_foodThumb});
+    showToast('✅ '+name+' 已記錄！');
+  }
   saveTodayDiet(arr);
   closeAddFood();renderDietList();renderTodaySummary();
-  showToast('✅ '+name+' 已記錄！');
 }
 
 // ── INIT ──
@@ -2504,7 +2526,7 @@ function saveFoodEntry(){
 (function(){
   const c=getCfg();
   if(!c.gasUrl){
-    c.gasUrl='https://script.google.com/macros/s/AKfycbysFD0L0s8at-Kf6_Ix5O8bbO_UKTsxnZPHDJ1yxpDFihQcrco7Fu5NZVMnkEzv8SlT/exec';
+    c.gasUrl='https://script.google.com/macros/s/AKfycbyJ0ICHZP4Gw-VILHyskJeeH3O7J7EWA3bwEhfXaCIlfJKJ6sQnniFmJ03s8fxHvIiTlA/exec';
     c.setupSeen=true;
     saveCfg(c);
   }
