@@ -498,7 +498,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     <div style="font-size:11px;color:rgba(240,236,228,.28);text-align:right;white-space:nowrap" id="ov-badge-sub">0/10</div>
   </div>
   <!-- 家園 -->
-  <div id="homeland-card" style="margin:0 16px 12px;cursor:pointer" onclick="openCityModal()"></div>
+  <div id="homeland-card" style="margin:0 16px 12px;cursor:pointer" onclick="goTab('city',document.querySelector('[data-tab=city]'))"></div>
   <!-- Recent sessions compact -->
   <div class="ov-recent-hd">
     <span class="ov-recent-title">最近訓練</span>
@@ -722,15 +722,17 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 </div>
 
 <!-- 城市 modal -->
-<div id="city-modal" class="city-modal" style="display:none">
-  <div class="city-modal-sky">
-    <div>
-      <div style="font-size:18px;font-weight:800;color:#f0ece4" id="city-modal-title">我的城市</div>
-      <div style="font-size:11px;color:rgba(240,236,228,.35);margin-top:2px" id="city-modal-sub">積分建造你的家園</div>
+<div id="tab-city" class="tab-content" hidden>
+  <div style="padding:env(safe-area-inset-top,16px) 16px 0;background:#080808;position:sticky;top:0;z-index:10">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #1a1a1a">
+      <div>
+        <div style="font-size:20px;font-weight:800;color:#f0ece4">🏙️ 我的城市</div>
+        <div style="font-size:11px;color:rgba(240,236,228,.35);margin-top:2px" id="city-tab-sub">積分建造你的家園</div>
+      </div>
+      <div id="city-tab-pts" class="city-pts-badge">⭐ 0 分</div>
     </div>
-    <button onclick="closeCityModal()" style="background:rgba(255,255,255,.08);border:none;color:#f0ece4;font-size:14px;font-weight:600;padding:8px 16px;border-radius:20px;cursor:pointer;font-family:inherit">關閉</button>
   </div>
-  <div class="city-modal-body">
+  <div style="padding:16px 16px calc(100px + env(safe-area-inset-bottom))">
     <div id="city-info-popup" class="city-info-popup"></div>
     <div class="city-full-grid" id="city-full-grid"></div>
     <div style="background:#111;border-radius:14px;padding:14px 16px">
@@ -793,6 +795,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
   </button>
   <button class="nav-btn" data-tab="body" onclick="goTab('body',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>體態
+  </button>
+  <button class="nav-btn" data-tab="city" onclick="goTab('city',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="10" width="4" height="11" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="13" width="4" height="8" rx="1"/><line x1="1" y1="21" x2="23" y2="21"/></svg>城市
   </button>
 </nav>
 
@@ -1111,6 +1116,7 @@ function goTab(tab,btn){
   if(tab==='log'){renderLog();renderCharts();}
   if(tab==='menu'){renderMenuTab();renderWeekPlanUI();}
   if(tab==='body')renderBodyTab();
+  if(tab==='city')renderCityTab();
   if(getGASUrl()){
     apiLoad().then(fresh=>{
       WK=fresh;
@@ -1248,11 +1254,12 @@ function renderCityCard(){
   </div>`;
 }
 
-function openCityModal(){
+function renderCityTab(){
   const pts=calcPoints();
-  document.getElementById('city-modal-sub').textContent=`⭐ ${pts} 分 · ${BUILDINGS.filter(b=>pts>=b.pts).length}/${BUILDINGS.length} 建築已解鎖`;
-  const grid=document.getElementById('city-full-grid');
-  grid.innerHTML=BUILDINGS.map(b=>{
+  const unlocked=BUILDINGS.filter(b=>pts>=b.pts).length;
+  document.getElementById('city-tab-sub').textContent=`${unlocked}/${BUILDINGS.length} 建築已解鎖`;
+  document.getElementById('city-tab-pts').textContent=`⭐ ${pts} 分`;
+  document.getElementById('city-full-grid').innerHTML=BUILDINGS.map(b=>{
     const on=pts>=b.pts;
     return `<div class="city-full-plot ${on?'unlocked':'locked'}" data-pts="${b.pts}"
       style="${on?`background:${b.color};border:1px solid ${b.glow}33;position:relative`:''}"
@@ -1262,13 +1269,6 @@ function openCityModal(){
       ${on?'':`<div style="font-size:7px;color:rgba(240,236,228,.15);margin-top:2px">差 ${b.pts-pts} 分</div>`}
     </div>`;
   }).join('');
-  document.getElementById('city-modal').style.display='flex';
-  document.body.style.overflow='hidden';
-}
-
-function closeCityModal(){
-  document.getElementById('city-modal').style.display='none';
-  document.body.style.overflow='';
 }
 
 function showCityInfo(id){
