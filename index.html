@@ -722,7 +722,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 </div>
 
 <!-- 城市 modal -->
-<div id="city-modal" class="city-modal" hidden>
+<div id="city-modal" class="city-modal" style="display:none">
   <div class="city-modal-sky">
     <div>
       <div style="font-size:18px;font-weight:800;color:#f0ece4" id="city-modal-title">我的城市</div>
@@ -1262,12 +1262,12 @@ function openCityModal(){
       ${on?'':`<div style="font-size:7px;color:rgba(240,236,228,.15);margin-top:2px">差 ${b.pts-pts} 分</div>`}
     </div>`;
   }).join('');
-  document.getElementById('city-modal').hidden=false;
+  document.getElementById('city-modal').style.display='flex';
   document.body.style.overflow='hidden';
 }
 
 function closeCityModal(){
-  document.getElementById('city-modal').hidden=true;
+  document.getElementById('city-modal').style.display='none';
   document.body.style.overflow='';
 }
 
