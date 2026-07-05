@@ -1319,8 +1319,9 @@ function renderCityTab(){
       const b=bid?BUILDINGS.find(bx=>bx.id===bid):null;
       const z=(r+c)*2;
       const tx=x-ISO_HW,ty=y-ISO_HH;
+      const tBase=`position:absolute;width:${ISO_TW}px;height:${ISO_TH}px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);left:${tx}px;top:${ty}px;z-index:${z};`;
       if(b){
-        tiles+=`<div class="iso-tile occupied" style="left:${tx}px;top:${ty}px;z-index:${z};background:${b.color};border:none" onclick="openCellOccupied('${key}')"></div>`;
+        tiles+=`<div style="${tBase}background:${b.color};cursor:default" onclick="openCellOccupied('${key}')"></div>`;
         const delay=((r*ISO_COLS+c)%7)*0.45;
         const sDelay=((r*ISO_COLS+c)%5)*0.5;
         blds+=`<div class="iso-bld" id="isobld-${key}" style="left:${x}px;top:${y-ISO_HH-28}px;z-index:${z+1}" onclick="openCellOccupied('${key}')">
@@ -1329,9 +1330,9 @@ function renderCityTab(){
           <div class="iso-smoke" style="top:-4px;animation-delay:${sDelay}s"></div>
         </div>`;
       }else if(unplaced.length>0){
-        tiles+=`<div class="iso-tile available" style="left:${tx}px;top:${ty}px;z-index:${z}" onclick="openCellPicker('${key}')"><div class="iso-plus">+</div></div>`;
+        tiles+=`<div style="${tBase}background:linear-gradient(135deg,#2a5a2a,#1e4820);cursor:pointer" onclick="openCellPicker('${key}')"><div class="iso-plus">+</div></div>`;
       }else{
-        tiles+=`<div class="iso-tile empty" style="left:${tx}px;top:${ty}px;z-index:${z}"></div>`;
+        tiles+=`<div style="${tBase}background:#141e14;opacity:.4;cursor:default"></div>`;
       }
     }
   }
