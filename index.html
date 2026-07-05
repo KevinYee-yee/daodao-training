@@ -200,16 +200,41 @@ textarea.form-input{resize:none}
 /* Banner */
 .banner{background:#111;border:1px solid #222}.banner p{color:#f59e0b}.banner-btn{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#f59e0b}
 #plan-bar{background:#111 !important;border:1px solid #222 !important}
-/* 家園 */
-.homeland{background:linear-gradient(160deg,#0a1a0a 0%,#0d1f1a 60%,#111820 100%);border:1px solid #1e2e1e;border-radius:18px;padding:16px 18px;overflow:hidden;position:relative}
-.homeland-sky{font-size:13px;letter-spacing:1px;margin-bottom:4px;min-height:20px}
-.homeland-scene{font-size:22px;letter-spacing:2px;line-height:1.3;margin:6px 0}
-.homeland-ground{font-size:12px;letter-spacing:3px;color:rgba(74,222,128,.3)}
-.homeland-info{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
-.homeland-pts{font-size:13px;font-weight:700;color:#f59e0b}
-.homeland-bar-wrap{flex:1;margin:0 12px;height:5px;background:#1a2a1a;border-radius:3px;overflow:hidden}
-.homeland-bar{height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:3px;transition:width .5s}
-.homeland-lv{font-size:11px;color:rgba(240,236,228,.35);white-space:nowrap}
+/* 城市系統 */
+.city-card{background:linear-gradient(160deg,#0a1a0a,#0d1a14,#0a1220);border:1px solid rgba(74,222,128,.15);border-radius:18px;padding:14px 14px 12px;overflow:hidden;position:relative}
+.city-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.city-name{font-size:13px;font-weight:700;color:#4ade80;letter-spacing:.5px}
+.city-pts-badge{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:#fbbf24}
+.city-grid-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
+.city-plot{border-radius:10px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:transform .1s}
+.city-plot:active{transform:scale(.93)}
+.city-plot.unlocked{box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.city-plot.locked{background:#0d0d0d!important;border:1px solid #1a1a1a}
+.city-plot-emoji{font-size:22px;line-height:1}
+.city-plot-name{font-size:8px;font-weight:700;margin-top:2px;text-align:center;letter-spacing:.2px;line-height:1.2}
+.city-plot.locked .city-plot-emoji{font-size:14px;opacity:.25}
+.city-plot.locked .city-plot-name{color:rgba(240,236,228,.2);font-size:7px}
+.city-bar-row{display:flex;align-items:center;gap:8px}
+.city-bar-wrap{flex:1;height:4px;background:#1a2a1a;border-radius:2px;overflow:hidden}
+.city-bar{height:100%;background:linear-gradient(90deg,#4ade80,#86efac);border-radius:2px;transition:width .6s}
+/* 城市 modal */
+.city-modal{position:fixed;inset:0;z-index:400;background:#060e0a;display:flex;flex-direction:column;overflow:hidden}
+.city-modal-sky{background:linear-gradient(180deg,#050d14 0%,#0a1a12 100%);padding:env(safe-area-inset-top,16px) 20px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.city-modal-body{flex:1;overflow-y:auto;padding:16px 16px calc(32px + env(safe-area-inset-bottom))}
+.city-full-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
+.city-full-plot{border-radius:14px;padding:12px 6px 8px;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:transform .1s,box-shadow .1s;position:relative}
+.city-full-plot:active{transform:scale(.95)}
+.city-full-plot.unlocked{box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.city-full-plot.locked{background:#0d0d0d!important;border:1px solid #161616}
+.city-full-plot-emoji{font-size:32px;line-height:1;margin-bottom:6px}
+.city-full-plot-name{font-size:10px;font-weight:700;text-align:center;line-height:1.3}
+.city-full-plot.locked .city-full-plot-emoji{opacity:.2}
+.city-full-plot.locked .city-full-plot-name{color:rgba(240,236,228,.2)}
+.city-full-plot.locked::after{content:attr(data-pts)'分';position:absolute;bottom:6px;font-size:8px;color:rgba(240,236,228,.2);font-weight:600}
+.city-info-popup{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;padding:14px 16px;margin-bottom:16px;display:none}
+.city-info-popup.show{display:block}
+@keyframes city-unlock{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.city-plot.just-unlocked,.city-full-plot.just-unlocked{animation:city-unlock .5s ease-out}
 /* Calendar */
 .cal-cell{background:#161616;border-radius:6px}
 .cal-cell.has-w{background:#f59e0b;box-shadow:none}
@@ -473,7 +498,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     <div style="font-size:11px;color:rgba(240,236,228,.28);text-align:right;white-space:nowrap" id="ov-badge-sub">0/10</div>
   </div>
   <!-- 家園 -->
-  <div id="homeland-card" style="margin:0 16px 12px;cursor:pointer" onclick="goTab('log',document.querySelector('[data-tab=log]'))"></div>
+  <div id="homeland-card" style="margin:0 16px 12px;cursor:pointer" onclick="openCityModal()"></div>
   <!-- Recent sessions compact -->
   <div class="ov-recent-hd">
     <span class="ov-recent-title">最近訓練</span>
@@ -693,6 +718,30 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     </div>
     <button id="food-save-btn" class="btn btn-primary" onclick="saveFoodEntry()">儲存飲食</button>
     <button class="btn btn-ghost btn-full" onclick="closeAddFood()" style="margin-top:8px">取消</button>
+  </div>
+</div>
+
+<!-- 城市 modal -->
+<div id="city-modal" class="city-modal" hidden>
+  <div class="city-modal-sky">
+    <div>
+      <div style="font-size:18px;font-weight:800;color:#f0ece4" id="city-modal-title">我的城市</div>
+      <div style="font-size:11px;color:rgba(240,236,228,.35);margin-top:2px" id="city-modal-sub">積分建造你的家園</div>
+    </div>
+    <button onclick="closeCityModal()" style="background:rgba(255,255,255,.08);border:none;color:#f0ece4;font-size:14px;font-weight:600;padding:8px 16px;border-radius:20px;cursor:pointer;font-family:inherit">關閉</button>
+  </div>
+  <div class="city-modal-body">
+    <div id="city-info-popup" class="city-info-popup"></div>
+    <div class="city-full-grid" id="city-full-grid"></div>
+    <div style="background:#111;border-radius:14px;padding:14px 16px">
+      <div style="font-size:12px;font-weight:700;color:#f0ece4;margin-bottom:10px">⭐ 積分規則</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px;color:rgba(240,236,228,.55)">
+        <div>🏋️ 每次重訓 <span style="color:#fbbf24;font-weight:700">+10 分</span></div>
+        <div>🏃 每次有氧 <span style="color:#4ade80;font-weight:700">+5 分</span></div>
+        <div>🎯 週達標 <span style="color:#a78bfa;font-weight:700">+15 分</span></div>
+        <div>📈 積分不清零</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1153,46 +1202,88 @@ function calcPoints(){
   return pts;
 }
 
-const HOMELAND_LEVELS=[
-  {min:0,   name:'荒野',   lv:1,  next:50,   sky:'',             scene:'🌑 🌑 🌑',          ground:'— — —'},
-  {min:50,  name:'草地',   lv:2,  next:120,  sky:'⭐',           scene:'🌱 🌿 🌱',          ground:'· · · · ·'},
-  {min:120, name:'小木屋', lv:3,  next:250,  sky:'🌤',           scene:'🌲 🏚️ 🌲',         ground:'〜〜〜〜〜'},
-  {min:250, name:'農舍',   lv:4,  next:450,  sky:'☀️ 🐦',        scene:'🌳 🏠 🌳',          ground:'🌾🌾🌾🌾🌾'},
-  {min:450, name:'小村莊', lv:5,  next:700,  sky:'🌤 🦋',        scene:'🌲 🏡 🌻 🏡 🌲',   ground:'🌿🌿🌿🌿🌿'},
-  {min:700, name:'城鎮',   lv:6,  next:1000, sky:'☀️ 🌈',        scene:'🏘️ 🏘️ ⛲ 🏘️ 🏘️', ground:'🌺🌿🌺🌿🌺'},
-  {min:1000,name:'城市',   lv:7,  next:1500, sky:'🌟 🌟 🌙',     scene:'🏙️ 🌃 🌆',          ground:'🌆🌃🌇🌆🌃'},
-  {min:1500,name:'王國',   lv:8,  next:2500, sky:'👑 ✨ 👑',     scene:'🏰 🏯 ⚔️ 🏯 🏰',   ground:'🌟💎🌟💎🌟'},
-  {min:2500,name:'傳說王國',lv:9, next:null, sky:'🌠 👑 🌠',     scene:'🏰 🐲 🔮 🐲 🏰',   ground:'✨💫✨💫✨'},
+const BUILDINGS=[
+  {id:'gym',    name:'健身站', emoji:'🏋️', pts:0,    color:'#1a2a1a', glow:'#4ade80', desc:'你的起點，每次訓練從這裡出發'},
+  {id:'tent',   name:'帳篷',   emoji:'⛺', pts:50,   color:'#1a2010', glow:'#86efac', desc:'第一個遮風擋雨的地方'},
+  {id:'park',   name:'草坪',   emoji:'🌿', pts:80,   color:'#0d2010', glow:'#4ade80', desc:'清晨跑步的好去處'},
+  {id:'clinic', name:'診所',   emoji:'🏥', pts:150,  color:'#0d1a20', glow:'#38bdf8', desc:'身體是革命的本錢'},
+  {id:'garden', name:'花園',   emoji:'🌸', pts:200,  color:'#1a0d20', glow:'#e879f9', desc:'努力也需要美麗的角落'},
+  {id:'cafe',   name:'咖啡廳', emoji:'☕', pts:300,  color:'#1a1208', glow:'#fbbf24', desc:'訓練後最棒的獎勵'},
+  {id:'apt',    name:'公寓',   emoji:'🏢', pts:450,  color:'#0d1220', glow:'#818cf8', desc:'你已經是個認真的運動者'},
+  {id:'market', name:'市場',   emoji:'🏪', pts:600,  color:'#1a1008', glow:'#fb923c', desc:'活力滿滿的社區中心'},
+  {id:'lib',    name:'圖書館', emoji:'📚', pts:800,  color:'#080d1a', glow:'#60a5fa', desc:'知識與力量並進'},
+  {id:'plaza',  name:'廣場',   emoji:'🏛️', pts:1000, color:'#12100a', glow:'#fde68a', desc:'城市的心臟，人群聚集之地'},
+  {id:'arena',  name:'體育館', emoji:'🏟️', pts:1300, color:'#0a0d1a', glow:'#a78bfa', desc:'你是這座城市的英雄'},
+  {id:'hall',   name:'市政廳', emoji:'🏰', pts:1700, color:'#0a0808', glow:'#f87171', desc:'傳說中的訓練王者'},
 ];
 
-function getHomelandLevel(pts){
-  for(let i=HOMELAND_LEVELS.length-1;i>=0;i--){
-    if(pts>=HOMELAND_LEVELS[i].min)return HOMELAND_LEVELS[i];
-  }
-  return HOMELAND_LEVELS[0];
-}
-
-function renderHomeland(){
+function renderCityCard(){
   const el=document.getElementById('homeland-card');if(!el)return;
   const pts=calcPoints();
-  const lv=getHomelandLevel(pts);
-  const nextPts=lv.next;
-  const prevPts=lv.min;
-  const pct=nextPts?Math.min((pts-prevPts)/(nextPts-prevPts)*100,100):100;
-  el.innerHTML=`<div class="homeland">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <span style="font-size:12px;font-weight:700;color:#4ade80;letter-spacing:.5px">🏡 我的家園</span>
-      <span style="font-size:11px;color:rgba(240,236,228,.35)">Lv.${lv.lv} ${lv.name}</span>
+  const unlocked=BUILDINGS.filter(b=>pts>=b.pts);
+  const locked=BUILDINGS.filter(b=>pts<b.pts);
+  const next=locked[0];
+  const pct=next?Math.min((pts-unlocked[unlocked.length-1].pts)/(next.pts-unlocked[unlocked.length-1].pts)*100,100):100;
+  const preview=BUILDINGS.slice(0,8);
+  el.innerHTML=`<div class="city-card">
+    <div class="city-header">
+      <div>
+        <div class="city-name">🏙️ 我的城市</div>
+        <div style="font-size:10px;color:rgba(240,236,228,.35);margin-top:1px">${unlocked.length}/${BUILDINGS.length} 建築已解鎖</div>
+      </div>
+      <div class="city-pts-badge">⭐ ${pts} 分</div>
     </div>
-    <div class="homeland-sky">${lv.sky}</div>
-    <div class="homeland-scene">${lv.scene}</div>
-    <div class="homeland-ground">${lv.ground}</div>
-    <div class="homeland-info">
-      <span class="homeland-pts">⭐ ${pts} 分</span>
-      <div class="homeland-bar-wrap"><div class="homeland-bar" style="width:${pct}%"></div></div>
-      <span class="homeland-lv">${nextPts?`→ Lv.${lv.lv+1} 需 ${nextPts}分`:'✨ 滿等'}</span>
+    <div class="city-grid-mini">${preview.map(b=>{
+      const on=pts>=b.pts;
+      return `<div class="city-plot ${on?'unlocked':'locked'}" style="${on?`background:${b.color};border:1px solid ${b.glow}22`:''}">
+        <div class="city-plot-emoji">${on?b.emoji:'🔒'}</div>
+        <div class="city-plot-name" style="${on?`color:${b.glow}`:''}">${on?b.name:'???'}</div>
+      </div>`;
+    }).join('')}</div>
+    <div class="city-bar-row">
+      <div style="font-size:10px;color:rgba(240,236,228,.4);white-space:nowrap">${next?`下一棟 ${next.emoji} ${next.pts}分`:'✨ 全部解鎖'}</div>
+      <div class="city-bar-wrap"><div class="city-bar" style="width:${pct}%"></div></div>
+      <div style="font-size:10px;color:rgba(240,236,228,.4);white-space:nowrap">${next?`差 ${next.pts-pts} 分`:''}</div>
     </div>
   </div>`;
+}
+
+function openCityModal(){
+  const pts=calcPoints();
+  document.getElementById('city-modal-sub').textContent=`⭐ ${pts} 分 · ${BUILDINGS.filter(b=>pts>=b.pts).length}/${BUILDINGS.length} 建築已解鎖`;
+  const grid=document.getElementById('city-full-grid');
+  grid.innerHTML=BUILDINGS.map(b=>{
+    const on=pts>=b.pts;
+    return `<div class="city-full-plot ${on?'unlocked':'locked'}" data-pts="${b.pts}"
+      style="${on?`background:${b.color};border:1px solid ${b.glow}33;position:relative`:''}"
+      onclick="${on?`showCityInfo('${b.id}')`:''}">
+      <div style="font-size:${on?'32':'22'}px;line-height:1;${on?'':'opacity:.2'}">${on?b.emoji:'🔒'}</div>
+      <div style="font-size:9px;font-weight:700;margin-top:4px;text-align:center;${on?`color:${b.glow}`:'color:rgba(240,236,228,.2)'}">${on?b.name:`${b.pts}分`}</div>
+      ${on?'':`<div style="font-size:7px;color:rgba(240,236,228,.15);margin-top:2px">差 ${b.pts-pts} 分</div>`}
+    </div>`;
+  }).join('');
+  document.getElementById('city-modal').hidden=false;
+  document.body.style.overflow='hidden';
+}
+
+function closeCityModal(){
+  document.getElementById('city-modal').hidden=true;
+  document.body.style.overflow='';
+}
+
+function showCityInfo(id){
+  const b=BUILDINGS.find(x=>x.id===id);if(!b)return;
+  const pop=document.getElementById('city-info-popup');
+  pop.innerHTML=`<div style="display:flex;align-items:center;gap:10px">
+    <div style="font-size:36px">${b.emoji}</div>
+    <div>
+      <div style="font-size:14px;font-weight:800;color:#f0ece4">${b.name}</div>
+      <div style="font-size:11px;color:rgba(240,236,228,.5);margin-top:3px">${b.desc}</div>
+      <div style="font-size:10px;color:#fbbf24;margin-top:4px">解鎖需 ${b.pts} 分</div>
+    </div>
+  </div>`;
+  pop.style.display='block';
+  setTimeout(()=>{pop.style.display='none';},3000);
 }
 
 function renderOverview(){
@@ -1331,7 +1422,7 @@ function renderOverview(){
   setSyncState(syncState);
   updateCloudBanner();
   document.getElementById('recent-list').innerHTML=sorted.slice(0,2).map(s=>sessionCard(s,false)).join('')||'<div class="empty" style="padding:20px 0;text-align:center;color:rgba(240,236,228,.25);font-size:14px">還沒有訓練紀錄<br><span style="font-size:12px;opacity:.6">點上方按鈕開始第一次訓練</span></div>';
-  renderHomeland();
+  renderCityCard();
 }
 
 // ── LOG ──
