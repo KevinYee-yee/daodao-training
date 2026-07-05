@@ -243,6 +243,10 @@ textarea.form-input{resize:none}
 /* 選擇器 sheet */
 .city-picker-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);display:none;align-items:flex-end}
 .city-picker-sheet{background:#141414;border-radius:22px 22px 0 0;padding:20px 16px calc(28px + env(safe-area-inset-bottom));width:100%;max-height:72vh;overflow-y:auto}
+/* Gacha */
+.gacha-modal{position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center}
+.gacha-sheet{background:#0e0e12;border-radius:22px 22px 0 0;padding:20px 16px calc(28px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:80vh;overflow-y:auto}
+@keyframes gacha-item-in{from{opacity:0;transform:translateY(18px) scale(.9)}to{opacity:1;transform:none}}
 /* Calendar */
 .cal-cell{background:#161616;border-radius:6px}
 .cal-cell.has-w{background:#f59e0b;box-shadow:none}
@@ -729,21 +733,25 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
   </div>
 </div>
 
-<!-- 城市 modal -->
+<!-- 城市 tab -->
 <div id="tab-city" class="tab-content" style="display:none;flex-direction:column;height:100svh;overflow:hidden">
-  <div style="padding:env(safe-area-inset-top,16px) 16px 0;background:#060c06;flex-shrink:0;z-index:10">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #1a1a1a">
+  <div style="padding:env(safe-area-inset-top,16px) 16px 0;background:#06080e;flex-shrink:0;z-index:10">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #1a1a22">
       <div>
         <div style="font-size:20px;font-weight:800;color:#f0ece4">🏙️ 我的城市</div>
-        <div style="font-size:11px;color:rgba(240,236,228,.35);margin-top:2px" id="city-tab-sub">積分建造你的家園</div>
+        <div style="font-size:11px;color:rgba(240,236,228,.32);margin-top:2px" id="city-tab-sub">城市幣 0 · +0/hr</div>
       </div>
-      <div id="city-tab-pts" class="city-pts-badge">⭐ 0 分</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button onclick="cityRotate()" style="background:#1a1a28;border:1px solid #2a2a3a;border-radius:10px;color:rgba(240,236,228,.7);font-size:16px;padding:7px 10px;cursor:pointer;line-height:1" title="旋轉地圖">↻</button>
+        <button onclick="openGachaModal()" style="background:linear-gradient(135deg,#3818a8,#6020d0);border:none;border-radius:10px;color:#f0ece4;font-size:11px;font-weight:700;padding:7px 12px;cursor:pointer;white-space:nowrap">✦ 抽卡</button>
+        <div id="city-tab-pts" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:6px 10px;font-size:11px;font-weight:700;color:#f0ece4;white-space:nowrap">⭐ 0 分</div>
+      </div>
     </div>
   </div>
   <!-- 待放置倉庫 -->
-  <div id="city-inventory" style="display:none;padding:10px 16px;background:#060e06;flex-shrink:0;border-bottom:1px solid #0f1f0f">
-    <div style="font-size:10px;font-weight:700;color:rgba(240,236,228,.3);margin-bottom:6px;letter-spacing:.4px">📦 待放置 — 點地圖空地放置</div>
-    <div id="city-inventory-list" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px"></div>
+  <div id="city-inventory" style="display:none;padding:8px 16px;background:#06080e;flex-shrink:0;border-bottom:1px solid #12121c">
+    <div style="font-size:9px;font-weight:700;color:rgba(240,236,228,.28);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">📦 倉庫 — 點空地放置</div>
+    <div id="city-inventory-list" style="display:flex;gap:7px;overflow-x:auto;padding-bottom:2px"></div>
   </div>
   <!-- 等距地圖 -->
   <div class="iso-wrap" id="iso-wrap">
@@ -754,11 +762,56 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 <!-- 城市建築選擇器 -->
 <div id="city-picker-overlay" class="city-picker-overlay" onclick="if(event.target===this)closeCityPicker()">
   <div class="city-picker-sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div style="font-size:16px;font-weight:700;color:#f0ece4" id="city-picker-title">選擇建築</div>
       <button onclick="closeCityPicker()" style="background:none;border:none;color:rgba(240,236,228,.4);font-size:24px;cursor:pointer;padding:0;line-height:1">×</button>
     </div>
     <div id="city-picker-list"></div>
+  </div>
+</div>
+
+<!-- 抽卡 modal -->
+<div id="gacha-modal" class="gacha-modal" onclick="if(event.target===this)closeGachaModal()">
+  <div class="gacha-sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:17px;font-weight:800;color:#f0ece4">✦ 抽卡召喚</div>
+        <div style="font-size:10px;color:rgba(240,236,228,.35);margin-top:2px">普通60% · 稀有30% · 傳說8% · 神話2%</div>
+      </div>
+      <button onclick="closeGachaModal()" style="background:none;border:none;color:rgba(240,236,228,.4);font-size:24px;cursor:pointer;padding:0;line-height:1">×</button>
+    </div>
+    <div style="background:#0e0e18;border:1px solid #1e1e28;border-radius:14px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+        <span style="font-size:12px;color:rgba(240,236,228,.45)">可用積分</span>
+        <span id="gacha-avail-pts" style="font-size:13px;font-weight:700;color:#f0ece4">0 分</span>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onclick="doDraw(1)" style="flex:1;padding:13px;background:linear-gradient(135deg,#1e1838,#2a2050);border:1px solid #3a30a0;border-radius:12px;color:#c0b8f0;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">單抽<br><span style="font-size:10px;font-weight:500;opacity:.7">20 分</span></button>
+        <button onclick="doDraw(10)" style="flex:1;padding:13px;background:linear-gradient(135deg,#28103c,#3a1858);border:1px solid #7030b0;border-radius:12px;color:#e0b0f8;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">十連抽<br><span style="font-size:10px;font-weight:500;opacity:.7">200 分 · 必出稀有</span></button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;font-size:10px">
+      <span style="color:#8a8a9a">普通保底</span><span style="color:rgba(240,236,228,.2)">·</span>
+      <span style="color:#4488ff" id="gacha-pity-R">稀有 0/10</span><span style="color:rgba(240,236,228,.2)">·</span>
+      <span style="color:#f59e0b" id="gacha-pity-L">傳說 0/50</span><span style="color:rgba(240,236,228,.2)">·</span>
+      <span style="color:#d946ef" id="gacha-pity-M">神話 0/80</span>
+    </div>
+    <div style="font-size:10px;color:rgba(240,236,228,.25)">訓練積分越高，可抽次數越多 · 建築被動產出城市幣（未來兌換）</div>
+  </div>
+</div>
+
+<!-- 抽卡結果 modal -->
+<div id="gacha-result-modal" class="gacha-modal" onclick="if(event.target===this)closeGachaResult()">
+  <div class="gacha-sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:17px;font-weight:800;color:#f0ece4">抽卡結果</div>
+        <div id="gacha-result-cost" style="font-size:10px;color:rgba(240,236,228,.35);margin-top:2px"></div>
+      </div>
+      <button onclick="closeGachaResult()" style="background:none;border:none;color:rgba(240,236,228,.4);font-size:24px;cursor:pointer;padding:0;line-height:1">×</button>
+    </div>
+    <div id="gacha-result-list"></div>
+    <button onclick="closeGachaResult()" style="width:100%;margin-top:8px;padding:13px;background:#141420;border:1px solid #2a2a3a;border-radius:12px;color:#f0ece4;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">去放置建築 →</button>
   </div>
 </div>
 
@@ -1225,186 +1278,265 @@ function calcPoints(){
   return pts;
 }
 
-const BUILDINGS=[
-  {id:'gym',    name:'健身站', emoji:'🏋️', pts:0,    color:'#1a2a1a', glow:'#4ade80', desc:'你的起點，每次訓練從這裡出發'},
-  {id:'tent',   name:'帳篷',   emoji:'⛺', pts:50,   color:'#1a2010', glow:'#86efac', desc:'第一個遮風擋雨的地方'},
-  {id:'park',   name:'草坪',   emoji:'🌿', pts:80,   color:'#0d2010', glow:'#4ade80', desc:'清晨跑步的好去處'},
-  {id:'clinic', name:'診所',   emoji:'🏥', pts:150,  color:'#0d1a20', glow:'#38bdf8', desc:'身體是革命的本錢'},
-  {id:'garden', name:'花園',   emoji:'🌸', pts:200,  color:'#1a0d20', glow:'#e879f9', desc:'努力也需要美麗的角落'},
-  {id:'cafe',   name:'咖啡廳', emoji:'☕', pts:300,  color:'#1a1208', glow:'#fbbf24', desc:'訓練後最棒的獎勵'},
-  {id:'apt',    name:'公寓',   emoji:'🏢', pts:450,  color:'#0d1220', glow:'#818cf8', desc:'你已經是個認真的運動者'},
-  {id:'market', name:'市場',   emoji:'🏪', pts:600,  color:'#1a1008', glow:'#fb923c', desc:'活力滿滿的社區中心'},
-  {id:'lib',    name:'圖書館', emoji:'📚', pts:800,  color:'#080d1a', glow:'#60a5fa', desc:'知識與力量並進'},
-  {id:'plaza',  name:'廣場',   emoji:'🏛️', pts:1000, color:'#12100a', glow:'#fde68a', desc:'城市的心臟，人群聚集之地'},
-  {id:'arena',  name:'體育館', emoji:'🏟️', pts:1300, color:'#0a0d1a', glow:'#a78bfa', desc:'你是這座城市的英雄'},
-  {id:'hall',   name:'市政廳', emoji:'🏰', pts:1700, color:'#0a0808', glow:'#f87171', desc:'傳說中的訓練王者'},
+// ── CITY GAME v3 ──
+const BLDGS=[
+  {id:'shack',  name:'木棚',     rarity:'C', income:1,  h:22, wc:'#9a7252', wc2:'#6a4e38', rc:'#4e2c18'},
+  {id:'hut',    name:'小木屋',   rarity:'C', income:2,  h:32, wc:'#c89a68', wc2:'#a07848', rc:'#804820'},
+  {id:'store',  name:'補給站',   rarity:'C', income:2,  h:30, wc:'#5a7a9a', wc2:'#3a5a7a', rc:'#b8c4d4'},
+  {id:'barn',   name:'穀倉',     rarity:'C', income:3,  h:28, wc:'#c03830', wc2:'#901808', rc:'#202020'},
+  {id:'gym',    name:'健身房',   rarity:'R', income:6,  h:48, wc:'#2c3c58', wc2:'#181e30', rc:'#c82020'},
+  {id:'cafe',   name:'能量吧',   rarity:'R', income:5,  h:38, wc:'#7a5a38', wc2:'#4c3010', rc:'#c88838'},
+  {id:'clinic', name:'診所',     rarity:'R', income:7,  h:44, wc:'#d8e0f0', wc2:'#a8b8d0', rc:'#88b8e8'},
+  {id:'tower',  name:'訓練大樓', rarity:'L', income:15, h:78, wc:'#1c2e58', wc2:'#0e1830', rc:'#2858b8'},
+  {id:'arena',  name:'競技場',   rarity:'L', income:18, h:58, wc:'#502818', wc2:'#281008', rc:'#984020'},
+  {id:'palace', name:'運動殿堂', rarity:'M', income:40, h:88, wc:'#300e48', wc2:'#180828', rc:'#7818c8'},
 ];
+const RARITY_META={
+  C:{name:'普通', color:'#8a8a9a', bg:'#16161e'},
+  R:{name:'稀有', color:'#4488ff', bg:'#0a1228'},
+  L:{name:'傳說', color:'#f59e0b', bg:'#1a1200'},
+  M:{name:'神話', color:'#d946ef', bg:'#180a28'},
+};
+const BLDG_EMOJI={shack:'🏚',hut:'🏠',store:'🏬',barn:'🏗',gym:'🏋️',cafe:'☕',clinic:'🏥',tower:'🏢',arena:'🏟',palace:'🏰'};
+const DRAW_COST=20;
+const CITY_V3_KEY='daodao_city_v3';
+const ISO_COLS=8,ISO_ROWS=10,TW=72,TH=36,HW=36,HH=18;
 
-const CITY_LAYOUT_KEY='daodao_city_layout_v2';
-function getCityLayout(){return JSON.parse(localStorage.getItem(CITY_LAYOUT_KEY)||'{}');}
-function saveCityLayout(l){localStorage.setItem(CITY_LAYOUT_KEY,JSON.stringify(l));}
-let _cityPickerCell=null;
+function getCityState(){
+  const s=JSON.parse(localStorage.getItem(CITY_V3_KEY)||'{}');
+  if(!s.layout)s.layout={};
+  if(!s.inv)s.inv={};
+  if(!s.pity)s.pity={R:0,L:0,M:0};
+  if(!s.spent)s.spent=0;
+  if(!s.rot)s.rot=0;
+  if(!s.coins)s.coins=0;
+  if(!s.lastCollect)s.lastCollect=Date.now();
+  return s;
+}
+function saveCityState(s){localStorage.setItem(CITY_V3_KEY,JSON.stringify(s));}
 
-const ISO_COLS=8,ISO_ROWS=12,ISO_TW=72,ISO_TH=36;
-const ISO_HW=ISO_TW/2,ISO_HH=ISO_TH/2;
+function getAvailablePts(){
+  const s=getCityState();
+  return Math.max(0,calcPoints()-(s.spent||0));
+}
+function getTotalIncome(){
+  const s=getCityState();
+  let r=0;
+  Object.values(s.layout).forEach(id=>{const b=BLDGS.find(x=>x.id===id);if(b)r+=b.income;});
+  return r;
+}
+function collectPassiveCoins(){
+  const s=getCityState();
+  const now=Date.now();
+  const hrs=Math.min((now-(s.lastCollect||now))/3600000,8);
+  const earned=Math.floor(getTotalIncome()*hrs);
+  if(earned>0){s.coins=(s.coins||0)+earned;s.lastCollect=now;saveCityState(s);}
+  return earned;
+}
 
-function isoXY(r,c,ox){return{x:ox+(c-r)*ISO_HW,y:48+(c+r)*ISO_HH};}
+// ── GACHA ──
+function rollRarity(pity){
+  if((pity.M||0)>=80)return'M';
+  if((pity.L||0)>=50)return'L';
+  if((pity.R||0)>=10)return'R';
+  const r=Math.random();
+  if(r<0.02)return'M';
+  if(r<0.10)return'L';
+  if(r<0.40)return'R';
+  return'C';
+}
+function doDraw(count){
+  const cost=DRAW_COST*count;
+  if(getAvailablePts()<cost){showUndoToast('積分不足，快去訓練！');return;}
+  const s=getCityState();
+  s.spent=(s.spent||0)+cost;
+  const results=[];
+  for(let i=0;i<count;i++){
+    const rar=rollRarity(s.pity);
+    const pool=BLDGS.filter(b=>b.rarity===rar);
+    const b=pool[Math.floor(Math.random()*pool.length)];
+    results.push(b);
+    if(rar!=='M')s.pity.M=(s.pity.M||0)+1;
+    if(rar==='C'||rar==='R')s.pity.L=(s.pity.L||0)+1;
+    if(rar==='C')s.pity.R=(s.pity.R||0)+1;
+    if(rar==='R')s.pity.R=0;
+    if(rar==='L')s.pity.L=0;
+    if(rar==='M'){s.pity.M=0;s.pity.L=0;s.pity.R=0;}
+    s.inv[b.id]=(s.inv[b.id]||0)+1;
+  }
+  saveCityState(s);
+  document.getElementById('gacha-modal').style.display='none';
+  showGachaResult(results,cost);
+  renderCityTab();
+}
+function openGachaModal(){
+  const s=getCityState();
+  document.getElementById('gacha-avail-pts').textContent=`${getAvailablePts()} 分`;
+  document.getElementById('gacha-pity-R').textContent=`稀有 ${s.pity.R||0}/10`;
+  document.getElementById('gacha-pity-L').textContent=`傳說 ${s.pity.L||0}/50`;
+  document.getElementById('gacha-pity-M').textContent=`神話 ${s.pity.M||0}/80`;
+  document.getElementById('gacha-modal').style.display='flex';
+}
+function closeGachaModal(){document.getElementById('gacha-modal').style.display='none';}
+function showGachaResult(results,cost){
+  document.getElementById('gacha-result-cost').textContent=`消耗 ${cost} 積分`;
+  document.getElementById('gacha-result-list').innerHTML=results.map((b,i)=>{
+    const rm=RARITY_META[b.rarity];
+    return`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:${rm.bg};border:1px solid ${rm.color}40;animation:gacha-item-in .35s ${i*0.07}s both;margin-bottom:7px">
+      <div style="font-size:26px;flex-shrink:0">${BLDG_EMOJI[b.id]||'🏠'}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#f0ece4">${b.name}</div>
+      <div style="font-size:10px;color:${rm.color};margin-top:1px">${rm.name} · +${b.income} 幣/hr</div></div>
+      <div style="font-size:9px;color:rgba(240,236,228,.28)">+1 入倉</div>
+    </div>`;
+  }).join('');
+  document.getElementById('gacha-result-modal').style.display='flex';
+}
+function closeGachaResult(){document.getElementById('gacha-result-modal').style.display='none';}
 
+// ── ISO RENDERING ──
+function isoScreenPos(r,c,rot){
+  let gr=r,gc=c;
+  const R=ISO_ROWS-1,C=ISO_COLS-1;
+  switch((rot||0)%4){
+    case 1:gr=C-c;gc=r;break;
+    case 2:gr=R-r;gc=C-c;break;
+    case 3:gr=c;gc=R-r;break;
+  }
+  return{cx:(ISO_ROWS*HW)+(gc-gr)*HW,cy:60+(gc+gr)*HH,z:gc+gr};
+}
+function bldFacesHtml(cx,cy,b){
+  const bh=b.h,boxW=TW,boxH=TH+bh;
+  const left=cx-HW,top=cy-HH-bh;
+  const tp=`polygon(${HW}px ${bh}px,${TW}px ${bh+HH}px,${HW}px ${bh+TH}px,0px ${bh+HH}px)`;
+  const lp=`polygon(0px ${bh+HH}px,${HW}px ${bh+TH}px,${HW}px ${boxH}px,0px ${boxH-HH}px)`;
+  const rp=`polygon(${HW}px ${bh+TH}px,${TW}px ${bh+HH}px,${TW}px ${boxH-HH}px,${HW}px ${boxH}px)`;
+  return`<div style="position:absolute;left:${left}px;top:${top}px;width:${boxW}px;height:${boxH}px">
+    <div style="position:absolute;inset:0;background:${b.rc};clip-path:${tp}"></div>
+    <div style="position:absolute;inset:0;background:${b.wc};clip-path:${lp}"></div>
+    <div style="position:absolute;inset:0;background:${b.wc2};clip-path:${rp}"></div>
+    <div style="position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:6.5px;font-weight:700;color:rgba(255,255,255,.8);text-shadow:0 1px 3px #000;pointer-events:none;white-space:nowrap;overflow:hidden">${b.name}</div>
+  </div>`;
+}
 function renderCityCard(){
   const el=document.getElementById('homeland-card');if(!el)return;
-  const pts=calcPoints();
-  const layout=getCityLayout();
-  const unlocked=BUILDINGS.filter(b=>pts>=b.pts);
-  const next=BUILDINGS.find(b=>pts<b.pts);
-  const prev=unlocked.length?unlocked[unlocked.length-1]:BUILDINGS[0];
-  const pct=next?Math.min((pts-prev.pts)/(next.pts-prev.pts)*100,100):100;
-  const placed=Object.keys(layout).length;
-  // 預覽：顯示前8個已放置建築
-  const previewKeys=Object.keys(layout).slice(0,8);
-  let previewHtml='';
-  for(let i=0;i<8;i++){
-    const key=previewKeys[i];
-    const b=key?BUILDINGS.find(x=>x.id===layout[key]):null;
-    previewHtml+=b
-      ?`<div class="city-plot unlocked" style="background:${b.color};border:1px solid ${b.glow}22"><div class="city-plot-emoji">${b.emoji}</div><div class="city-plot-name" style="color:${b.glow}">${b.name}</div></div>`
-      :`<div class="city-plot locked"><div class="city-plot-emoji" style="font-size:9px;opacity:.12">空地</div></div>`;
-  }
+  const pts=calcPoints();const avail=getAvailablePts();
+  const s=getCityState();
+  const placed=Object.keys(s.layout).length;const rate=getTotalIncome();
   el.innerHTML=`<div class="city-card">
     <div class="city-header">
-      <div>
-        <div class="city-name">🏙️ 我的城市</div>
-        <div style="font-size:10px;color:rgba(240,236,228,.35);margin-top:1px">${placed} 棟已放置 · ${unlocked.length} 棟已解鎖</div>
-      </div>
+      <div><div class="city-name">🏙️ 我的城市</div>
+        <div style="font-size:10px;color:rgba(240,236,228,.35);margin-top:1px">${placed} 棟已放置 · +${rate} 幣/hr</div></div>
       <div class="city-pts-badge">⭐ ${pts} 分</div>
     </div>
-    <div class="city-grid-mini">${previewHtml}</div>
+    <div style="font-size:11px;color:rgba(240,236,228,.4);text-align:center;padding:12px 0">
+      ${placed===0?'進城市，抽卡建造你的家園':rate>0?`城市運轉中・已賺 ${s.coins||0} 城市幣`:'點空地放置建築開始被動收入'}
+    </div>
     <div class="city-bar-row">
-      <div style="font-size:10px;color:rgba(240,236,228,.4);white-space:nowrap">${next?`下一棟 ${next.emoji} ${next.pts}分`:'✨ 全部解鎖'}</div>
-      <div class="city-bar-wrap"><div class="city-bar" style="width:${pct}%"></div></div>
-      <div style="font-size:10px;color:rgba(240,236,228,.4);white-space:nowrap">${next?`差 ${next.pts-pts} 分`:''}</div>
+      <div style="font-size:10px;color:rgba(240,236,228,.4);white-space:nowrap">⭐ ${avail} 可用</div>
+      <div class="city-bar-wrap"><div class="city-bar" style="width:${Math.min((avail/DRAW_COST)*10,100)}%"></div></div>
+      <div style="font-size:10px;color:rgba(240,236,228,.4);white-space:nowrap">抽 ${DRAW_COST}分/次</div>
     </div>
   </div>`;
 }
-
+let _cityPickerCell=null;
 function renderCityTab(){
-  const pts=calcPoints();
-  const layout=getCityLayout();
-  const unlocked=BUILDINGS.filter(b=>pts>=b.pts);
-  const placed=new Set(Object.values(layout));
-  const unplaced=unlocked.filter(b=>!placed.has(b.id));
-  document.getElementById('city-tab-sub').textContent=`${unlocked.length}/${BUILDINGS.length} 已解鎖 · ${Object.keys(layout).length} 棟已放置`;
-  document.getElementById('city-tab-pts').textContent=`⭐ ${pts} 分`;
-  // 倉庫
-  const inv=document.getElementById('city-inventory');
-  const invList=document.getElementById('city-inventory-list');
-  if(unplaced.length>0){
-    invList.innerHTML=unplaced.map(b=>`<div style="background:${b.color};border:1px solid ${b.glow}44;border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:52px;flex-shrink:0">
-      <div style="font-size:22px">${b.emoji}</div>
-      <div style="font-size:7.5px;font-weight:700;color:${b.glow};text-align:center">${b.name}</div>
-    </div>`).join('');
-    inv.style.display='block';
-  }else{inv.style.display='none';}
-  // 等距地圖
+  const s=getCityState();
+  const avail=getAvailablePts();const rate=getTotalIncome();
+  const earned=collectPassiveCoins();
+  if(earned>0)showUndoToast(`收取 ${earned} 城市幣！`);
+  document.getElementById('city-tab-sub').textContent=`城市幣 ${s.coins||0} · +${rate}/hr`;
+  document.getElementById('city-tab-pts').textContent=`⭐ ${avail} 分`;
+  const inv=s.inv||{};
+  const invIds=Object.entries(inv).filter(([,c])=>c>0).map(([id])=>id);
+  const invEl=document.getElementById('city-inventory');
+  if(invIds.length>0){
+    document.getElementById('city-inventory-list').innerHTML=invIds.map(id=>{
+      const b=BLDGS.find(x=>x.id===id);if(!b)return'';
+      const rm=RARITY_META[b.rarity];
+      return`<div style="background:#1a1a1a;border:1px solid ${rm.color}55;border-radius:10px;padding:7px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:50px;flex-shrink:0">
+        <div style="font-size:20px">${BLDG_EMOJI[id]||'🏠'}</div>
+        <div style="font-size:7px;font-weight:700;color:${rm.color}">${b.name}</div>
+        <div style="font-size:7px;color:rgba(240,236,228,.3)">×${inv[id]}</div>
+      </div>`;
+    }).join('');
+    invEl.style.display='block';
+  }else{invEl.style.display='none';}
   const mapEl=document.getElementById('iso-map');
-  const ox=ISO_ROWS*ISO_HW;
-  const mapW=(ISO_COLS+ISO_ROWS)*ISO_HW+ISO_TW;
-  const mapH=(ISO_COLS+ISO_ROWS)*ISO_HH+100;
+  const rot=s.rot||0;
+  const mapW=(ISO_COLS+ISO_ROWS)*HW+TW;
+  const mapH=(ISO_COLS+ISO_ROWS)*HH+140;
   mapEl.style.cssText=`position:relative;width:${mapW}px;height:${mapH}px;`;
-  let tiles='',blds='';
-  for(let r=0;r<ISO_ROWS;r++){
-    for(let c=0;c<ISO_COLS;c++){
-      const{x,y}=isoXY(r,c,ox);
-      const key=`${r},${c}`;
-      const bid=layout[key];
-      const b=bid?BUILDINGS.find(bx=>bx.id===bid):null;
-      const z=(r+c)*2;
-      const tx=x-ISO_HW,ty=y-ISO_HH;
-      const tBase=`position:absolute;width:${ISO_TW}px;height:${ISO_TH}px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);left:${tx}px;top:${ty}px;z-index:${z};`;
-      if(b){
-        tiles+=`<div style="${tBase}background:${b.color};cursor:default" onclick="openCellOccupied('${key}')"></div>`;
-        const delay=((r*ISO_COLS+c)%7)*0.45;
-        const sDelay=((r*ISO_COLS+c)%5)*0.5;
-        blds+=`<div class="iso-bld" id="isobld-${key}" style="left:${x}px;top:${y-ISO_HH-28}px;z-index:${z+1}" onclick="openCellOccupied('${key}')">
-          <div class="iso-bld-emoji" style="animation-delay:${delay}s">${b.emoji}</div>
-          <div class="iso-bld-name" style="color:${b.glow}">${b.name}</div>
-          <div class="iso-smoke" style="top:-4px;animation-delay:${sDelay}s"></div>
-        </div>`;
-      }else if(unplaced.length>0){
-        tiles+=`<div style="${tBase}background:linear-gradient(135deg,#2a5a2a,#1e4820);cursor:pointer" onclick="openCellPicker('${key}')"><div class="iso-plus">+</div></div>`;
-      }else{
-        tiles+=`<div style="${tBase}background:#141e14;opacity:.4;cursor:default"></div>`;
-      }
-    }
+  const cells=[];
+  for(let r=0;r<ISO_ROWS;r++)for(let c=0;c<ISO_COLS;c++){
+    const pos=isoScreenPos(r,c,rot);cells.push({r,c,pos,key:`${r},${c}`});
   }
-  mapEl.innerHTML=tiles+blds;
-  // 初始捲動置中
+  cells.sort((a,b)=>a.pos.z-b.pos.z);
+  const placed=s.layout||{};const hasInv=invIds.length>0;
+  let tilesHtml='',bldsHtml='';
+  cells.forEach(({r,c,pos,key})=>{
+    const{cx,cy,z}=pos;const bid=placed[key];
+    const b=bid?BLDGS.find(x=>x.id===bid):null;
+    const tx=cx-HW,ty=cy-HH;
+    const tc=b?b.wc2:(hasInv?'#1c3c1c':'#0e180e');
+    const curs=(!b&&hasInv)?'pointer':'default';
+    const clickAttr=b?`onclick="onCityBldClick('${key}')"`:(hasInv?`onclick="onCityTileClick('${key}')"`:'');
+    tilesHtml+=`<div style="position:absolute;left:${tx}px;top:${ty}px;width:${TW}px;height:${TH}px;clip-path:polygon(${HW}px 0px,${TW}px ${HH}px,${HW}px ${TH}px,0px ${HH}px);background:${tc};z-index:${z};cursor:${curs}" ${clickAttr}></div>`;
+    if(b)bldsHtml+=`<div style="position:absolute;z-index:${z+1};cursor:pointer" onclick="onCityBldClick('${key}')">${bldFacesHtml(cx,cy,b)}</div>`;
+  });
+  mapEl.innerHTML=tilesHtml+bldsHtml;
   const wrap=document.getElementById('iso-wrap');
-  if(wrap._firstLoad===undefined){
-    wrap._firstLoad=true;
-    requestAnimationFrame(()=>{wrap.scrollLeft=(mapW-wrap.clientWidth)/2;wrap.scrollTop=0;});
-  }
+  if(!wrap._cinit){wrap._cinit=true;requestAnimationFrame(()=>{wrap.scrollLeft=(mapW-wrap.clientWidth)/2;wrap.scrollTop=0;});}
 }
-
-function openCellPicker(key){
+function onCityTileClick(key){
+  const s=getCityState();
+  const invIds=Object.entries(s.inv||{}).filter(([,c])=>c>0).map(([id])=>id);
+  if(!invIds.length)return;
   _cityPickerCell=key;
-  const pts=calcPoints();
-  const layout=getCityLayout();
-  const placed=new Set(Object.values(layout));
-  const unplaced=BUILDINGS.filter(b=>pts>=b.pts&&!placed.has(b.id));
   document.getElementById('city-picker-title').textContent='選擇建築放置';
-  document.getElementById('city-picker-list').innerHTML=unplaced.map(b=>`
-    <div onclick="placeBuilding('${key}','${b.id}')" style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:${b.color};border:1px solid ${b.glow}33;margin-bottom:10px;cursor:pointer">
-      <div style="font-size:34px;flex-shrink:0">${b.emoji}</div>
-      <div>
-        <div style="font-size:14px;font-weight:700;color:${b.glow}">${b.name}</div>
-        <div style="font-size:11px;color:rgba(240,236,228,.4);margin-top:3px">${b.desc}</div>
-      </div>
-    </div>`).join('');
+  document.getElementById('city-picker-list').innerHTML=invIds.map(id=>{
+    const b=BLDGS.find(x=>x.id===id);if(!b)return'';
+    const rm=RARITY_META[b.rarity];
+    return`<div onclick="cityPlace('${key}','${id}')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:${rm.bg};border:1px solid ${rm.color}33;margin-bottom:8px;cursor:pointer;-webkit-tap-highlight-color:transparent">
+      <div style="font-size:30px;flex-shrink:0">${BLDG_EMOJI[id]||'🏠'}</div>
+      <div><div style="font-size:14px;font-weight:700;color:#f0ece4">${b.name}</div>
+      <div style="font-size:10px;color:${rm.color};margin-top:1px">${rm.name} · +${b.income} 幣/hr</div></div>
+      <div style="margin-left:auto;font-size:11px;color:rgba(240,236,228,.3)">×${s.inv[id]}</div>
+    </div>`;
+  }).join('');
   document.getElementById('city-picker-overlay').style.display='flex';
 }
-
-function openCellOccupied(key){
-  _cityPickerCell=key;
-  const layout=getCityLayout();
-  const b=BUILDINGS.find(x=>x.id===layout[key]);if(!b)return;
+function onCityBldClick(key){
+  const s=getCityState();
+  const bid=s.layout[key];const b=BLDGS.find(x=>x.id===bid);if(!b)return;
+  const rm=RARITY_META[b.rarity];_cityPickerCell=key;
   document.getElementById('city-picker-title').textContent=b.name;
   document.getElementById('city-picker-list').innerHTML=`
-    <div style="display:flex;align-items:center;gap:14px;padding:18px;border-radius:16px;background:${b.color};border:1px solid ${b.glow}44;margin-bottom:16px">
-      <div style="font-size:44px">${b.emoji}</div>
-      <div>
-        <div style="font-size:16px;font-weight:800;color:${b.glow}">${b.name}</div>
-        <div style="font-size:12px;color:rgba(240,236,228,.45);margin-top:4px;line-height:1.5">${b.desc}</div>
-      </div>
+    <div style="text-align:center;padding:18px;border-radius:14px;background:${rm.bg};border:1px solid ${rm.color}44;margin-bottom:14px">
+      <div style="font-size:44px">${BLDG_EMOJI[b.id]||'🏠'}</div>
+      <div style="font-size:16px;font-weight:800;color:#f0ece4;margin-top:8px">${b.name}</div>
+      <div style="font-size:11px;color:${rm.color};margin-top:4px">${rm.name} · 被動收入 +${b.income} 幣/hr</div>
     </div>
-    <button onclick="removeBuilding('${key}')" style="width:100%;padding:14px;background:#1a0808;border:1px solid #3a1212;border-radius:14px;color:#f87171;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">移除建築</button>`;
+    <button onclick="cityRemove('${key}')" style="width:100%;padding:14px;background:#1a0808;border:1px solid #3a1212;border-radius:12px;color:#f87171;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">移除建築</button>`;
   document.getElementById('city-picker-overlay').style.display='flex';
 }
-
-function closeCityPicker(){
+function cityPlace(key,bid){
+  const s=getCityState();
+  s.layout[key]=bid;s.inv[bid]=(s.inv[bid]||1)-1;
+  if(s.inv[bid]<=0)delete s.inv[bid];
+  saveCityState(s);
   document.getElementById('city-picker-overlay').style.display='none';
-  _cityPickerCell=null;
+  renderCityTab();renderCityCard();
 }
-
-function placeBuilding(key,buildingId){
-  const layout=getCityLayout();
-  layout[key]=buildingId;
-  saveCityLayout(layout);
-  closeCityPicker();
-  renderCityTab();
-  renderCityCard();
-  setTimeout(()=>{
-    const el=document.getElementById(`isobld-${key}`);
-    if(el){el.classList.add('just-placed');setTimeout(()=>el.classList.remove('just-placed'),700);}
-  },40);
+function cityRemove(key){
+  const s=getCityState();const bid=s.layout[key];
+  if(bid){s.inv[bid]=(s.inv[bid]||0)+1;}
+  delete s.layout[key];saveCityState(s);
+  document.getElementById('city-picker-overlay').style.display='none';
+  renderCityTab();renderCityCard();
 }
-
-function removeBuilding(key){
-  const layout=getCityLayout();
-  delete layout[key];
-  saveCityLayout(layout);
-  closeCityPicker();
-  renderCityTab();
-  renderCityCard();
+function closeCityPicker(){document.getElementById('city-picker-overlay').style.display='none';}
+function cityRotate(){
+  const s=getCityState();s.rot=((s.rot||0)+1)%4;saveCityState(s);renderCityTab();
 }
 
 function renderOverview(){
