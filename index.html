@@ -200,6 +200,16 @@ textarea.form-input{resize:none}
 /* Banner */
 .banner{background:#111;border:1px solid #222}.banner p{color:#f59e0b}.banner-btn{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#f59e0b}
 #plan-bar{background:#111 !important;border:1px solid #222 !important}
+/* 家園 */
+.homeland{background:linear-gradient(160deg,#0a1a0a 0%,#0d1f1a 60%,#111820 100%);border:1px solid #1e2e1e;border-radius:18px;padding:16px 18px;overflow:hidden;position:relative}
+.homeland-sky{font-size:13px;letter-spacing:1px;margin-bottom:4px;min-height:20px}
+.homeland-scene{font-size:22px;letter-spacing:2px;line-height:1.3;margin:6px 0}
+.homeland-ground{font-size:12px;letter-spacing:3px;color:rgba(74,222,128,.3)}
+.homeland-info{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.homeland-pts{font-size:13px;font-weight:700;color:#f59e0b}
+.homeland-bar-wrap{flex:1;margin:0 12px;height:5px;background:#1a2a1a;border-radius:3px;overflow:hidden}
+.homeland-bar{height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:3px;transition:width .5s}
+.homeland-lv{font-size:11px;color:rgba(240,236,228,.35);white-space:nowrap}
 /* Calendar */
 .cal-cell{background:#161616;border-radius:6px}
 .cal-cell.has-w{background:#f59e0b;box-shadow:none}
@@ -462,6 +472,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     </div>
     <div style="font-size:11px;color:rgba(240,236,228,.28);text-align:right;white-space:nowrap" id="ov-badge-sub">0/10</div>
   </div>
+  <!-- 家園 -->
+  <div id="homeland-card" style="margin:0 16px 12px;cursor:pointer" onclick="goTab('log',document.querySelector('[data-tab=log]'))"></div>
   <!-- Recent sessions compact -->
   <div class="ov-recent-hd">
     <span class="ov-recent-title">最近訓練</span>
@@ -1121,6 +1133,68 @@ const OV_BADGES=[
   {n:30,icon:'🏆',name:'傳說',next:50,label:'30次達成'},
   {n:50,icon:'👑',name:'呆呆大魔王',next:50,label:'50次達成'}
 ];
+// ── 家園積分系統 ──
+function calcPoints(){
+  let pts=0;
+  // 重訓：每次 10 分
+  pts+=WK.length*10;
+  // 有氧：每次 5 分
+  pts+=getCardioData().length*5;
+  // 週達標 bonus：每週完成目標 +15 分
+  const target=getGoals().weeklyTarget||3;
+  const wm={};
+  WK.forEach(w=>{
+    const d=new Date(w.date),dow=d.getDay();
+    const m=new Date(d);m.setDate(d.getDate()-(dow===0?6:dow-1));
+    const k=`${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,'0')}-${String(m.getDate()).padStart(2,'0')}`;
+    wm[k]=(wm[k]||0)+1;
+  });
+  pts+=Object.values(wm).filter(v=>v>=target).length*15;
+  return pts;
+}
+
+const HOMELAND_LEVELS=[
+  {min:0,   name:'荒野',   lv:1,  next:50,   sky:'',             scene:'🌑 🌑 🌑',          ground:'— — —'},
+  {min:50,  name:'草地',   lv:2,  next:120,  sky:'⭐',           scene:'🌱 🌿 🌱',          ground:'· · · · ·'},
+  {min:120, name:'小木屋', lv:3,  next:250,  sky:'🌤',           scene:'🌲 🏚️ 🌲',         ground:'〜〜〜〜〜'},
+  {min:250, name:'農舍',   lv:4,  next:450,  sky:'☀️ 🐦',        scene:'🌳 🏠 🌳',          ground:'🌾🌾🌾🌾🌾'},
+  {min:450, name:'小村莊', lv:5,  next:700,  sky:'🌤 🦋',        scene:'🌲 🏡 🌻 🏡 🌲',   ground:'🌿🌿🌿🌿🌿'},
+  {min:700, name:'城鎮',   lv:6,  next:1000, sky:'☀️ 🌈',        scene:'🏘️ 🏘️ ⛲ 🏘️ 🏘️', ground:'🌺🌿🌺🌿🌺'},
+  {min:1000,name:'城市',   lv:7,  next:1500, sky:'🌟 🌟 🌙',     scene:'🏙️ 🌃 🌆',          ground:'🌆🌃🌇🌆🌃'},
+  {min:1500,name:'王國',   lv:8,  next:2500, sky:'👑 ✨ 👑',     scene:'🏰 🏯 ⚔️ 🏯 🏰',   ground:'🌟💎🌟💎🌟'},
+  {min:2500,name:'傳說王國',lv:9, next:null, sky:'🌠 👑 🌠',     scene:'🏰 🐲 🔮 🐲 🏰',   ground:'✨💫✨💫✨'},
+];
+
+function getHomelandLevel(pts){
+  for(let i=HOMELAND_LEVELS.length-1;i>=0;i--){
+    if(pts>=HOMELAND_LEVELS[i].min)return HOMELAND_LEVELS[i];
+  }
+  return HOMELAND_LEVELS[0];
+}
+
+function renderHomeland(){
+  const el=document.getElementById('homeland-card');if(!el)return;
+  const pts=calcPoints();
+  const lv=getHomelandLevel(pts);
+  const nextPts=lv.next;
+  const prevPts=lv.min;
+  const pct=nextPts?Math.min((pts-prevPts)/(nextPts-prevPts)*100,100):100;
+  el.innerHTML=`<div class="homeland">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:12px;font-weight:700;color:#4ade80;letter-spacing:.5px">🏡 我的家園</span>
+      <span style="font-size:11px;color:rgba(240,236,228,.35)">Lv.${lv.lv} ${lv.name}</span>
+    </div>
+    <div class="homeland-sky">${lv.sky}</div>
+    <div class="homeland-scene">${lv.scene}</div>
+    <div class="homeland-ground">${lv.ground}</div>
+    <div class="homeland-info">
+      <span class="homeland-pts">⭐ ${pts} 分</span>
+      <div class="homeland-bar-wrap"><div class="homeland-bar" style="width:${pct}%"></div></div>
+      <span class="homeland-lv">${nextPts?`→ Lv.${lv.lv+1} 需 ${nextPts}分`:'✨ 滿等'}</span>
+    </div>
+  </div>`;
+}
+
 function renderOverview(){
   const sorted=[...WK].sort((a,b)=>b.date.localeCompare(a.date));
   const tm=todayStr().slice(0,7);
@@ -1257,6 +1331,7 @@ function renderOverview(){
   setSyncState(syncState);
   updateCloudBanner();
   document.getElementById('recent-list').innerHTML=sorted.slice(0,2).map(s=>sessionCard(s,false)).join('')||'<div class="empty" style="padding:20px 0;text-align:center;color:rgba(240,236,228,.25);font-size:14px">還沒有訓練紀錄<br><span style="font-size:12px;opacity:.6">點上方按鈕開始第一次訓練</span></div>';
+  renderHomeland();
 }
 
 // ── LOG ──
@@ -2869,7 +2944,12 @@ BADGES.forEach(b=>{if(b.check())_prevBadges.add(b.id);}); // baseline: existing 
 renderOverview();
 initAdd();
 if(getGASUrl()){
-  apiLoad().then(fresh=>{WK=fresh;renderOverview();});
+  apiLoad().then(fresh=>{
+    if(!fresh||!fresh.length)return;
+    WK=fresh;
+    renderOverview();renderFreqProgress();renderCardioProgress();renderAchievements();
+    renderLog();renderCharts();
+  });
   syncWeightFromGAS().then(()=>renderBodyTab());
   syncDietFromGAS().then(()=>renderBodyTab());
   syncCardioFromGAS().then(()=>renderCardioProgress());
