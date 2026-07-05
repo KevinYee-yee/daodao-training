@@ -220,13 +220,13 @@ textarea.form-input{resize:none}
 /* 等距城市地圖 */
 .iso-wrap{overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;flex:1;background:linear-gradient(180deg,#020a04,#030c06)}
 .iso-map{position:relative;margin:0 auto}
-.iso-tile{position:absolute;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);cursor:pointer;transition:filter .15s}
-.iso-tile.available{background:linear-gradient(135deg,#1e3a1e,#162d16)!important}
-.iso-tile.available:active{filter:brightness(1.5)}
+.iso-tile{position:absolute;width:72px;height:36px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);cursor:pointer;transition:filter .15s}
+.iso-tile.available{background:linear-gradient(135deg,#2a5a2a,#1e4a1e)!important}
+.iso-tile.available:active{filter:brightness(1.6)}
 .iso-tile.occupied{cursor:default}
-.iso-tile.empty{background:#0d150d;opacity:.6;cursor:default}
-@keyframes iso-tile-pulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)saturate(1.4)}}
-.iso-tile.available{animation:iso-tile-pulse 2s ease-in-out infinite}
+.iso-tile.empty{background:#141e14;opacity:.5;cursor:default}
+@keyframes iso-tile-pulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.4)saturate(1.5)}}
+.iso-tile.available{animation:iso-tile-pulse 1.8s ease-in-out infinite}
 /* 建築 */
 .iso-bld{position:absolute;display:flex;flex-direction:column;align-items:center;transform:translateX(-50%);cursor:pointer;pointer-events:all}
 .iso-bld-emoji{font-size:28px;line-height:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.8))}
