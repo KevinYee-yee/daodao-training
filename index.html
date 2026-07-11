@@ -1799,7 +1799,8 @@ function renderOverview(){
 }
 function renderOverviewWeight(){
   const el=document.getElementById('ov-weight-card');if(!el)return;
-  const amArr=getWeightData().filter(r=>r.am!=null).sort((a,b)=>a.date.localeCompare(b.date));
+  const amOf=r=>r.am??r.kg??null;
+  const amArr=getWeightData().filter(r=>amOf(r)!=null).sort((a,b)=>a.date.localeCompare(b.date));
   if(!amArr.length){
     el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between">
       <div><div class="ov-weight-lbl">⚖️ 體重</div><div class="ov-weight-sub" style="margin-top:2px;font-size:12px;color:rgba(240,236,228,.4)">尚未記錄，點擊開始追蹤</div></div>
@@ -1811,9 +1812,9 @@ function renderOverviewWeight(){
   let latest=null;
   for(let i=amArr.length-1;i>=0;i--){if(amArr[i].date<=todayIso){latest=amArr[i];break;}}
   if(!latest)latest=amArr[amArr.length-1];
-  const latestVal=latest.am;
-  const maxRec=amArr.reduce((m,r)=>r.am>m.am?r:m,amArr[0]);
-  const maxVal=maxRec.am;
+  const latestVal=amOf(latest);
+  const maxRec=amArr.reduce((m,r)=>amOf(r)>amOf(m)?r:m,amArr[0]);
+  const maxVal=amOf(maxRec);
   const deltaKg=(maxRec!==latest)?+(latestVal-maxVal).toFixed(1):null;
   const deltaPct=(deltaKg!=null&&maxVal)?+((deltaKg/maxVal)*100).toFixed(1):null;
   const cfg=getBodyCfg();
