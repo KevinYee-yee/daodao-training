@@ -1799,27 +1799,27 @@ function renderOverview(){
 }
 function renderOverviewWeight(){
   const el=document.getElementById('ov-weight-card');if(!el)return;
-  const wv=r=>r.kg??((r.am&&r.pm)?(r.am+r.pm)/2:(r.am??r.pm??null));
-  const arr=getWeightData().filter(r=>wv(r)!=null).sort((a,b)=>a.date.localeCompare(b.date));
-  if(!arr.length){
+  const amArr=getWeightData().filter(r=>r.am!=null).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!amArr.length){
     el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between">
       <div><div class="ov-weight-lbl">⚖️ 體重</div><div class="ov-weight-sub" style="margin-top:2px;font-size:12px;color:rgba(240,236,228,.4)">尚未記錄，點擊開始追蹤</div></div>
       <span style="color:rgba(240,236,228,.22);font-size:20px">›</span>
     </div>`;
     return;
   }
-  const latest=arr[arr.length-1];const latestVal=wv(latest);
-  const d7=new Date(latest.date);d7.setDate(d7.getDate()-7);
-  const d7iso=`${d7.getFullYear()}-${p2(d7.getMonth()+1)}-${p2(d7.getDate())}`;
-  let refRec=null;
-  for(let i=arr.length-1;i>=0;i--){if(arr[i].date<=d7iso){refRec=arr[i];break;}}
-  const refVal=refRec?wv(refRec):null;
-  const delta=(refVal!=null&&refRec!==latest)?+(latestVal-refVal).toFixed(1):null;
+  const todayIso=todayStr();
+  let latest=null;
+  for(let i=amArr.length-1;i>=0;i--){if(amArr[i].date<=todayIso){latest=amArr[i];break;}}
+  if(!latest)latest=amArr[amArr.length-1];
+  const latestVal=latest.am;
+  const first=amArr[0];const firstVal=first.am;
+  const deltaKg=(first!==latest)?+(latestVal-firstVal).toFixed(1):null;
+  const deltaPct=(deltaKg!=null&&firstVal)?+((deltaKg/firstVal)*100).toFixed(1):null;
   const cfg=getBodyCfg();
   const goalDir=cfg.goalType==='bulk'?1:cfg.goalType==='cut'?-1:0;
-  const good=delta==null?true:(goalDir===0?Math.abs(delta)<0.5:(delta*goalDir)>0);
-  const deltaColor=delta==null?'rgba(240,236,228,.35)':(good?'#4ade80':'#ff6b6b');
-  const deltaTxt=delta==null?'—':(delta>0?`+${delta}`:`${delta}`)+(delta!=null?' kg':'');
+  const good=deltaKg==null?true:(goalDir===0?Math.abs(deltaKg)<0.5:(deltaKg*goalDir)>0);
+  const deltaColor=deltaKg==null?'rgba(240,236,228,.35)':(good?'#4ade80':'#ff6b6b');
+  const deltaTxt=deltaKg==null?'—':`${deltaKg>0?'+':''}${deltaKg}kg (${deltaPct>0?'+':''}${deltaPct}%)`;
   const distToGoal=cfg.targetWeight?+(latestVal-cfg.targetWeight).toFixed(1):null;
   el.innerHTML=`
     <div style="display:flex;align-items:center;justify-content:space-between">
@@ -1829,7 +1829,7 @@ function renderOverviewWeight(){
       </div>
       <div style="text-align:right">
         <div class="ov-weight-delta" style="color:${deltaColor}">${deltaTxt}</div>
-        <div class="ov-weight-sub">近 7 天</div>
+        <div class="ov-weight-sub">自 ${first.date.slice(5).replace('-','/')} 累計</div>
       </div>
     </div>
     ${distToGoal!=null?`<div class="ov-weight-goal">
