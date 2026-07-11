@@ -1812,9 +1812,10 @@ function renderOverviewWeight(){
   for(let i=amArr.length-1;i>=0;i--){if(amArr[i].date<=todayIso){latest=amArr[i];break;}}
   if(!latest)latest=amArr[amArr.length-1];
   const latestVal=latest.am;
-  const first=amArr[0];const firstVal=first.am;
-  const deltaKg=(first!==latest)?+(latestVal-firstVal).toFixed(1):null;
-  const deltaPct=(deltaKg!=null&&firstVal)?+((deltaKg/firstVal)*100).toFixed(1):null;
+  const maxRec=amArr.reduce((m,r)=>r.am>m.am?r:m,amArr[0]);
+  const maxVal=maxRec.am;
+  const deltaKg=(maxRec!==latest)?+(latestVal-maxVal).toFixed(1):null;
+  const deltaPct=(deltaKg!=null&&maxVal)?+((deltaKg/maxVal)*100).toFixed(1):null;
   const cfg=getBodyCfg();
   const goalDir=cfg.goalType==='bulk'?1:cfg.goalType==='cut'?-1:0;
   const good=deltaKg==null?true:(goalDir===0?Math.abs(deltaKg)<0.5:(deltaKg*goalDir)>0);
@@ -1829,7 +1830,7 @@ function renderOverviewWeight(){
       </div>
       <div style="text-align:right">
         <div class="ov-weight-delta" style="color:${deltaColor}">${deltaTxt}</div>
-        <div class="ov-weight-sub">自 ${first.date.slice(5).replace('-','/')} 累計</div>
+        <div class="ov-weight-sub">較最高 ${maxVal}kg（${maxRec.date.slice(5).replace('-','/')}）</div>
       </div>
     </div>
     ${distToGoal!=null?`<div class="ov-weight-goal">
