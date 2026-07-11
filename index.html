@@ -1110,6 +1110,17 @@ async function apiSaveWeight(record){
 async function apiSaveDiet(date,meals){
   await apiPost('saveDiet',{date,meals});
 }
+async function apiSaveBodyCfg(cfg){
+  await apiPost('saveBodyCfg',{cfg});
+}
+async function syncBodyCfgFromGAS(){
+  const url=getGASUrl();if(!url)return;
+  try{
+    const res=await fetch(url+'?action=getBodyCfg');
+    const json=await res.json();
+    if(json.ok&&json.cfg)saveBodyCfg(Object.assign(getBodyCfg(),json.cfg));
+  }catch(e){}
+}
 // ── 有氧記錄 ──
 const CARDIO_KEY='daodao_cardio_v1';
 function getCardioData(){return JSON.parse(localStorage.getItem(CARDIO_KEY)||'[]');}
@@ -3191,7 +3202,7 @@ function setGoalType(type){
   document.getElementById('cfg-protein').value=protein;
   document.getElementById('cfg-carbs').value=carbs;
   document.getElementById('cfg-fat').value=fat;
-  const cfg=getBodyCfg();cfg.goalType=type;saveBodyCfg(cfg);
+  const cfg=getBodyCfg();cfg.goalType=type;saveBodyCfg(cfg);apiSaveBodyCfg(cfg);
   document.querySelectorAll('#body-goals-card .swap-chip').forEach(c=>{
     const t=c.textContent==='減脂'?'cut':c.textContent==='增肌'?'bulk':'maintain';
     c.classList.toggle('sc-active',t===type);
@@ -3207,7 +3218,7 @@ function saveBodyGoals(){
   const gf=parseInt(document.getElementById('cfg-fat').value);
   if(tw)cfg.targetWeight=tw;if(gk)cfg.goalKcal=gk;
   if(gp)cfg.goalProtein=gp;if(gc)cfg.goalCarbs=gc;if(gf)cfg.goalFat=gf;
-  saveBodyCfg(cfg);
+  saveBodyCfg(cfg);apiSaveBodyCfg(cfg);
   renderWeightChart2();renderTodaySummary();
   showToast('✅ 目標已儲存！');
 }
@@ -3460,6 +3471,7 @@ if(getGASUrl()){
   syncWeightFromGAS().then(()=>renderBodyTab());
   syncDietFromGAS().then(()=>renderBodyTab());
   syncCardioFromGAS().then(()=>renderCardioProgress());
+  syncBodyCfgFromGAS().then(()=>{renderBodyTab();renderOverviewWeight();});
 }
 </script>
 </body>
