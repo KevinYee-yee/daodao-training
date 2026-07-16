@@ -1054,6 +1054,26 @@ function setCache(data){localStorage.setItem(DATA_KEY,JSON.stringify(data));}
 let WK=getCache();
 let syncState='local'; // local | syncing | ok | err
 
+// ── 離線佇列（尚未成功寫回 Google Sheet 的變更）──
+// Google Sheet 是唯一資料來源；本地只當「即時顯示 + 離線緩衝」用。
+// 存不進 GAS 時先排進這裡，之後 flushPending() 或連線恢復時重試，
+// 重試前伺服器讀回的資料一律不會覆蓋還在佇列中的項目（避免蓋掉尚未上傳的修改）。
+const PENDING_KEY='daodao_pending_v1';
+function getPending(){return JSON.parse(localStorage.getItem(PENDING_KEY)||'[]');}
+function savePending(arr){localStorage.setItem(PENDING_KEY,JSON.stringify(arr));}
+function pendingCount(){return getPending().length;}
+function pendingKeys(type){return new Set(getPending().filter(p=>p.type===type).map(p=>p.key));}
+function queuePending(type,key,payload){
+  const arr=getPending().filter(p=>!(p.type===type&&p.key===key));
+  arr.push({type,key,payload,ts:Date.now()});
+  savePending(arr);
+  setSyncState(syncState);
+}
+function clearPending(type,key){
+  savePending(getPending().filter(p=>!(p.type===type&&p.key===key)));
+  setSyncState(syncState);
+}
+
 // ── API ──
 async function apiLoad(){
   const url=getGASUrl();
@@ -1062,28 +1082,30 @@ async function apiLoad(){
   try{
     const res=await fetch(url+'?action=getAll');
     const json=await res.json();
-    if(json.ok){setCache(json.workouts);setSyncState('ok');return json.workouts;}
+    if(json.ok){
+      // 伺服器為準，但保留還沒 flush 成功的本地新增/刪除，避免被舊的伺服器快照蓋掉
+      const pending=getPending().filter(p=>p.type==='workout');
+      const delIds=new Set(pending.filter(p=>p.payload.op==='delete').map(p=>p.key));
+      let workouts=json.workouts.filter(w=>!delIds.has(w.id));
+      const haveIds=new Set(workouts.map(w=>w.id));
+      pending.filter(p=>p.payload.op==='add').forEach(p=>{if(!haveIds.has(p.key))workouts.push(p.payload.workout);});
+      setCache(workouts);setSyncState('ok');return workouts;
+    }
     setSyncState('err');
   }catch(e){setSyncState('err');}
   return getCache();
 }
 
 async function apiAdd(workout){
-  const url=getGASUrl();
-  if(!url)return;
-  try{
-    await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'add',workout}),redirect:'follow'});
-    setSyncState('ok');
-  }catch(e){setSyncState('err');}
+  const ok=await apiPost('add',{workout});
+  if(ok){setSyncState('ok');clearPending('workout',workout.id);}
+  else{setSyncState('err');queuePending('workout',workout.id,{op:'add',workout});}
 }
 
 async function apiDel(id){
-  const url=getGASUrl();
-  if(!url)return;
-  try{
-    await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'delete',id}),redirect:'follow'});
-    setSyncState('ok');
-  }catch(e){setSyncState('err');}
+  const ok=await apiPost('delete',{id});
+  if(ok){setSyncState('ok');clearPending('workout',id);}
+  else{setSyncState('err');queuePending('workout',id,{op:'delete'});}
 }
 
 async function apiSeed(workouts){
@@ -1099,27 +1121,63 @@ async function apiSeed(workouts){
 }
 
 async function apiPost(action,data){
-  const url=getGASUrl();if(!url)return;
+  const url=getGASUrl();if(!url)return false;
   try{
     await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action,...data}),redirect:'follow'});
-  }catch(e){}
+    return true;
+  }catch(e){return false;}
 }
 async function apiSaveWeight(record){
-  await apiPost('saveWeight',{record});
+  const ok=await apiPost('saveWeight',{record});
+  if(ok)clearPending('weight',record.date);
+  else queuePending('weight',record.date,{op:'save',record});
+}
+async function apiDeleteWeight(date){
+  const ok=await apiPost('deleteWeight',{date});
+  if(ok)clearPending('weight',date);
+  else queuePending('weight',date,{op:'delete'});
 }
 async function apiSaveDiet(date,meals){
-  await apiPost('saveDiet',{date,meals});
+  const ok=await apiPost('saveDiet',{date,meals});
+  if(ok)clearPending('diet',date);
+  else queuePending('diet',date,{meals});
 }
 async function apiSaveBodyCfg(cfg){
-  await apiPost('saveBodyCfg',{cfg});
+  const ok=await apiPost('saveBodyCfg',{cfg});
+  if(ok)clearPending('bodyCfg','cfg');
+  else queuePending('bodyCfg','cfg',{cfg});
 }
 async function syncBodyCfgFromGAS(){
   const url=getGASUrl();if(!url)return;
+  if(pendingKeys('bodyCfg').size)return; // 有未同步的本地設定變更，先不要被舊的雲端值蓋掉
   try{
     const res=await fetch(url+'?action=getBodyCfg');
     const json=await res.json();
     if(json.ok&&json.cfg)saveBodyCfg(Object.assign(getBodyCfg(),json.cfg));
   }catch(e){}
+}
+
+// 重試所有還沒同步成功的變更；連線恢復或每次進體態頁都會呼叫一次
+async function flushPending(){
+  const url=getGASUrl();if(!url)return;
+  const arr=getPending();
+  if(!arr.length)return;
+  for(const p of arr){
+    let ok=false;
+    if(p.type==='weight')ok=p.payload.op==='delete'?await apiPost('deleteWeight',{date:p.key}):await apiPost('saveWeight',{record:p.payload.record});
+    else if(p.type==='diet')ok=await apiPost('saveDiet',{date:p.key,meals:p.payload.meals});
+    else if(p.type==='cardio')ok=await apiPost('saveCardio',{record:p.payload.record});
+    else if(p.type==='bodyCfg')ok=await apiPost('saveBodyCfg',{cfg:p.payload.cfg});
+    else if(p.type==='workout')ok=p.payload.op==='delete'?await apiPost('delete',{id:p.key}):await apiPost('add',{workout:p.payload.workout});
+    if(ok)clearPending(p.type,p.key);
+  }
+  if(!getPending().length){
+    await Promise.all([apiLoad(),syncWeightFromGAS(),syncDietFromGAS(),syncCardioFromGAS(),syncBodyCfgFromGAS()]);
+    WK=getCache();
+    renderOverview();renderFreqProgress();renderCardioProgress();
+    if(!document.getElementById('tab-body').hidden)renderBodyTab();
+    if(!document.getElementById('tab-log').hidden){renderLog();renderCharts();}
+  }
 }
 // ── 有氧記錄 ──
 const CARDIO_KEY='daodao_cardio_v1';
@@ -1208,7 +1266,9 @@ function renderCardioProgress(){
 }
 
 async function apiSaveCardio(record){
-  await apiPost('saveCardio',{record});
+  const ok=await apiPost('saveCardio',{record});
+  if(ok)clearPending('cardio',record.id);
+  else queuePending('cardio',record.id,{record});
 }
 async function syncCardioFromGAS(){
   const url=getGASUrl();if(!url)return;
@@ -1216,11 +1276,11 @@ async function syncCardioFromGAS(){
     const res=await fetch(url+'?action=getCardio');
     const json=await res.json();
     if(!json.ok||!json.records)return;
-    const local=getCardioData();
-    const map={};
-    local.forEach(r=>{map[r.id]=r;});
-    json.records.forEach(r=>{if(!map[r.id])map[r.id]=r;});
-    saveCardioData(Object.values(map).sort((a,b)=>a.date.localeCompare(b.date)));
+    // 伺服器為準，整批取代本地，只保留還沒同步成功的本地筆記
+    const pendingIds=pendingKeys('cardio');
+    const localPending=getCardioData().filter(r=>pendingIds.has(r.id));
+    const merged=json.records.filter(r=>!pendingIds.has(r.id)).concat(localPending);
+    saveCardioData(merged.sort((a,b)=>a.date.localeCompare(b.date)));
   }catch(e){}
 }
 
@@ -1230,16 +1290,15 @@ async function syncWeightFromGAS(){
     const res=await fetch(url+'?action=getWeight');
     const json=await res.json();
     if(!json.ok||!json.records)return;
+    // 伺服器為準：直接採用伺服器值，只跳過還在佇列裡、尚未同步成功的日期
+    const pendingDates=pendingKeys('weight');
     const local=getWeightData();
     const map={};
     local.forEach(r=>{map[r.date]=r;});
-    json.records.forEach(r=>{
-      if(!map[r.date]){map[r.date]=r;}
-      else{
-        if(r.am!==null&&map[r.date].am==null)map[r.date].am=r.am;
-        if(r.pm!==null&&map[r.date].pm==null)map[r.date].pm=r.pm;
-      }
-    });
+    json.records.forEach(r=>{if(!pendingDates.has(r.date))map[r.date]=r;});
+    // 移除伺服器上已刪除、且本地沒有未同步變更的殘留紀錄
+    const serverDates=new Set(json.records.map(r=>r.date));
+    Object.keys(map).forEach(d=>{if(!serverDates.has(d)&&!pendingDates.has(d))delete map[d];});
     saveWeightData(Object.values(map).sort((a,b)=>a.date.localeCompare(b.date)));
   }catch(e){}
 }
@@ -1249,10 +1308,11 @@ async function syncDietFromGAS(){
     const res=await fetch(url+'?action=getDiet');
     const json=await res.json();
     if(!json.ok||!json.records)return;
+    const pendingDates=pendingKeys('diet');
     const local=JSON.parse(localStorage.getItem('daodao_diet_v1')||'{}');
-    json.records.forEach(r=>{
-      if(!local[r.date]||local[r.date].length===0)local[r.date]=r.meals;
-    });
+    json.records.forEach(r=>{if(!pendingDates.has(r.date))local[r.date]=r.meals;});
+    const serverDates=new Set(json.records.map(r=>r.date));
+    Object.keys(local).forEach(d=>{if(!serverDates.has(d)&&!pendingDates.has(d))delete local[d];});
     localStorage.setItem('daodao_diet_v1',JSON.stringify(local));
   }catch(e){}
 }
@@ -1261,7 +1321,9 @@ function setSyncState(state){
   const bar=document.getElementById('sync-bar');
   if(!bar)return;
   const labels={local:'本地儲存模式',syncing:'同步中…',ok:'已與 Google Sheets 同步',err:'同步失敗（已存本地）'};
-  bar.innerHTML=`<div class="sync-bar"><div class="sync-dot ${state}"></div><span>${labels[state]||''}</span></div>`;
+  const pc=pendingCount();
+  const pendingHtml=pc>0?`<span style="margin-left:6px;color:#f59e0b;font-weight:700">· ${pc} 筆待同步</span>`:'';
+  bar.innerHTML=`<div class="sync-bar"><div class="sync-dot ${state}"></div><span>${labels[state]||''}</span>${pendingHtml}</div>`;
 }
 
 // ── UTILS ──
@@ -1297,11 +1359,17 @@ function goTab(tab,btn){
   if(tab==='body')renderBodyTab();
   if(tab==='city')renderCityTab();
   if(getGASUrl()){
+    flushPending();
     apiLoad().then(fresh=>{
       WK=fresh;
       if(tab==='overview'){renderOverview();renderFreqProgress();}
       if(tab==='log'){renderLog();renderCharts();}
     });
+    if(tab==='body'){
+      syncWeightFromGAS().then(renderBodyTab);
+      syncDietFromGAS().then(renderBodyTab);
+      syncCardioFromGAS().then(renderBodyTab);
+    }
   }
 }
 
@@ -3066,12 +3134,13 @@ function renderWeightList(){
   const arr=getWeightData().slice().sort((a,b)=>b.date.localeCompare(a.date));
   if(!arr.length){el.innerHTML='<div style="padding:12px 16px;font-size:13px;color:rgba(240,236,228,.35)">尚無記錄</div>';return;}
   // Header
-  const header=`<div style="display:grid;grid-template-columns:1.8fr 1.1fr 1.1fr 1.6fr 1.6fr;padding:6px 16px;gap:4px;border-top:1px solid #1e1e1e">
+  const header=`<div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1.5fr 1.5fr 28px;padding:6px 16px;gap:4px;border-top:1px solid #1e1e1e">
     <div style="font-size:10px;color:rgba(240,236,228,.3);font-weight:700">日期</div>
     <div style="font-size:10px;color:rgba(240,236,228,.3);text-align:center">🌅早</div>
     <div style="font-size:10px;color:rgba(240,236,228,.3);text-align:center">🌙晚</div>
     <div style="font-size:10px;color:rgba(240,236,228,.3);text-align:center">夜間降幅</div>
     <div style="font-size:10px;color:rgba(240,236,228,.3);text-align:center">晨間趨勢</div>
+    <div></div>
   </div>`;
   const rows=arr.map((r,i)=>{
     const am=r.am??r.kg??null;
@@ -3102,12 +3171,13 @@ function renderWeightList(){
       mornColor=d<=-0.1?'#4ade80':d<=0.2?'#a3e635':d<=0.5?'#f59e0b':'#f87171';
     }
     const isEven=i%2===0;
-    return `<div style="display:grid;grid-template-columns:1.8fr 1.1fr 1.1fr 1.6fr 1.6fr;padding:8px 16px;gap:4px;background:${isEven?'transparent':'rgba(255,255,255,.02)'};border-top:1px solid #161616">
-      <div style="font-size:12px;color:#f0ece4;font-weight:600">${r.date.slice(5)}</div>
-      <div style="font-size:12px;color:rgba(240,236,228,.7);text-align:center">${am??'—'}</div>
-      <div style="font-size:12px;color:rgba(240,236,228,.7);text-align:center">${pm??'—'}</div>
-      <div style="font-size:11px;font-weight:700;color:${nightColor};text-align:center">${nightTxt}${nightTip?`<br><span style="font-size:9px;font-weight:400;color:rgba(240,236,228,.3)">${nightTip}</span>`:''}</div>
-      <div style="font-size:11px;font-weight:700;color:${mornColor};text-align:center">${mornTxt}</div>
+    return `<div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1.5fr 1.5fr 28px;gap:4px;align-items:center;background:${isEven?'transparent':'rgba(255,255,255,.02)'};border-top:1px solid #161616">
+      <div onclick="editWeightEntry('${r.date}')" style="padding:8px 0 8px 16px;cursor:pointer;font-size:12px;color:#f0ece4;font-weight:600">${r.date.slice(5)}</div>
+      <div onclick="editWeightEntry('${r.date}')" style="padding:8px 0;cursor:pointer;font-size:12px;color:rgba(240,236,228,.7);text-align:center">${am??'—'}</div>
+      <div onclick="editWeightEntry('${r.date}')" style="padding:8px 0;cursor:pointer;font-size:12px;color:rgba(240,236,228,.7);text-align:center">${pm??'—'}</div>
+      <div onclick="editWeightEntry('${r.date}')" style="padding:8px 0;cursor:pointer;font-size:11px;font-weight:700;color:${nightColor};text-align:center">${nightTxt}${nightTip?`<br><span style="font-size:9px;font-weight:400;color:rgba(240,236,228,.3)">${nightTip}</span>`:''}</div>
+      <div onclick="editWeightEntry('${r.date}')" style="padding:8px 0;cursor:pointer;font-size:11px;font-weight:700;color:${mornColor};text-align:center">${mornTxt}</div>
+      <button onclick="event.stopPropagation();deleteWeightEntry('${r.date}')" style="background:none;border:none;color:rgba(255,107,107,.45);font-size:16px;padding:4px;cursor:pointer;flex-shrink:0">✕</button>
     </div>`;
   }).join('');
   el.innerHTML=header+rows;
@@ -3130,6 +3200,39 @@ function saveWeight(slot){
   if(!document.getElementById('weight-list-body').hidden)renderWeightList();
   apiSaveWeight({date:dateStr,am:arr.find(d=>d.date===dateStr)?.am||null,pm:arr.find(d=>d.date===dateStr)?.pm||null});
   showToast('✅ '+(slot==='am'?'🌅 早上':'🌙 晚上')+' 體重 '+kg+' kg（'+dateStr+'）已記錄');
+}
+
+function editWeightEntry(date){
+  const rec=getWeightData().find(d=>d.date===date);
+  if(!rec)return;
+  const dateEl=document.getElementById('weight-date');
+  const inpAm=document.getElementById('weight-am');
+  const inpPm=document.getElementById('weight-pm');
+  if(dateEl)dateEl.value=date;
+  if(inpAm)inpAm.value=rec.am??rec.kg??'';
+  if(inpPm)inpPm.value=rec.pm??'';
+  renderWeightEntry();
+  dateEl?.scrollIntoView({behavior:'smooth',block:'center'});
+  showToast('已載入 '+date+' 的紀錄，修改後按「記」即可覆蓋儲存');
+}
+
+function deleteWeightEntry(date){
+  const arr=getWeightData();
+  const idx=arr.findIndex(d=>d.date===date);
+  if(idx<0)return;
+  const deleted=arr[idx];
+  arr.splice(idx,1);
+  saveWeightData(arr);
+  apiDeleteWeight(date);
+  renderWeightChart2();renderWeightList();renderWeightEntry();renderBodyGoalsUI();
+  showUndoToast('體重紀錄（'+date+'）已刪除',()=>{
+    const a2=getWeightData();
+    a2.push(deleted);
+    a2.sort((a,b)=>a.date.localeCompare(b.date));
+    saveWeightData(a2);
+    apiSaveWeight(deleted);
+    renderWeightChart2();renderWeightList();renderWeightEntry();renderBodyGoalsUI();
+  });
 }
 
 function renderDietList(){
@@ -3462,17 +3565,21 @@ BADGES.forEach(b=>{if(b.check())_prevBadges.add(b.id);}); // baseline: existing 
 renderOverview();
 initAdd();
 if(getGASUrl()){
-  apiLoad().then(fresh=>{
-    if(!fresh||!fresh.length)return;
-    WK=fresh;
-    renderOverview();renderFreqProgress();renderCardioProgress();renderAchievements();
-    renderLog();renderCharts();
+  flushPending().then(()=>{
+    apiLoad().then(fresh=>{
+      if(!fresh||!fresh.length)return;
+      WK=fresh;
+      renderOverview();renderFreqProgress();renderCardioProgress();renderAchievements();
+      renderLog();renderCharts();
+    });
+    syncWeightFromGAS().then(()=>renderBodyTab());
+    syncDietFromGAS().then(()=>renderBodyTab());
+    syncCardioFromGAS().then(()=>renderCardioProgress());
+    syncBodyCfgFromGAS().then(()=>{renderBodyTab();renderOverviewWeight();});
   });
-  syncWeightFromGAS().then(()=>renderBodyTab());
-  syncDietFromGAS().then(()=>renderBodyTab());
-  syncCardioFromGAS().then(()=>renderCardioProgress());
-  syncBodyCfgFromGAS().then(()=>{renderBodyTab();renderOverviewWeight();});
 }
+// 連線恢復時自動把離線期間累積的變更補同步回 Google Sheet
+window.addEventListener('online',()=>{if(getGASUrl())flushPending();});
 </script>
 </body>
 </html>
