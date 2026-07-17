@@ -949,7 +949,7 @@ function hideSheet(id){
 // ── 動作資料庫（依部位）──
 const EXERCISE_DB={
   '腿部':['高腳杯深蹲','分腿蹲','腿推機','勾腿機器','徒手深蹲'],
-  '背部':['水平划船','站姿屈體划船','坐姿划船','單邊啞鈴划船','滑輪下拉','引體向上','引體向上（機械）'],
+  '背部':['水平划船','站姿屈體划船','坐姿划船','單邊啞鈴划船','滑輪下拉','輔助引體向上機'],
   '胸部':['啞鈴胸推','機械胸推','啞鈴臥推','器械坐姿胸推'],
   '肩膀':['啞鈴肩推','機械肩推','站姿啞鈴肩推','器械坐姿肩推','臉拉'],
   '手臂':['啞鈴二頭彎舉','機械二頭彎舉','三頭下壓','滑輪下壓'],
@@ -999,7 +999,7 @@ const SEED=[
   ]},
   {id:'s7',date:'2026-05-18',note:'',exercises:[
     {id:'e27',name:'坐姿划船機',sets:[{w:18,r:10,rpe:7,note:''},{w:18,r:10,rpe:7,note:''},{w:18,r:9,rpe:9,note:''}]},
-    {id:'e28',name:'引體向上',sets:[{w:-54.4,r:8,rpe:9,note:'輔助'},{w:-54.4,r:8,rpe:9,note:'輔助'},{w:-54.4,r:8,rpe:9,note:'輔助'}]},
+    {id:'e28',name:'輔助引體向上機',sets:[{w:-54.4,r:8,rpe:9,note:'輔助'},{w:-54.4,r:8,rpe:9,note:'輔助'},{w:-54.4,r:8,rpe:9,note:'輔助'}]},
     {id:'e29',name:'器械坐姿肩推',sets:[{w:9,r:8,rpe:9,note:'最後一組幫補'},{w:9,r:8,rpe:9,note:''},{w:9,r:8,rpe:9,note:''}]},
     {id:'e30',name:'器械坐姿胸推',sets:[{w:14,r:8,rpe:8,note:''},{w:14,r:8,rpe:8,note:''},{w:14,r:8,rpe:8,note:''}]},
     {id:'e31',name:'三頭下壓',sets:[{w:14,r:8,rpe:7,note:''},{w:14,r:8,rpe:7,note:''},{w:14,r:8,rpe:7,note:''}]},
@@ -1308,7 +1308,7 @@ function setSyncState(state){
 // ── UTILS ──
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 // 手機數字鍵盤打不出負號，這幾個「輔助重量越輕越強」的動作直接在存檔時轉成負值
-const ASSISTED_EX_NAMES=['引體向上','引體向上（機械）'];
+const ASSISTED_EX_NAMES=['輔助引體向上機'];
 function todayStr(){const n=new Date();return`${n.getFullYear()}-${p2(n.getMonth()+1)}-${p2(n.getDate())}`;}
 function p2(n){return String(n).padStart(2,'0');}
 const DOW=['日','一','二','三','四','五','六'];
@@ -2565,7 +2565,7 @@ const EXERCISE_INFO={
   '坐姿划船機':{muscle:'背部・二頭',cues:['挺胸坐直，腳踩踏板膝蓋微彎','往肚臍方向拉，感受背部發力','緩慢放回，充分伸展背闊']},
   '單邊啞鈴划船':{muscle:'背部',cues:['一手支撐凳子，上身平行地面','啞鈴往腰側拉，手肘朝後上方','放下時手臂完全伸直感受背部伸展']},
   '滑輪下拉':{muscle:'背闊・二頭',cues:['雙手寬握距，挺胸微後仰','手肘往下往後拉，感受背闊','放回時手臂充分伸展，別讓肩膀聳起']},
-  '引體向上':{muscle:'背闊・二頭',cues:['雙手與肩同寬或略寬','往上拉時胸口往橫杆靠近','用背發力而非手臂，下去時要控制']},
+  '輔助引體向上機':{muscle:'背闊・二頭',cues:['調整配重讓你可以完成8-12下','雙手與肩同寬或略寬，挺胸往上拉','用背發力而非手臂，手肘往斜後方收，下去時要控制']},
   '啞鈴臥推':{muscle:'胸部・三頭',cues:['雙腳踩地，腰部微弓，肩胛夾緊','啞鈴從肩膀高度下放，手肘約45度','上推時手肘不要完全鎖死']},
   '器械坐姿胸推':{muscle:'胸部・三頭',cues:['坐正，背貼椅背，腳踩穩地面','把手握在胸部高度，手肘與地面平行','推出時不要聳肩，感受胸部發力']},
   '肩推':{muscle:'肩膀・三頭',cues:['雙手握啞鈴在耳朵旁，手肘朝前','往上推直，不要讓腰部過度後仰','下放時手肘回到90度']},
@@ -2586,8 +2586,7 @@ const EXERCISE_INFO={
   '機械胸推':{muscle:'胸部・三頭',cues:['坐正，背貼椅背，把手在胸部高度','推出時不要聳肩，感受胸部發力','緩慢回程，不要讓重量完全卸下']},
   '啞鈴肩推':{muscle:'肩膀・三頭',cues:['啞鈴在耳朵旁，手肘朝前方','核心收緊，避免腰部後仰代償','往上推直，控制下放不要太快']},
   '機械肩推':{muscle:'肩膀・三頭',cues:['調整座椅至手肘90度位置','推出時感受三角肌前束與中束','不要鎖死手肘，保留微彎']},
-  '坐姿划船':{muscle:'背部・二頭',cues:['挺胸坐直，腳踩踏板膝蓋微彎','往肚臍方向拉，感受背部發力','緩慢放回，充分伸展背闊']},
-  '引體向上（機械）':{muscle:'背闊・二頭',cues:['調整配重讓你可以完成8-12下','雙手寬握距，挺胸往上拉','手肘往斜後方收，感受背闊縮緊']}
+  '坐姿划船':{muscle:'背部・二頭',cues:['挺胸坐直，腳踩踏板膝蓋微彎','往肚臍方向拉，感受背部發力','緩慢放回，充分伸展背闊']}
 };
 
 // ── 預設訓練菜單（主項目 + 輔助項目分開）──
@@ -2691,10 +2690,9 @@ function computeCoachSuggestion(exDef){
   const topReps=Math.max(...sets.filter(s=>s.w===baseW0).map(s=>s.r||0));
   const rpes=sets.map(s=>s.rpe).filter(v=>v!==null&&v!==undefined);
   const maxRpe=rpes.length?Math.max(...rpes):null;
+  // 不管上次有沒有填RPE都要給出明確建議：RPE 只在「有填而且超標」時才擋加重，沒填就用次數判斷
   let baseW=baseW0,note;
-  if(maxRpe===null){
-    note='上次沒填RPE，這次先維持重量';
-  }else if(maxRpe>exDef.rpeHi){
+  if(maxRpe!==null&&maxRpe>exDef.rpeHi){
     note='上次RPE偏高，這次先維持重量';
   }else if(topReps>=exDef.repHi){
     baseW=baseW0+exDef.inc;
@@ -2729,7 +2727,10 @@ function startCoachDay(dayIdx){
       for(let i=0;i<cnt;i++)addSet(curId);
       const sug=computeCoachSuggestion(ex);
       const lp=document.getElementById('lp-'+curId);
-      if(lp){lp.hidden=false;lp.innerHTML+=(lp.innerHTML?'<br>':'')+`<span style="color:#f59e0b">🎯 教練建議：${sug.text}</span>`;}
+      if(lp){
+        const rpeTxt=ex.unit==='bodyweight'?'':`　目標RPE ${rpeLabel(ex)}`;
+        lp.hidden=false;lp.innerHTML+=(lp.innerHTML?'<br>':'')+`<span style="color:#f59e0b">🎯 教練建議：${sug.text}${rpeTxt}</span>`;
+      }
     });
     showToast('✅ 已帶入 '+day.title+'，去填實際重量！');
   },60);
