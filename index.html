@@ -1328,6 +1328,8 @@ function setSyncState(state){
 
 // ── UTILS ──
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+// 手機數字鍵盤打不出負號，這幾個「輔助重量越輕越強」的動作直接在存檔時轉成負值
+const ASSISTED_EX_NAMES=['引體向上','引體向上（機械）'];
 function todayStr(){const n=new Date();return`${n.getFullYear()}-${p2(n.getMonth()+1)}-${p2(n.getDate())}`;}
 function p2(n){return String(n).padStart(2,'0');}
 const DOW=['日','一','二','三','四','五','六'];
@@ -2123,7 +2125,7 @@ function onNameChange(inp,exId){
     const ex=s.exercises.find(e=>e.name===name);
     if(ex){
       const lp=document.getElementById('lp-'+exId);if(!lp)break;
-      const txt=ex.sets.map(st=>{let t='';if(st.w!=null)t+=`${st.w}kg`;if(st.r)t+=`×${st.r}`;return t||'—';}).filter(Boolean).join(', ');
+      const txt=ex.sets.map(st=>{let t='';if(st.w!=null)t+=st.w<0?`輔${Math.abs(st.w)}kg`:`${st.w}kg`;if(st.r)t+=`×${st.r}`;return t||'—';}).filter(Boolean).join(', ');
       const lastMax=maxW(ex);
       let suggest='';
       if(lastMax&&lastMax>0){
@@ -2184,11 +2186,17 @@ function saveWorkout(){
   const exercises=[];
   for(const blk of blocks){
     const name=blk.querySelector('.ex-name-input').value.trim();if(!name)continue;
-    const sets=[...blk.querySelectorAll('tbody tr')].map(row=>({
-      w:row.querySelector('[data-f=w]').value!==''?parseFloat(row.querySelector('[data-f=w]').value):null,
-      r:row.querySelector('[data-f=r]').value!==''?parseInt(row.querySelector('[data-f=r]').value):null,
-      note:''
-    })).filter(s=>s.w!==null||s.r!==null);
+    const assisted=ASSISTED_EX_NAMES.includes(name);
+    const sets=[...blk.querySelectorAll('tbody tr')].map(row=>{
+      const wRaw=row.querySelector('[data-f=w]').value;
+      let w=wRaw!==''?parseFloat(wRaw):null;
+      if(w!==null&&assisted)w=-Math.abs(w);
+      return{
+        w,
+        r:row.querySelector('[data-f=r]').value!==''?parseInt(row.querySelector('[data-f=r]').value):null,
+        note:''
+      };
+    }).filter(s=>s.w!==null||s.r!==null);
     if(sets.length)exercises.push({id:uid(),name,sets});
   }
   if(!exercises.length){showToast('請至少填入一個動作');return;}
@@ -2941,7 +2949,8 @@ function upd1rm(row){
   const w=parseFloat(row.querySelector('[data-f=w]').value);
   const r=parseInt(row.querySelector('[data-f=r]').value);
   const el=row.querySelector('[data-1rm]');if(!el)return;
-  if(w>0&&r>0){const orm=Math.round(w*(1+r/30)*2)/2;el.textContent='~'+orm+'kg';}
+  const exName=row.closest('.ex-block')?.querySelector('.ex-name-input')?.value.trim();
+  if(w>0&&r>0&&!ASSISTED_EX_NAMES.includes(exName)){const orm=Math.round(w*(1+r/30)*2)/2;el.textContent='~'+orm+'kg';}
   else el.textContent='';
 }
 
