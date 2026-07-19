@@ -676,12 +676,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 
 <!-- TAB: 菜單庫 -->
 <div id="tab-menu" class="tab-content" hidden>
-  <div class="page-header"><h1>教練循環</h1><p>固定推拉腿三天循環・查動作示範</p></div>
+  <div class="page-header"><h1>今日菜單</h1><p>動作・建議重量・次數・RPE，跟著練就對了</p></div>
   <div class="section" style="padding-top:14px">
-    <div class="sec-title" style="display:flex;justify-content:space-between;align-items:center">
-      <span>循環課表</span>
-      <button class="btn btn-ghost" style="padding:6px 14px;font-size:12px" onclick="openCoachCycleEditor()">✏️ 編輯課表</button>
-    </div>
+    <div class="sec-title">循環課表</div>
     <div id="menu-list"></div>
     <div class="sec-title" style="margin-top:4px">動作示範庫</div>
     <div class="card" style="padding:10px 14px 6px">
@@ -833,7 +830,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 
 <!-- TAB: 教練（處方 vs 實際執行，排下一輪課表用） -->
 <div id="tab-coach" class="tab-content" hidden>
-  <div class="page-header"><h1>教練分析</h1><p>課表設定 vs 實際執行・排下一輪的依據</p></div>
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+    <div><h1>教練</h1><p>上次重量・排課表・調整輪替順序</p></div>
+    <button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;flex-shrink:0;margin-top:2px" onclick="openCoachCycleEditor()">✏️ 編輯課表</button>
+  </div>
   <div class="section" style="padding-top:14px" id="coach-tab-body"></div>
 </div>
 
@@ -2695,24 +2695,30 @@ function renderMenuTab(){
 }
 function renderCoachCycleOverview(){
   const el=document.getElementById('menu-list');if(!el)return;
-  const icons=['🦵','🎣','🤜'];
-  el.innerHTML=getCoachCycle().map((day,i)=>{
+  const icons=['🦵','🎣','🤜','🍑'];
+  const cycle=getCoachCycle();
+  const cs=getCoachState();
+  const nextDayIdx=cs.lastDay===null?0:(cs.lastDay+1)%cycle.length;
+  el.innerHTML=cycle.map((day,i)=>{
     const rows=day.exercises.map(ex=>{
-      const repTxt=ex.rep?`${ex.rep}下`:(ex.note||'');
-      const rpeTxt=(ex.unit==='bodyweight'||!ex.rpe)?'':`・RPE ${ex.rpe}`;
+      const sug=computeCoachSuggestion(ex);
       const safeN=ex.name.replace(/'/g,"\\'");
       const cc=catColor(ex.cat);
+      const rxTxt=sug.w!==null
+        ?`${Math.abs(sug.w)}kg×${sug.r||'—'}${sug.rpe?` @RPE${sug.rpe}`:''}`
+        :(sug.r?`${ex.sets}×${sug.r}下（徒手）`:(ex.note||''));
       return`<div class="menu-chk-row" style="cursor:pointer;border-left:3px solid ${cc};background:${cc}14;border-radius:6px;padding-left:8px" onclick="openExDemo('${safeN}')">
         <span class="menu-chk-name">${ex.name}<span style="font-size:10px;font-weight:700;color:${cc};margin-left:6px;background:${cc}22;padding:1px 6px;border-radius:20px">${ex.cat}</span></span>
-        <span class="menu-chk-meta">${ex.sets}×${repTxt}${rpeTxt}</span>
+        <span class="menu-chk-meta" style="color:#f59e0b;font-weight:700">${rxTxt}</span>
       </div>`;
     }).join('');
-    return`<div class="menu-card">
+    const isNext=i===nextDayIdx;
+    return`<div class="menu-card" style="${isNext?'border-color:rgba(245,158,11,.45)':''}">
       <div class="menu-card-hd">
         <span class="menu-icon">${icons[i]||'📋'}</span>
         <div style="flex:1">
-          <div class="menu-name">DAY ${i+1}・${day.title}</div>
-          <div class="menu-desc">重量依她最新訓練紀錄自動計算，這裡只列動作內容</div>
+          <div class="menu-name">DAY ${i+1}・${day.title}${isNext?' <span style="font-size:10px;color:#f59e0b;font-weight:700">・下一天</span>':''}</div>
+          <div class="menu-desc">重量／次數／RPE 依她最新訓練紀錄自動建議</div>
         </div>
       </div>
       ${rows}
@@ -2828,6 +2834,7 @@ function saveCoachCycleEdits(){
   closeCoachCycleEditor();
   renderCoachCycleOverview();
   renderCoachCard();
+  renderCoachTab();
   showToast('✅ 課表已儲存');
 }
 
@@ -2958,18 +2965,17 @@ function renderCoachCard(){
 function renderCoachTab(){
   const el=document.getElementById('coach-tab-body');if(!el)return;
   const cycle=getCoachCycle();
+  const cs=getCoachState();
   el.innerHTML=cycle.map((day,di)=>{
-    const cards=day.exercises.map(ex=>{
+    const done=cs.lastDay===di;
+    const cards=day.exercises.map((ex,ei)=>{
       const cc=catColor(ex.cat);
       const sug=computeCoachSuggestion(ex);
       const last=sug.last;
       // 達標判定：跟當天處方（存在紀錄裡的 rx）比；沒有 rx 的舊紀錄就跟目前課表設定比
-      let statusColor='rgba(240,236,228,.35)',statusTxt='—';
-      let rxTxt='—';
+      let statusColor='rgba(240,236,228,.35)',statusTxt='尚無紀錄';
       if(last){
         const rx=last.rx||{w:null,r:ex.rep,rpe:ex.rpe};
-        if(last.rx)rxTxt=`${last.rx.w!=null?Math.abs(last.rx.w)+'kg':'徒手'}×${last.rx.r??'—'}${last.rx.rpe?` @${last.rx.rpe}`:''}`;
-        else rxTxt='—（此次未經課表開立）';
         const sets=last.sets.filter(s=>s.w!==null&&s.w!==undefined);
         if(ex.unit!=='bodyweight'&&sets.length&&rx.r){
           const topW=Math.max(...sets.map(s=>s.w));
@@ -2979,31 +2985,52 @@ function renderCoachTab(){
           if(maxRpe!==null&&rx.rpe&&maxRpe>rx.rpe){statusColor='#fb923c';statusTxt='RPE超標（偏重）';}
           else if(topReps<rx.r){statusColor='#f87171';statusTxt='次數未達標';}
           else{statusColor='#4ade80';statusTxt='達標';}
-        }
+        }else if(ex.unit==='bodyweight'){statusColor='rgba(240,236,228,.35)';statusTxt='徒手動作';}
       }
-      const actualTxt=last?`${last.date}：${fmtSets(last.sets)}`:'尚無紀錄';
+      const lastWs=last?last.sets.filter(s=>s.w!=null).map(s=>s.w):[];
+      const lastBig=(ex.unit==='bodyweight')?'徒手':(lastWs.length?Math.abs(Math.max(...lastWs))+'kg':'—');
+      const lastDetail=last?`${last.date.slice(5)}：${fmtSets(last.sets)}`:'尚無紀錄';
       const nextTxt=sug.w!==null
-        ?`${Math.abs(sug.w)}kg×${sug.r||'—'}${sug.rpe?` @RPE${sug.rpe}`:''}・${sug.note}`
-        :(ex.unit==='bodyweight'?(ex.note||'徒手'):sug.note);
+        ?`${Math.abs(sug.w)}kg×${sug.r||'—'}${sug.rpe?` @RPE${sug.rpe}`:''}`
+        :(ex.unit==='bodyweight'?(ex.note||'徒手'):(sug.r?sug.r+'下':'—'));
       return`<div style="background:#161616;border:1px solid #2a2a2a;border-left:3px solid ${cc};border-radius:10px;padding:11px 12px;margin-bottom:8px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:7px">
-          <span style="font-size:13.5px;font-weight:700;color:#f0ece4">${ex.name}</span>
-          <span style="font-size:10.5px;font-weight:700;color:${statusColor}">${statusTxt}</span>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+          <span style="font-size:13.5px;font-weight:700;color:#f0ece4">${ex.name}<span style="font-size:10px;font-weight:700;color:${cc};margin-left:6px;background:${cc}22;padding:1px 6px;border-radius:20px">${ex.cat}</span></span>
+          <span style="font-size:10.5px;font-weight:700;color:${statusColor};white-space:nowrap">${statusTxt}</span>
         </div>
-        <div style="display:grid;grid-template-columns:58px 1fr;gap:3px 8px;font-size:11.5px;line-height:1.5">
-          <span style="color:rgba(240,236,228,.35)">上次處方</span><span style="color:rgba(240,236,228,.65)">${rxTxt}</span>
-          <span style="color:rgba(240,236,228,.35)">實際執行</span><span style="color:${statusColor}">${actualTxt}</span>
-          <span style="color:rgba(240,236,228,.35)">下次建議</span><span style="color:#f59e0b;font-weight:700">${nextTxt}</span>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px">
+          <span style="font-size:9.5px;color:rgba(240,236,228,.35);text-transform:uppercase;letter-spacing:.4px">上次重量</span>
+          <span style="font-size:22px;font-weight:800;color:#f0ece4">${lastBig}</span>
         </div>
+        <div style="font-size:11px;color:rgba(240,236,228,.4);margin-top:1px">${lastDetail}</div>
+        <div style="font-size:11.5px;color:#f59e0b;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px dashed #2a2a2a">下次建議：${nextTxt}${sug.note?`・${sug.note}`:''}</div>
       </div>`;
     }).join('');
     return`<div style="margin-bottom:20px">
-      <div class="sec-title" style="display:flex;align-items:center;gap:8px">
-        <span style="background:#f59e0b;color:#080808;font-size:10px;font-weight:800;padding:1px 7px;border-radius:20px">DAY ${di+1}</span>${day.title}
+      <div class="sec-title" style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:8px">
+          <span style="background:#f59e0b;color:#080808;font-size:10px;font-weight:800;padding:1px 7px;border-radius:20px">DAY ${di+1}</span>${day.title}
+        </span>
+        <span style="display:flex;align-items:center;gap:4px">
+          ${done?`<span style="font-size:10px;color:#4ade80;font-weight:700">✓ 上次完成 ${cs.lastDate?cs.lastDate.slice(5):''}</span>`:''}
+          <button class="btn-sm" style="padding:3px 8px;font-size:11px" onclick="moveCoachDayLive(${di},-1)" title="往前移">↑</button>
+          <button class="btn-sm" style="padding:3px 8px;font-size:11px" onclick="moveCoachDayLive(${di},1)" title="往後移">↓</button>
+        </span>
       </div>
       ${cards}
     </div>`;
   }).join('');
+}
+// 直接在教練 tab 調整輪替順序（不用開整個編輯器），存檔即同步
+function moveCoachDayLive(di,delta){
+  const cycle=getCoachCycle();
+  const to=di+delta;if(to<0||to>=cycle.length)return;
+  [cycle[di],cycle[to]]=[cycle[to],cycle[di]];
+  saveCoachCycleData(cycle);
+  apiSaveCoachCycle(cycle);
+  renderCoachTab();
+  renderCoachCycleOverview();
+  renderCoachCard();
 }
 
 // ── 動作示範 ──
