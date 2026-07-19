@@ -834,7 +834,13 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     <div><h1>教練</h1><p>上次重量・排課表・調整輪替順序</p></div>
     <button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;flex-shrink:0;margin-top:2px" onclick="openCoachCycleEditor()">✏️ 編輯課表</button>
   </div>
-  <div class="section" style="padding-top:14px" id="coach-tab-body"></div>
+  <div class="section" style="padding-top:14px">
+    <div class="sec-title">依週檢視</div>
+    <div id="coach-week-pills" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px"></div>
+    <div id="coach-week-body" style="margin-bottom:20px"></div>
+    <div class="sec-title">課表現況</div>
+    <div id="coach-tab-body"></div>
+  </div>
 </div>
 
 <!-- 城市建築選擇器 -->
@@ -2963,8 +2969,66 @@ function renderCoachCard(){
   </div>`;
 }
 
+// ── 教練 Tab：依週檢視（純顯示用，不影響課表編輯邏輯）──
+// Week 1 = 2026-07-13（一）～07-19（日），之後每7天算一週；純粹把已發生的訓練紀錄分組呈現，
+// 跟「課表現況」互不影響——編輯課表永遠是套用到「現在起之後」，不分週。
+const COACH_WEEK1_MONDAY='2026-07-13';
+function weekNumberOf(dateStr){
+  const anchor=new Date(COACH_WEEK1_MONDAY+'T00:00:00');
+  const d=new Date(dateStr+'T00:00:00');
+  const days=Math.floor((d-anchor)/86400000);
+  return Math.floor(days/7)+1;
+}
+function weekRangeLabel(weekNum){
+  const anchor=new Date(COACH_WEEK1_MONDAY+'T00:00:00');
+  const start=new Date(anchor);start.setDate(anchor.getDate()+(weekNum-1)*7);
+  const end=new Date(start);end.setDate(start.getDate()+6);
+  const fmt=d=>`${d.getMonth()+1}/${d.getDate()}`;
+  return `${fmt(start)}-${fmt(end)}`;
+}
+let _coachSelectedWeek=null;
+function renderCoachWeekPills(){
+  const el=document.getElementById('coach-week-pills');if(!el)return;
+  const curWeek=weekNumberOf(todayStr());
+  if(_coachSelectedWeek===null)_coachSelectedWeek=Math.max(1,curWeek);
+  const from=Math.max(1,curWeek-7); // 最多往回顯示近8週，避免清單無限長
+  let html='';
+  for(let w=from;w<=curWeek;w++){
+    const active=w===_coachSelectedWeek;
+    html+=`<button onclick="selectCoachWeek(${w})" style="flex-shrink:0;padding:7px 13px;border-radius:20px;border:1px solid ${active?'#f59e0b':'#2a2a2a'};background:${active?'rgba(245,158,11,.15)':'#161616'};color:${active?'#f59e0b':'rgba(240,236,228,.5)'};font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Week ${w}${w===curWeek?'（本週）':''}</button>`;
+  }
+  el.innerHTML=html;
+}
+function selectCoachWeek(w){_coachSelectedWeek=w;renderCoachWeekPills();renderCoachWeekBody();}
+function renderCoachWeekBody(){
+  const el=document.getElementById('coach-week-body');if(!el)return;
+  const w=_coachSelectedWeek;
+  const sessions=WK.filter(s=>weekNumberOf(s.date)===w).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!sessions.length){
+    el.innerHTML=`<div class="card" style="text-align:center;color:rgba(240,236,228,.35);font-size:13px;padding:20px">Week ${w}（${weekRangeLabel(w)}）沒有訓練紀錄</div>`;
+    return;
+  }
+  el.innerHTML=`<div style="font-size:11px;color:rgba(240,236,228,.35);margin-bottom:8px">${weekRangeLabel(w)}・共 ${sessions.length} 次訓練</div>`+
+    sessions.map(s=>{
+      const exRows=s.exercises.map(ex=>{
+        const rxTxt=ex.rx?`${ex.rx.w!=null?Math.abs(ex.rx.w)+'kg':'徒手'}×${ex.rx.r??'—'}${ex.rx.rpe?` @${ex.rx.rpe}`:''}`:null;
+        return`<div style="font-size:11.5px;line-height:1.6;padding:2px 0">
+          <span style="color:#f0ece4;font-weight:600">${ex.name}</span>
+          <span style="color:rgba(240,236,228,.5)"> 　實際：${fmtSets(ex.sets)}</span>
+          ${rxTxt?`<br><span style="color:rgba(240,236,228,.3);margin-left:0">課表處方：${rxTxt}</span>`:''}
+        </div>`;
+      }).join('');
+      return`<div class="card" style="padding:12px 14px;margin-bottom:8px">
+        <div style="font-size:12.5px;font-weight:700;color:#f59e0b;margin-bottom:6px">${fmtDate(s.date)}</div>
+        ${exRows}
+      </div>`;
+    }).join('');
+}
+
 // ── 教練 Tab：處方 vs 實際執行 vs 下次建議（排下一輪課表用）──
 function renderCoachTab(){
+  renderCoachWeekPills();
+  renderCoachWeekBody();
   const el=document.getElementById('coach-tab-body');if(!el)return;
   const cycle=getCoachCycle();
   const cs=getCoachState();
