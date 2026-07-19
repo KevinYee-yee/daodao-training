@@ -2739,10 +2739,21 @@ function renderCoachCycleOverview(){
 
 // ── 教練循環：課表編輯器（開在「菜單」分頁，自服務改課表用，不用再麻煩 Claude 改 code）──
 let _editCycle=null;
-function openCoachCycleEditor(){
+// targetDi/targetEi：從大卡片長按（整天）或點動作（單一動作）進來時，直接捲到那裡並閃一下提示
+function openCoachCycleEditor(targetDi,targetEi){
   _editCycle=JSON.parse(JSON.stringify(getCoachCycle()));
   renderCoachCycleEditor();
   showSheet('coach-cycle-edit-overlay');
+  if(targetDi==null)return;
+  setTimeout(()=>{
+    const targetEl=(targetEi!=null)
+      ?document.getElementById(`cc-ex-${targetDi}-${targetEi}`)
+      :document.getElementById(`cc-day-${targetDi}`);
+    if(!targetEl)return;
+    targetEl.scrollIntoView({behavior:'smooth',block:'start'});
+    targetEl.style.boxShadow='0 0 0 2px #f59e0b';
+    setTimeout(()=>{targetEl.style.boxShadow='';},1400);
+  },350); // 等 bottom sheet 滑入動畫跑完再捲動
 }
 function closeCoachCycleEditor(){hideSheet('coach-cycle-edit-overlay');_editCycle=null;}
 function renderCoachCycleEditor(){
@@ -2753,7 +2764,7 @@ function renderCoachCycleEditor(){
       const safeN=(ex.name||'').replace(/"/g,'&quot;');
       const safeNote=(ex.note||'').replace(/"/g,'&quot;');
       const cc=catColor(ex.cat);
-      return`<div style="background:#161616;border:1px solid #2a2a2a;border-left:3px solid ${cc};border-radius:10px;padding:10px;margin-bottom:8px">
+      return`<div id="cc-ex-${di}-${ei}" style="background:#161616;border:1px solid #2a2a2a;border-left:3px solid ${cc};border-radius:10px;padding:10px;margin-bottom:8px;transition:box-shadow .3s,border-color .3s">
         <div style="display:flex;gap:6px;margin-bottom:4px">
           <div style="position:relative;flex:1">
             <input class="form-input" id="cc-name-${di}-${ei}" style="margin-bottom:0" placeholder="動作名稱（可搜尋）" value="${safeN}" autocomplete="off"
@@ -2770,26 +2781,34 @@ function renderCoachCycleEditor(){
           <span onclick="toggleCoachExHistory(${di},${ei})" style="cursor:pointer;color:#60a5fa;font-size:11px;user-select:none">📖 查看近期紀錄 ▾</span>
           <div id="cc-hist-${di}-${ei}" hidden style="margin-top:4px;padding:6px 8px;background:#0d0d0d;border-radius:6px"></div>
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-          <select class="form-input" style="width:auto;margin-bottom:0" onchange="updCoachEx(${di},${ei},'cat',this.value);renderCoachCycleEditor()">
-            ${['主項目','輔助','核心'].map(c=>`<option ${ex.cat===c?'selected':''}>${c}</option>`).join('')}
-          </select>
-          <input class="form-input" style="width:90px;margin-bottom:0" placeholder="組數 如3-4" value="${ex.sets||''}" oninput="updCoachEx(${di},${ei},'sets',this.value)">
-          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(240,236,228,.6)">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:flex-end">
+          <div>
+            <div style="font-size:10px;color:rgba(240,236,228,.35);margin-bottom:2px">類別</div>
+            <select class="form-input" style="width:auto;margin-bottom:0" onchange="updCoachEx(${di},${ei},'cat',this.value);renderCoachCycleEditor()">
+              ${['主項目','輔助','核心'].map(c=>`<option ${ex.cat===c?'selected':''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <div style="font-size:10px;color:rgba(240,236,228,.35);margin-bottom:2px">組數</div>
+            <input class="form-input" style="width:80px;margin-bottom:0" placeholder="如 3-4" value="${ex.sets||''}" oninput="updCoachEx(${di},${ei},'sets',this.value)">
+          </div>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(240,236,228,.6);padding-bottom:9px">
             <input type="checkbox" ${isBw?'checked':''} onchange="toggleCoachExUnit(${di},${ei},this.checked)">徒手動作
           </label>
         </div>
         <div class="cc-ex-kg" style="${isBw?'display:none':''};display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:rgba(240,236,228,.5)">
-          建議次數<input type="number" class="form-input" style="width:56px;margin-bottom:0" value="${ex.rep??''}" oninput="updCoachEx(${di},${ei},'rep',this.value===''?null:parseInt(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">下
+          起始重量<input type="number" class="form-input" style="width:58px;margin-bottom:0" step="0.5" placeholder="無紀錄" value="${ex.w??''}" oninput="updCoachEx(${di},${ei},'w',this.value===''?null:parseFloat(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">kg
+          　建議次數<input type="number" class="form-input" style="width:56px;margin-bottom:0" value="${ex.rep??''}" oninput="updCoachEx(${di},${ei},'rep',this.value===''?null:parseInt(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">下
           　建議RPE<input type="number" class="form-input" style="width:50px;margin-bottom:0" value="${ex.rpe??''}" oninput="updCoachEx(${di},${ei},'rpe',this.value===''?null:parseInt(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">
           　每次加重<input type="number" class="form-input" style="width:58px;margin-bottom:0" step="0.5" value="${ex.inc??''}" oninput="updCoachEx(${di},${ei},'inc',parseFloat(this.value)||0)" onchange="refreshCoachSuggestionLine(${di},${ei})">kg
         </div>
+        <div style="font-size:10px;color:rgba(240,236,228,.3);margin:2px 0 0">「起始重量」只在這個動作還沒有訓練紀錄時當建議值；一旦有實際紀錄了，系統會改用她上次的重量往上推算</div>
         <div class="cc-ex-bw" style="${isBw?'':'display:none'}">
           <input class="form-input" style="margin-bottom:0" placeholder="備註（例：每側，抓穩定度即可）" value="${safeNote}" oninput="updCoachEx(${di},${ei},'note',this.value)">
         </div>
       </div>`;
     }).join('');
-    return`<div style="border:1px solid #2a2a2a;border-radius:12px;padding:12px;margin-bottom:14px">
+    return`<div id="cc-day-${di}" style="border:1px solid #2a2a2a;border-radius:12px;padding:12px;margin-bottom:14px;transition:box-shadow .3s">
       <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center">
         <span style="background:#f59e0b;color:#080808;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;flex-shrink:0">DAY ${di+1}</span>
         <input class="form-input" style="flex:1;margin-bottom:0" value="${(day.title||'').replace(/"/g,'&quot;')}" oninput="updCoachDayTitle(${di},this.value)">
@@ -2967,7 +2986,11 @@ function computeCoachSuggestion(exDef){
   if(exDef.unit==='bodyweight'){
     return{w:null,r:exDef.rep||null,rpe:null,note:exDef.note||'抓穩定度即可',last};
   }
-  if(!last)return{w:null,r:exDef.rep,rpe:exDef.rpe,note:'第一次嘗試，現場抓重量',last:null,isFirst:true};
+  if(!last){
+    // 還沒有實際紀錄：課表若設定了起始重量就用它，否則現場抓
+    if(exDef.w!=null)return{w:exDef.w,r:exDef.rep,rpe:exDef.rpe,note:'課表設定的起始重量',last:null};
+    return{w:null,r:exDef.rep,rpe:exDef.rpe,note:'第一次嘗試，現場抓重量',last:null,isFirst:true};
+  }
   const sets=last.sets.filter(s=>s.w!==null&&s.w!==undefined);
   if(!sets.length)return{w:null,r:exDef.rep,rpe:exDef.rpe,note:'上次沒有重量紀錄，現場評估',last};
   const baseW0=Math.max(...sets.map(s=>s.w));
@@ -3153,7 +3176,7 @@ function renderCoachTab(){
       const nextTxt=sug.w!==null
         ?`${Math.abs(sug.w)}kg×${sug.r||'—'}${sug.rpe?` @RPE${sug.rpe}`:''}`
         :(ex.unit==='bodyweight'?(ex.note||'徒手'):(sug.r?sug.r+'下':'—'));
-      return`<div style="background:#161616;border:1px solid #2a2a2a;border-left:3px solid ${cc};border-radius:10px;padding:11px 12px;margin-bottom:8px">
+      return`<div onclick="openCoachCycleEditor(${di},${ei})" style="cursor:pointer;background:#161616;border:1px solid #2a2a2a;border-left:3px solid ${cc};border-radius:10px;padding:11px 12px;margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
           <span style="font-size:13.5px;font-weight:700;color:#f0ece4">${ex.name}<span style="font-size:10px;font-weight:700;color:${cc};margin-left:6px;background:${cc}22;padding:1px 6px;border-radius:20px">${ex.cat}</span></span>
           <span style="font-size:10.5px;font-weight:700;color:${statusColor};white-space:nowrap">${statusTxt}</span>
@@ -3166,17 +3189,20 @@ function renderCoachTab(){
         <div style="font-size:11.5px;color:#f59e0b;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px dashed #2a2a2a">下次建議：${nextTxt}${sug.note?`・${sug.note}`:''}</div>
       </div>`;
     }).join('');
-    return`<div style="margin-bottom:20px">
-      <div class="sec-title" style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+    return`<div class="card" style="padding:14px;margin-bottom:14px">
+      <div oncontextmenu="openCoachCycleEditor(${di});return false" ontouchstart=""
+        style="display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #2a2a2a">
         <span style="display:flex;align-items:center;gap:8px">
-          <span style="background:#f59e0b;color:#080808;font-size:10px;font-weight:800;padding:1px 7px;border-radius:20px">DAY ${di+1}</span>${day.title}
+          <span style="background:#f59e0b;color:#080808;font-size:10px;font-weight:800;padding:1px 7px;border-radius:20px">DAY ${di+1}</span>
+          <span style="font-size:14px;font-weight:800;color:#f0ece4">${day.title}</span>
         </span>
         <span style="display:flex;align-items:center;gap:4px">
           ${done?`<span style="font-size:10px;color:#4ade80;font-weight:700">✓ 上次完成 ${cs.lastDate?cs.lastDate.slice(5):''}</span>`:''}
-          <button class="btn-sm" style="padding:3px 8px;font-size:11px" onclick="moveCoachDayLive(${di},-1)" title="往前移">↑</button>
-          <button class="btn-sm" style="padding:3px 8px;font-size:11px" onclick="moveCoachDayLive(${di},1)" title="往後移">↓</button>
+          <button class="btn-sm" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();moveCoachDayLive(${di},-1)" title="往前移">↑</button>
+          <button class="btn-sm" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();moveCoachDayLive(${di},1)" title="往後移">↓</button>
         </span>
       </div>
+      <div style="font-size:10px;color:rgba(240,236,228,.28);margin:-6px 0 10px">長按上方標題整天編輯・點動作卡片單獨編輯</div>
       ${cards}
     </div>`;
   }).join('');
