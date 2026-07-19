@@ -2764,7 +2764,12 @@ function renderCoachCycleEditor(){
           <button class="btn-sm" onclick="moveCoachEx(${di},${ei},1)">↓</button>
           <button class="btn-sm" style="color:#f87171" onclick="removeCoachEx(${di},${ei})">✕</button>
         </div>
-        <div id="cc-lp-${di}-${ei}" hidden style="font-size:11px;color:#f59e0b;margin-bottom:8px"></div>
+        <div id="cc-sug-${di}-${ei}" style="font-size:11.5px;margin-bottom:3px">${coachSugLineHtml(ex)}</div>
+        <div id="cc-lp-${di}-${ei}" hidden style="font-size:11px;color:rgba(240,236,228,.55);margin-bottom:3px"></div>
+        <div style="margin-bottom:8px">
+          <span onclick="toggleCoachExHistory(${di},${ei})" style="cursor:pointer;color:#60a5fa;font-size:11px;user-select:none">📖 查看近期紀錄 ▾</span>
+          <div id="cc-hist-${di}-${ei}" hidden style="margin-top:4px;padding:6px 8px;background:#0d0d0d;border-radius:6px"></div>
+        </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
           <select class="form-input" style="width:auto;margin-bottom:0" onchange="updCoachEx(${di},${ei},'cat',this.value);renderCoachCycleEditor()">
             ${['主項目','輔助','核心'].map(c=>`<option ${ex.cat===c?'selected':''}>${c}</option>`).join('')}
@@ -2775,9 +2780,9 @@ function renderCoachCycleEditor(){
           </label>
         </div>
         <div class="cc-ex-kg" style="${isBw?'display:none':''};display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:rgba(240,236,228,.5)">
-          建議次數<input type="number" class="form-input" style="width:56px;margin-bottom:0" value="${ex.rep??''}" oninput="updCoachEx(${di},${ei},'rep',this.value===''?null:parseInt(this.value))">下
-          　建議RPE<input type="number" class="form-input" style="width:50px;margin-bottom:0" value="${ex.rpe??''}" oninput="updCoachEx(${di},${ei},'rpe',this.value===''?null:parseInt(this.value))">
-          　每次加重<input type="number" class="form-input" style="width:58px;margin-bottom:0" step="0.5" value="${ex.inc??''}" oninput="updCoachEx(${di},${ei},'inc',parseFloat(this.value)||0)">kg
+          建議次數<input type="number" class="form-input" style="width:56px;margin-bottom:0" value="${ex.rep??''}" oninput="updCoachEx(${di},${ei},'rep',this.value===''?null:parseInt(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">下
+          　建議RPE<input type="number" class="form-input" style="width:50px;margin-bottom:0" value="${ex.rpe??''}" oninput="updCoachEx(${di},${ei},'rpe',this.value===''?null:parseInt(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">
+          　每次加重<input type="number" class="form-input" style="width:58px;margin-bottom:0" step="0.5" value="${ex.inc??''}" oninput="updCoachEx(${di},${ei},'inc',parseFloat(this.value)||0)" onchange="refreshCoachSuggestionLine(${di},${ei})">kg
         </div>
         <div class="cc-ex-bw" style="${isBw?'':'display:none'}">
           <input class="form-input" style="margin-bottom:0" placeholder="備註（例：每側，抓穩定度即可）" value="${safeNote}" oninput="updCoachEx(${di},${ei},'note',this.value)">
@@ -2842,11 +2847,42 @@ function pickCoachEx(name,di,ei){
   onCoachNameChange(name,di,ei);
 }
 function onCoachNameChange(name,di,ei){
-  const lp=document.getElementById(`cc-lp-${di}-${ei}`);if(!lp)return;
-  const last=name?lastRecordOf(name):null;
-  if(!last){lp.hidden=true;return;}
-  lp.hidden=false;
-  lp.innerHTML=`📋 上次（${last.date}）：${fmtSets(last.sets)}`;
+  const lp=document.getElementById(`cc-lp-${di}-${ei}`);
+  if(lp){
+    const last=name?lastRecordOf(name):null;
+    if(!last){lp.hidden=true;}
+    else{lp.hidden=false;lp.innerHTML=`📋 上次（${last.date}）：${fmtSets(last.sets)}`;}
+  }
+  // 名稱變了，收合並清掉舊的展開紀錄，避免顯示到上一個動作的歷史
+  const hist=document.getElementById(`cc-hist-${di}-${ei}`);
+  if(hist){hist.hidden=true;hist.innerHTML='';}
+  refreshCoachSuggestionLine(di,ei);
+}
+// 課表編輯器：即時建議（重量／組數／次數／RPE），跟著 rep/rpe/inc 欄位一起更新
+function coachSugLineHtml(ex){
+  if(!ex.name)return'<span style="color:rgba(240,236,228,.3)">選好動作名稱後會顯示目前建議</span>';
+  const sug=computeCoachSuggestion(ex);
+  const repTxt=sug.r?`${sug.r}下`:'—';
+  const wTxt=sug.w!==null?`${Math.abs(sug.w)}kg × `:(ex.unit==='bodyweight'?'':'— × ');
+  const rpeTxt=sug.rpe?` @RPE${sug.rpe}`:'';
+  return`<span style="color:#f59e0b;font-weight:700">🎯 目前建議：${wTxt}${repTxt}${rpeTxt}</span><span style="color:rgba(240,236,228,.4)">・${sug.note||''}</span>`;
+}
+function refreshCoachSuggestionLine(di,ei){
+  const ex=_editCycle[di]?.exercises[ei];if(!ex)return;
+  const el=document.getElementById(`cc-sug-${di}-${ei}`);
+  if(el)el.innerHTML=coachSugLineHtml(ex);
+}
+// 課表編輯器：展開/收合近期幾次紀錄——同一個動作在不同天可能扮演主項目/輔助角色、重量落差大，
+// 多看幾筆歷史比單看「上次」更容易判斷這筆到底該對應哪個情境
+function toggleCoachExHistory(di,ei){
+  const box=document.getElementById(`cc-hist-${di}-${ei}`);if(!box)return;
+  if(!box.hidden){box.hidden=true;return;}
+  const name=_editCycle[di]?.exercises[ei]?.name;
+  const recs=name?recentRecordsOf(name,5):[];
+  box.innerHTML=recs.length
+    ?recs.map(r=>`<div style="font-size:11px;color:rgba(240,236,228,.55);padding:2px 0">${r.date}：${fmtSets(r.sets)}</div>`).join('')
+    :`<div style="font-size:11px;color:rgba(240,236,228,.3)">尚無紀錄</div>`;
+  box.hidden=false;
 }
 function updCoachEx(di,ei,field,val){_editCycle[di].exercises[ei][field]=val;}
 function updCoachDayTitle(di,val){_editCycle[di].title=val;}
@@ -2915,14 +2951,16 @@ function fmtSets(sets){
   }).join('｜');
 }
 // 找該動作最近一次紀錄，回傳 {date, sets, rx} 或 null
-function lastRecordOf(name){
+function recentRecordsOf(name,n){
   const sorted=[...WK].sort((a,b)=>b.date.localeCompare(a.date));
+  const out=[];
   for(const s of sorted){
     const ex=s.exercises.find(e=>e.name===name);
-    if(ex)return{date:s.date,sets:ex.sets,rx:ex.rx||null};
+    if(ex){out.push({date:s.date,sets:ex.sets,rx:ex.rx||null});if(out.length>=n)break;}
   }
-  return null;
+  return out;
 }
+function lastRecordOf(name){return recentRecordsOf(name,1)[0]||null;}
 // 回傳 {w, r, rpe, note, last}：w/r/rpe 是這次的固定處方（開課表直接預填），last 是上次紀錄
 function computeCoachSuggestion(exDef){
   const last=lastRecordOf(exDef.name);
