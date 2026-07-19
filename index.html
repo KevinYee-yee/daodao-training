@@ -149,9 +149,6 @@ textarea.form-input{resize:none}
 .badge-card{border-radius:14px;padding:14px 10px;text-align:center;border:1.5px solid}
 .badge-card.unlocked{background:var(--card);border-color:rgba(139,92,246,.18);box-shadow:var(--shadow)}
 .badge-card.locked{background:#fafafa;border-color:#f0f0f0;opacity:.45}
-.week-plan-grid{display:flex;gap:5px}
-.plan-cell{flex:1;border-radius:10px;padding:8px 3px;text-align:center;cursor:pointer;transition:transform .1s;-webkit-tap-highlight-color:transparent}
-.plan-cell:active{transform:scale(.96)}
 .today-plan-card{background:linear-gradient(135deg,#ede9fe,#fce7f3);border-radius:14px;padding:14px 16px;margin-bottom:12px;border:1px solid #ddd6fe;display:flex;align-items:center;justify-content:space-between}
 .celebrate-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:center;justify-content:center;animation:cfOut .3s ease 3s forwards}
 @keyframes cfOut{to{opacity:0;pointer-events:none}}
@@ -168,7 +165,7 @@ textarea.form-input{resize:none}
 /* ══ MINIMAL CHARCOAL GOLD ══ */
 /* Nav pill — frosted glass */
 .nav{bottom:max(16px,env(safe-area-inset-bottom,16px));left:50%;transform:translateX(-50%);right:auto;width:auto;max-width:calc(100vw - 28px);height:auto;background:rgba(20,16,10,.62);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border:1px solid rgba(245,158,11,.25);border-radius:52px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 12px 28px rgba(0,0,0,.5);padding:6px 10px;gap:2px;will-change:transform}
-.nav-btn{border-radius:40px;padding:8px 9px;color:rgba(240,236,228,.32);font-size:10px;white-space:nowrap;transition:background .12s,color .12s}
+.nav-btn{border-radius:40px;padding:8px 6px;color:rgba(240,236,228,.32);font-size:10px;white-space:nowrap;transition:background .12s,color .12s}
 .nav-btn.active{background:rgba(245,158,11,.18);color:#f0ece4}
 .nav-btn:active{opacity:.55}
 /* Page header */
@@ -331,7 +328,6 @@ textarea.form-input{resize:none}
 /* Draft bar */
 .draft-bar{background:#111;border:1px solid #222;color:rgba(240,236,228,.6)}
 /* Plan cells */
-.plan-cell{border:1px solid #1a1a1a !important}
 /* Chart */
 .chart-wrap{border-radius:10px;overflow:hidden}
 /* Scrollbar */
@@ -682,11 +678,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 <div id="tab-menu" class="tab-content" hidden>
   <div class="page-header"><h1>教練循環</h1><p>固定推拉腿三天循環・查動作示範</p></div>
   <div class="section" style="padding-top:14px">
-    <div class="sec-title">週計劃</div>
-    <div class="card" style="margin-bottom:4px">
-      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">點擊切換訓練部位，長按重置</p>
-      <div class="week-plan-grid" id="week-plan-ui"></div>
-    </div>
     <div class="sec-title" style="display:flex;justify-content:space-between;align-items:center">
       <span>循環課表</span>
       <button class="btn btn-ghost" style="padding:6px 14px;font-size:12px" onclick="openCoachCycleEditor()">✏️ 編輯課表</button>
@@ -840,6 +831,12 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
   </div>
 </div>
 
+<!-- TAB: 教練（處方 vs 實際執行，排下一輪課表用） -->
+<div id="tab-coach" class="tab-content" hidden>
+  <div class="page-header"><h1>教練分析</h1><p>課表設定 vs 實際執行・排下一輪的依據</p></div>
+  <div class="section" style="padding-top:14px" id="coach-tab-body"></div>
+</div>
+
 <!-- 城市建築選擇器 -->
 <div id="city-picker-overlay" class="city-picker-overlay" onclick="if(event.target===this)closeCityPicker()">
   <div class="city-picker-sheet">
@@ -947,6 +944,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
   </button>
   <button class="nav-btn" data-tab="city" onclick="goTab('city',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="10" width="4" height="11" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="13" width="4" height="8" rx="1"/><line x1="1" y1="21" x2="23" y2="21"/></svg>城市
+  </button>
+  <button class="nav-btn" data-tab="coach" onclick="goTab('coach',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>教練
   </button>
 </nav>
 
@@ -1354,15 +1354,17 @@ function goTab(tab,btn){
   WK=getCache();
   if(tab==='overview'){renderOverview();renderFreqProgress();renderCardioProgress();renderAchievements();}
   if(tab==='log'){renderLog();renderCharts();}
-  if(tab==='menu'){renderMenuTab();renderWeekPlanUI();}
+  if(tab==='menu')renderMenuTab();
   if(tab==='body')renderBodyTab();
   if(tab==='city')renderCityTab();
+  if(tab==='coach')renderCoachTab();
   if(getGASUrl()){
     flushPending();
     apiLoad().then(fresh=>{
       WK=fresh;
       if(tab==='overview'){renderOverview();renderFreqProgress();}
       if(tab==='log'){renderLog();renderCharts();}
+      if(tab==='coach')renderCoachTab();
     });
     if(tab==='body'){
       syncWeightFromGAS().then(renderBodyTab);
@@ -1371,6 +1373,9 @@ function goTab(tab,btn){
     }
     if(tab==='menu'){
       syncCoachCycleFromGAS().then(renderMenuTab);
+    }
+    if(tab==='coach'){
+      syncCoachCycleFromGAS().then(renderCoachTab);
     }
   }
 }
@@ -2198,7 +2203,12 @@ function saveWorkout(){
         note:''
       };
     }).filter(s=>s.w!==null||s.r!==null);
-    if(sets.length)exercises.push({id:uid(),name,sets});
+    if(sets.length){
+      const exObj={id:uid(),name,sets};
+      // 教練課表流程：把當天處方（rx）掛上，之後教練 Tab 對照「課表設定 vs 實際執行」用
+      if(_coachActiveDay!==null&&_coachRxByName[name])exObj.rx=_coachRxByName[name];
+      exercises.push(exObj);
+    }
   }
   if(!exercises.length){showToast('請至少填入一個動作');return;}
   const note=document.getElementById('new-note').value.trim();
@@ -2215,6 +2225,7 @@ function saveWorkout(){
     saveCoachState(newState);
     apiSaveCoachState(newState);
     _coachActiveDay=null;
+    _coachRxByName={};
     renderCoachCard();
   }
 }
@@ -2348,13 +2359,9 @@ function renderFreq(){
 
 // ── 目標 & 成就 ──
 const GOALS_KEY='daodao_goals';
-const PLAN_OPTS=['休息','腿部','背部','胸部','肩膀','全身','自由'];
-const PLAN_BG={'休息':'rgba(240,236,228,.06)','腿部':'rgba(167,139,250,.12)','背部':'rgba(96,165,250,.12)','胸部':'rgba(244,114,182,.12)','肩膀':'rgba(245,158,11,.12)','全身':'rgba(74,222,128,.12)','自由':'rgba(240,236,228,.08)'};
-const PLAN_TC={'休息':'rgba(240,236,228,.4)','腿部':'#a78bfa','背部':'#60a5fa','胸部':'#f472b6','肩膀':'#f59e0b','全身':'#4ade80','自由':'rgba(240,236,228,.55)'};
-const DOW_CN=['日','一','二','三','四','五','六'];
 
 function getGoals(){
-  const def={weeklyTarget:3,weekPlan:{'0':'休息','1':'腿部','2':'背部','3':'休息','4':'肩膀','5':'腿部','6':'休息'}};
+  const def={weeklyTarget:3};
   return Object.assign({},def,JSON.parse(localStorage.getItem(GOALS_KEY)||'{}'));
 }
 function saveGoals(g){localStorage.setItem(GOALS_KEY,JSON.stringify(g));}
@@ -2467,7 +2474,7 @@ function showCelebration(session){
   setTimeout(()=>ov.remove(),4500);
 }
 
-function renderGoals(){renderFreqProgress();renderCardioProgress();renderWeekPlanUI();renderAchievements();}
+function renderGoals(){renderFreqProgress();renderCardioProgress();renderAchievements();}
 
 function renderFreqProgress(){
   const el=document.getElementById('freq-progress');if(!el)return;
@@ -2494,25 +2501,6 @@ function renderFreqProgress(){
   </div>`;
 }
 function setWeekTarget(n){const g=getGoals();g.weeklyTarget=n;saveGoals(g);renderGoals();showToast('週目標設為 '+n+' 次');}
-
-function renderWeekPlanUI(){
-  const el=document.getElementById('week-plan-ui');if(!el)return;
-  const plan=getGoals().weekPlan||{};
-  const today=new Date().getDay();
-  el.innerHTML=[0,1,2,3,4,5,6].map(d=>{
-    const cur=plan[d]||'休息';
-    return`<div class="plan-cell" style="background:${PLAN_BG[cur]};color:${PLAN_TC[cur]};outline:${d===today?'2.5px solid var(--p)':'none'};outline-offset:2px"
-      onclick="cyclePlanDay(${d})" oncontextmenu="resetPlanDay(${d});return false" ontouchstart="">
-      <div style="font-size:10px;font-weight:700;margin-bottom:4px">${DOW_CN[d]}${d===today?'·今':''}
-      </div><div style="font-size:10px;font-weight:600;line-height:1.2">${cur}</div></div>`;
-  }).join('');
-}
-function cyclePlanDay(d){
-  const g=getGoals();const cur=g.weekPlan[d]||'休息';
-  g.weekPlan[d]=PLAN_OPTS[(PLAN_OPTS.indexOf(cur)+1)%PLAN_OPTS.length];
-  saveGoals(g);renderWeekPlanUI();
-}
-function resetPlanDay(d){const g=getGoals();g.weekPlan[d]='休息';saveGoals(g);renderWeekPlanUI();}
 
 function renderAchievements(){
   const el=document.getElementById('badges-grid');if(!el)return;
@@ -2614,36 +2602,52 @@ const EXERCISE_INFO={
 // 設計原則：理髮師駝背改善 + 減脂 + 2-3天/週
 // 公式：臀胸日=臀×2+胸×1+三頭×1+輔1-2 / 腿背日=腿×2+背×1+二頭×1+輔1-2
 // 臀日：硬舉類為主 / 腿日：一重一輕 / 全部無地板動作
-// ── 教練循環：固定三天課表，重量/RPE/備註由 computeCoachSuggestion() 每次即時算 ──
+// ── 教練循環：固定循環課表，重量/次數/RPE 建議由 computeCoachSuggestion() 每次即時算 ──
 // 只當「從沒編輯過時」的預設值；實際課表內容是可編輯資料，見 getCoachCycle()
+// 處方一律固定值：rep=建議次數、rpe=建議RPE（不用區間）
 const DEFAULT_COACH_CYCLE=[
   {title:'下肢主導', exercises:[
-    {name:'高腳杯深蹲', cat:'主項目', sets:'3', repLo:8, repHi:12, rpeLo:7, rpeHi:8, inc:2, unit:'kg'},
-    {name:'腿推機', cat:'主項目', sets:'3-4', repLo:8, repHi:12, rpeLo:7, rpeHi:8, inc:5, unit:'kg'},
-    {name:'啞鈴羅馬尼亞硬舉', cat:'輔助', sets:'3', repLo:8, repHi:8, rpeLo:0, rpeHi:8, inc:2, unit:'kg'},
-    {name:'死蟲', cat:'核心', sets:'3', repLo:8, repHi:10, unit:'bodyweight', note:'每側，抓穩定度即可'}
+    {name:'高腳杯深蹲', cat:'主項目', sets:'3', rep:12, rpe:8, inc:2, unit:'kg'},
+    {name:'腿推機', cat:'主項目', sets:'3', rep:12, rpe:8, inc:5, unit:'kg'},
+    {name:'啞鈴羅馬尼亞硬舉', cat:'輔助', sets:'3', rep:8, rpe:8, inc:2, unit:'kg'},
+    {name:'死蟲', cat:'核心', sets:'3', rep:10, unit:'bodyweight', note:'每側，抓穩定度即可'}
   ]},
   {title:'上肢拉主導', exercises:[
-    {name:'水平划船', cat:'主項目', sets:'3-4', repLo:8, repHi:12, rpeLo:7, rpeHi:8, inc:2, unit:'kg'},
-    {name:'滑輪下拉', cat:'主項目', sets:'3', repLo:8, repHi:12, rpeLo:7, rpeHi:8, inc:2, unit:'kg'},
-    {name:'坐姿三頭下壓機', cat:'輔助', sets:'3', repLo:8, repHi:12, rpeLo:7, rpeHi:8, inc:2, unit:'kg'},
-    {name:'機械二頭彎舉', cat:'輔助', sets:'3', repLo:8, repHi:12, rpeLo:7, rpeHi:8, inc:2, unit:'kg'},
-    {name:'鳥狗', cat:'核心', sets:'3', repLo:8, repHi:10, unit:'bodyweight', note:'每側，抓穩定度即可'}
+    {name:'水平划船', cat:'主項目', sets:'3', rep:12, rpe:8, inc:2, unit:'kg'},
+    {name:'滑輪下拉', cat:'主項目', sets:'3', rep:12, rpe:8, inc:2, unit:'kg'},
+    {name:'坐姿三頭下壓機', cat:'輔助', sets:'3', rep:12, rpe:8, inc:2, unit:'kg'},
+    {name:'機械二頭彎舉', cat:'輔助', sets:'3', rep:12, rpe:8, inc:2, unit:'kg'},
+    {name:'鳥狗', cat:'核心', sets:'3', rep:10, unit:'bodyweight', note:'每側，抓穩定度即可'}
   ]},
   {title:'上肢推主導', exercises:[
-    {name:'器械坐姿胸推', cat:'主項目', sets:'3-4', repLo:8, repHi:12, rpeLo:7, rpeHi:8, inc:2, unit:'kg'},
-    {name:'器械坐姿肩推', cat:'主項目', sets:'3', repLo:10, repHi:12, rpeLo:0, rpeHi:7, inc:2, unit:'kg'},
-    {name:'臀外展機', cat:'輔助', sets:'3', repLo:12, repHi:15, rpeLo:7, rpeHi:8, inc:2, unit:'kg'},
-    {name:'棒式', cat:'核心', sets:'3', repLo:null, repHi:null, unit:'bodyweight', note:'30-45秒'}
+    {name:'器械坐姿胸推', cat:'主項目', sets:'3', rep:12, rpe:8, inc:2, unit:'kg'},
+    {name:'器械坐姿肩推', cat:'主項目', sets:'3', rep:12, rpe:7, inc:2, unit:'kg'},
+    {name:'臀外展機', cat:'輔助', sets:'3', rep:15, rpe:8, inc:2, unit:'kg'},
+    {name:'棒式', cat:'核心', sets:'3', rep:null, unit:'bodyweight', note:'30-45秒'}
+  ]},
+  {title:'臀部', exercises:[
+    {name:'啞鈴羅馬尼亞硬舉', cat:'主項目', sets:'3', rep:10, rpe:8, inc:2, unit:'kg'},
+    {name:'盪壺', cat:'輔助', sets:'3', rep:12, rpe:8, inc:2, unit:'kg'},
+    {name:'臀外展機', cat:'輔助', sets:'3', rep:15, rpe:8, inc:2, unit:'kg'},
+    {name:'單腿後踢', cat:'輔助', sets:'3', rep:12, rpe:8, inc:1, unit:'kg'}
   ]}
 ];
 
 // ── 教練循環課表內容（可在「菜單」分頁編輯，同步到 GAS，不再是寫死常數）──
 const COACH_CYCLE_KEY='daodao_coach_cycle_v1';
+// 舊格式（repLo/repHi/rpeLo/rpeHi 區間）遷移成固定值：次數取區間頂端、RPE 取上限
+function normalizeCycle_(cycle){
+  cycle.forEach(day=>day.exercises.forEach(ex=>{
+    if(ex.rep===undefined&&(ex.repHi!==undefined||ex.repLo!==undefined))ex.rep=ex.repHi??ex.repLo??null;
+    if(ex.rpe===undefined&&ex.rpeHi!==undefined)ex.rpe=ex.rpeHi;
+    delete ex.repLo;delete ex.repHi;delete ex.rpeLo;delete ex.rpeHi;
+  }));
+  return cycle;
+}
 function getCoachCycle(){
   const raw=localStorage.getItem(COACH_CYCLE_KEY);
   if(raw){
-    try{const parsed=JSON.parse(raw);if(Array.isArray(parsed)&&parsed.length)return parsed;}catch(e){}
+    try{const parsed=JSON.parse(raw);if(Array.isArray(parsed)&&parsed.length)return normalizeCycle_(parsed);}catch(e){}
   }
   return JSON.parse(JSON.stringify(DEFAULT_COACH_CYCLE));
 }
@@ -2694,8 +2698,8 @@ function renderCoachCycleOverview(){
   const icons=['🦵','🎣','🤜'];
   el.innerHTML=getCoachCycle().map((day,i)=>{
     const rows=day.exercises.map(ex=>{
-      const repTxt=(ex.repLo&&ex.repHi)?`${ex.repLo}-${ex.repHi}下`:(ex.note||'');
-      const rpeTxt=ex.unit==='bodyweight'?'':`・目標RPE ${rpeLabel(ex)}`;
+      const repTxt=ex.rep?`${ex.rep}下`:(ex.note||'');
+      const rpeTxt=(ex.unit==='bodyweight'||!ex.rpe)?'':`・RPE ${ex.rpe}`;
       const safeN=ex.name.replace(/'/g,"\\'");
       const cc=catColor(ex.cat);
       return`<div class="menu-chk-row" style="cursor:pointer;border-left:3px solid ${cc};background:${cc}14;border-radius:6px;padding-left:8px" onclick="openExDemo('${safeN}')">
@@ -2752,10 +2756,8 @@ function renderCoachCycleEditor(){
           </label>
         </div>
         <div class="cc-ex-kg" style="${isBw?'display:none':''};display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:rgba(240,236,228,.5)">
-          次數<input type="number" class="form-input" style="width:52px;margin-bottom:0" value="${ex.repLo??''}" oninput="updCoachEx(${di},${ei},'repLo',this.value===''?null:parseInt(this.value))">
-          -<input type="number" class="form-input" style="width:52px;margin-bottom:0" value="${ex.repHi??''}" oninput="updCoachEx(${di},${ei},'repHi',this.value===''?null:parseInt(this.value))">
-          下　RPE<input type="number" class="form-input" style="width:46px;margin-bottom:0" value="${ex.rpeLo||''}" placeholder="下限" oninput="updCoachEx(${di},${ei},'rpeLo',this.value===''?0:parseInt(this.value))">
-          -<input type="number" class="form-input" style="width:46px;margin-bottom:0" value="${ex.rpeHi??''}" oninput="updCoachEx(${di},${ei},'rpeHi',this.value===''?0:parseInt(this.value))">
+          建議次數<input type="number" class="form-input" style="width:56px;margin-bottom:0" value="${ex.rep??''}" oninput="updCoachEx(${di},${ei},'rep',this.value===''?null:parseInt(this.value))">下
+          　建議RPE<input type="number" class="form-input" style="width:50px;margin-bottom:0" value="${ex.rpe??''}" oninput="updCoachEx(${di},${ei},'rpe',this.value===''?null:parseInt(this.value))">
           　每次加重<input type="number" class="form-input" style="width:58px;margin-bottom:0" step="0.5" value="${ex.inc??''}" oninput="updCoachEx(${di},${ei},'inc',parseFloat(this.value)||0)">kg
         </div>
         <div class="cc-ex-bw" style="${isBw?'':'display:none'}">
@@ -2781,12 +2783,11 @@ function updCoachDayTitle(di,val){_editCycle[di].title=val;}
 function toggleCoachExUnit(di,ei,checked){
   const ex=_editCycle[di].exercises[ei];
   ex.unit=checked?'bodyweight':'kg';
-  if(checked){ex.repLo=ex.repLo||null;ex.repHi=ex.repHi||null;}
-  else{if(ex.rpeHi==null)ex.rpeHi=8;if(ex.inc==null)ex.inc=2;}
+  if(!checked){if(ex.rpe==null)ex.rpe=8;if(ex.inc==null)ex.inc=2;}
   renderCoachCycleEditor();
 }
 function addCoachDay(){
-  _editCycle.push({title:'新的一天',exercises:[{name:'',cat:'主項目',sets:'3',repLo:8,repHi:12,rpeLo:7,rpeHi:8,inc:2,unit:'kg'}]});
+  _editCycle.push({title:'新的一天',exercises:[{name:'',cat:'主項目',sets:'3',rep:10,rpe:8,inc:2,unit:'kg'}]});
   renderCoachCycleEditor();
 }
 function removeCoachDay(di){
@@ -2801,7 +2802,7 @@ function moveCoachDay(di,delta){
   renderCoachCycleEditor();
 }
 function addCoachExercise(di){
-  _editCycle[di].exercises.push({name:'',cat:'輔助',sets:'3',repLo:8,repHi:12,rpeLo:7,rpeHi:8,inc:2,unit:'kg'});
+  _editCycle[di].exercises.push({name:'',cat:'輔助',sets:'3',rep:10,rpe:8,inc:2,unit:'kg'});
   renderCoachCycleEditor();
 }
 function removeCoachEx(di,ei){
@@ -2831,47 +2832,63 @@ function saveCoachCycleEdits(){
 }
 
 // ── 教練循環：建議重量計算 ──
-function rpeLabel(ex){return ex.rpeLo?`${ex.rpeLo}-${ex.rpeHi}`:`≤${ex.rpeHi}`;}
 function catColor(cat){return cat==='主項目'?'#f59e0b':cat==='核心'?'#4ade80':'#60a5fa';}
-function computeCoachSuggestion(exDef){
-  if(exDef.unit==='bodyweight'){
-    return{weight:null,text:exDef.note||'抓穩定度即可'};
-  }
+// 上次逐組明細文字：30×10 R8｜30×10 R9｜30×12
+function fmtSets(sets){
+  return sets.map(s=>{
+    let t='';
+    if(s.w!=null)t+=(s.w<0?'輔'+Math.abs(s.w):s.w);
+    if(s.r)t+='×'+s.r;
+    if(s.rpe)t+=' R'+s.rpe;
+    return t||'—';
+  }).join('｜');
+}
+// 找該動作最近一次紀錄，回傳 {date, sets, rx} 或 null
+function lastRecordOf(name){
   const sorted=[...WK].sort((a,b)=>b.date.localeCompare(a.date));
-  let found=null;
   for(const s of sorted){
-    const ex=s.exercises.find(e=>e.name===exDef.name);
-    if(ex){found=ex;break;}
+    const ex=s.exercises.find(e=>e.name===name);
+    if(ex)return{date:s.date,sets:ex.sets,rx:ex.rx||null};
   }
-  if(!found)return{weight:null,text:`第一次嘗試，抓一個能完成組數內次數、RPE ${rpeLabel(exDef)} 的重量`,isFirst:true};
-  const sets=found.sets.filter(s=>s.w!==null&&s.w!==undefined);
-  if(!sets.length)return{weight:null,text:'上次沒有重量紀錄，現場評估後決定'};
+  return null;
+}
+// 回傳 {w, r, rpe, note, last}：w/r/rpe 是這次的固定處方（開課表直接預填），last 是上次紀錄
+function computeCoachSuggestion(exDef){
+  const last=lastRecordOf(exDef.name);
+  if(exDef.unit==='bodyweight'){
+    return{w:null,r:exDef.rep||null,rpe:null,note:exDef.note||'抓穩定度即可',last};
+  }
+  if(!last)return{w:null,r:exDef.rep,rpe:exDef.rpe,note:'第一次嘗試，現場抓重量',last:null,isFirst:true};
+  const sets=last.sets.filter(s=>s.w!==null&&s.w!==undefined);
+  if(!sets.length)return{w:null,r:exDef.rep,rpe:exDef.rpe,note:'上次沒有重量紀錄，現場評估',last};
   const baseW0=Math.max(...sets.map(s=>s.w));
   const topReps=Math.max(...sets.filter(s=>s.w===baseW0).map(s=>s.r||0));
   const rpes=sets.map(s=>s.rpe).filter(v=>v!==null&&v!==undefined);
   const maxRpe=rpes.length?Math.max(...rpes):null;
-  // 不管上次有沒有填RPE都要給出明確建議：RPE 只在「有填而且超標」時才擋加重，沒填就用次數判斷
-  let baseW=baseW0,note;
-  if(maxRpe!==null&&maxRpe>exDef.rpeHi){
-    note='上次RPE偏高，這次先維持重量';
-  }else if(topReps>=exDef.repHi){
-    baseW=baseW0+exDef.inc;
-    note='上次已到組數上限，這次加重';
+  // RPE 只在「有填而且超標」時才擋加重，沒填就看次數是否達標
+  let w=baseW0,note;
+  if(maxRpe!==null&&maxRpe>exDef.rpe){
+    note='上次RPE偏高，先維持重量';
+  }else if(topReps>=exDef.rep){
+    w=baseW0+exDef.inc;
+    note='上次達標，這次加重';
   }else{
-    note='維持這個重量，目標衝到組數上限';
+    note='維持重量，衝到建議次數';
   }
   const cs=getCoachState();
   if(cs.lastDate){
     const gap=Math.round((new Date(todayStr())-new Date(cs.lastDate))/86400000);
-    if(gap>10){baseW=Math.round(baseW*0.85*2)/2;note='超過10天沒練這天，先降負荷';}
+    if(gap>10){w=Math.round(w*0.85*2)/2;note='超過10天沒練，先降負荷';}
   }
-  return{weight:baseW,text:`建議 ${baseW}kg（上次${baseW0}kg）・${note}`};
+  return{w,r:exDef.rep,rpe:exDef.rpe,note,last};
 }
 
-// ── 教練循環：開始這天訓練（帶入動作+建議重量到新增訓練頁）──
+// ── 教練循環：開始這天訓練（帶入動作、預填建議重量/次數）──
 let _coachActiveDay=null;
+let _coachRxByName={}; // 這次課表的處方，存檔時掛到訓練紀錄的 ex.rx
 function startCoachDay(dayIdx){
   _coachActiveDay=dayIdx;
+  _coachRxByName={};
   const day=getCoachCycle()[dayIdx];
   goTab('add',document.querySelector('[data-tab=add]'));
   setTimeout(()=>{
@@ -2884,15 +2901,24 @@ function startCoachDay(dayIdx){
       inp.value=ex.name;onNameChange(inp,curId);
       const tb=document.getElementById('tb-'+curId);tb.innerHTML='';
       const cnt=Math.max(1,parseInt(ex.sets)||3);
-      for(let i=0;i<cnt;i++)addSet(curId);
       const sug=computeCoachSuggestion(ex);
+      _coachRxByName[ex.name]={w:sug.w,r:sug.r,rpe:sug.rpe};
+      for(let i=0;i<cnt;i++){
+        addSet(curId);
+        const row=tb.rows[i];
+        // 預填建議重量+次數（輔助類動作重量顯示正數，存檔時會自動轉負）
+        if(sug.w!==null)row.querySelector('[data-f=w]').value=Math.abs(sug.w);
+        if(sug.r)row.querySelector('[data-f=r]').value=sug.r;
+      }
       const lp=document.getElementById('lp-'+curId);
       if(lp){
-        const rpeTxt=ex.unit==='bodyweight'?'':`　目標RPE ${rpeLabel(ex)}`;
-        lp.hidden=false;lp.innerHTML+=(lp.innerHTML?'<br>':'')+`<span style="color:#f59e0b">🎯 教練建議：${sug.text}${rpeTxt}</span>`;
+        const rxTxt=sug.w!==null?`${Math.abs(sug.w)}kg×${sug.r||'—'}${sug.rpe?` @RPE${sug.rpe}`:''}`:(sug.r?`${sug.r}下（徒手）`:(ex.note||''));
+        let html=`<span style="color:#f59e0b">🎯 課表：${rxTxt}・${sug.note}</span>`;
+        if(sug.last)html+=`<br><span style="color:rgba(240,236,228,.55)">📋 上次(${sug.last.date.slice(5)})：${fmtSets(sug.last.sets)}</span>`;
+        lp.hidden=false;lp.innerHTML=html;
       }
     });
-    showToast('✅ 已帶入 '+day.title+'，去填實際重量！');
+    showToast('✅ 已帶入 '+day.title+'，重量次數已預填，照做或現場微調！');
   },60);
 }
 
@@ -2905,15 +2931,17 @@ function renderCoachCard(){
   const day=cycle[dayIdx];
   const rows=day.exercises.map(ex=>{
     const sug=computeCoachSuggestion(ex);
-    const repTxt=(ex.repLo&&ex.repHi)?`${ex.repLo}-${ex.repHi}下`:(ex.note||'');
-    const rpeTxt=ex.unit==='bodyweight'?'':`　目標RPE ${rpeLabel(ex)}`;
     const cc=catColor(ex.cat);
+    const rxTxt=sug.w!==null
+      ?`${Math.abs(sug.w)}kg × ${sug.r||'—'}下${sug.rpe?` @RPE${sug.rpe}`:''}`
+      :(sug.r?`${ex.sets}×${sug.r}下（徒手）`:(ex.note||''));
+    const lastTxt=sug.last?`上次(${sug.last.date.slice(5)})：${fmtSets(sug.last.sets)}`:'尚無紀錄';
     return`<div style="padding:9px 10px;margin-top:8px;border-left:3px solid ${cc};background:${cc}14;border-radius:6px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
         <div style="font-size:13px;font-weight:700;color:#f0ece4">${ex.name}<span style="font-size:10px;font-weight:700;color:${cc};margin-left:6px;background:${cc}22;padding:1px 6px;border-radius:20px">${ex.cat}</span></div>
-        <div style="font-size:12px;color:#f59e0b;font-weight:700;white-space:nowrap">${ex.sets}×${repTxt}</div>
+        <div style="font-size:13px;color:#f59e0b;font-weight:800;white-space:nowrap">${rxTxt}</div>
       </div>
-      <div style="font-size:11.5px;color:rgba(240,236,228,.5);margin-top:3px">${sug.text}${rpeTxt}</div>
+      <div style="font-size:11.5px;color:rgba(240,236,228,.5);margin-top:3px">${sug.note}・${lastTxt}</div>
     </div>`;
   }).join('');
   el.innerHTML=`<div class="card" style="padding:16px">
@@ -2924,6 +2952,58 @@ function renderCoachCard(){
     ${rows}
     <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="startCoachDay(${dayIdx})">開始這天訓練</button>
   </div>`;
+}
+
+// ── 教練 Tab：處方 vs 實際執行 vs 下次建議（排下一輪課表用）──
+function renderCoachTab(){
+  const el=document.getElementById('coach-tab-body');if(!el)return;
+  const cycle=getCoachCycle();
+  el.innerHTML=cycle.map((day,di)=>{
+    const cards=day.exercises.map(ex=>{
+      const cc=catColor(ex.cat);
+      const sug=computeCoachSuggestion(ex);
+      const last=sug.last;
+      // 達標判定：跟當天處方（存在紀錄裡的 rx）比；沒有 rx 的舊紀錄就跟目前課表設定比
+      let statusColor='rgba(240,236,228,.35)',statusTxt='—';
+      let rxTxt='—';
+      if(last){
+        const rx=last.rx||{w:null,r:ex.rep,rpe:ex.rpe};
+        if(last.rx)rxTxt=`${last.rx.w!=null?Math.abs(last.rx.w)+'kg':'徒手'}×${last.rx.r??'—'}${last.rx.rpe?` @${last.rx.rpe}`:''}`;
+        else rxTxt='—（此次未經課表開立）';
+        const sets=last.sets.filter(s=>s.w!==null&&s.w!==undefined);
+        if(ex.unit!=='bodyweight'&&sets.length&&rx.r){
+          const topW=Math.max(...sets.map(s=>s.w));
+          const topReps=Math.max(...sets.filter(s=>s.w===topW).map(s=>s.r||0));
+          const rpes=last.sets.map(s=>s.rpe).filter(v=>v!=null);
+          const maxRpe=rpes.length?Math.max(...rpes):null;
+          if(maxRpe!==null&&rx.rpe&&maxRpe>rx.rpe){statusColor='#fb923c';statusTxt='RPE超標（偏重）';}
+          else if(topReps<rx.r){statusColor='#f87171';statusTxt='次數未達標';}
+          else{statusColor='#4ade80';statusTxt='達標';}
+        }
+      }
+      const actualTxt=last?`${last.date}：${fmtSets(last.sets)}`:'尚無紀錄';
+      const nextTxt=sug.w!==null
+        ?`${Math.abs(sug.w)}kg×${sug.r||'—'}${sug.rpe?` @RPE${sug.rpe}`:''}・${sug.note}`
+        :(ex.unit==='bodyweight'?(ex.note||'徒手'):sug.note);
+      return`<div style="background:#161616;border:1px solid #2a2a2a;border-left:3px solid ${cc};border-radius:10px;padding:11px 12px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:7px">
+          <span style="font-size:13.5px;font-weight:700;color:#f0ece4">${ex.name}</span>
+          <span style="font-size:10.5px;font-weight:700;color:${statusColor}">${statusTxt}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:58px 1fr;gap:3px 8px;font-size:11.5px;line-height:1.5">
+          <span style="color:rgba(240,236,228,.35)">上次處方</span><span style="color:rgba(240,236,228,.65)">${rxTxt}</span>
+          <span style="color:rgba(240,236,228,.35)">實際執行</span><span style="color:${statusColor}">${actualTxt}</span>
+          <span style="color:rgba(240,236,228,.35)">下次建議</span><span style="color:#f59e0b;font-weight:700">${nextTxt}</span>
+        </div>
+      </div>`;
+    }).join('');
+    return`<div style="margin-bottom:20px">
+      <div class="sec-title" style="display:flex;align-items:center;gap:8px">
+        <span style="background:#f59e0b;color:#080808;font-size:10px;font-weight:800;padding:1px 7px;border-radius:20px">DAY ${di+1}</span>${day.title}
+      </div>
+      ${cards}
+    </div>`;
+  }).join('');
 }
 
 // ── 動作示範 ──
