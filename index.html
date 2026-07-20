@@ -831,7 +831,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 <!-- TAB: 教練（處方 vs 實際執行，排下一輪課表用） -->
 <div id="tab-coach" class="tab-content" hidden>
   <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
-    <div><h1>教練</h1><p>上次重量・排課表・調整輪替順序</p></div>
+    <div><h1>教練</h1><p>建議重量・排課表・調整輪替順序</p></div>
     <button class="btn btn-ghost" style="padding:8px 14px;font-size:12px;flex-shrink:0;margin-top:2px" onclick="openCoachCycleEditor()">✏️ 編輯課表</button>
   </div>
   <div class="section" style="padding-top:14px">
@@ -3185,21 +3185,23 @@ function renderCoachTab(){
       }
       const lastWs=last?last.sets.filter(s=>s.w!=null).map(s=>s.w):[];
       const lastBig=(ex.unit==='bodyweight')?'徒手':(lastWs.length?Math.abs(Math.max(...lastWs))+'kg':'—');
-      const lastDetail=last?`${last.date.slice(5)}：${fmtSets(last.sets)}`:'尚無紀錄';
-      const nextTxt=sug.w!==null
-        ?`${Math.abs(sug.w)}kg×${sug.r||'—'}${sug.rpe?` @RPE${sug.rpe}`:''}`
-        :(ex.unit==='bodyweight'?(ex.note||'徒手'):(sug.r?sug.r+'下':'—'));
+      const lastDetail=last?`上次(${last.date.slice(5)})：${fmtSets(last.sets)}`:'尚無紀錄';
+      const isOverride=ex.w!=null;
+      const nextBig=sug.w!==null?`${Math.abs(sug.w)}kg`:(ex.unit==='bodyweight'?'徒手':'—');
+      const nextDetail=sug.w!==null
+        ?`${Math.abs(sug.w)}kg × ${sug.r||'—'}下${sug.rpe?` @RPE${sug.rpe}`:''}`
+        :(ex.unit==='bodyweight'?(ex.note||''):(sug.r?sug.r+'下':''));
       return`<div onclick="openCoachCycleEditor(${di},${ei})" style="cursor:pointer;background:#161616;border:1px solid #2a2a2a;border-left:3px solid ${cc};border-radius:10px;padding:11px 12px;margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
           <span style="font-size:13.5px;font-weight:700;color:#f0ece4">${ex.name}<span style="font-size:10px;font-weight:700;color:${cc};margin-left:6px;background:${cc}22;padding:1px 6px;border-radius:20px">${ex.cat}</span></span>
           <span style="font-size:10.5px;font-weight:700;color:${statusColor};white-space:nowrap">${statusTxt}</span>
         </div>
         <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px">
-          <span style="font-size:9.5px;color:rgba(240,236,228,.35);text-transform:uppercase;letter-spacing:.4px">上次重量</span>
-          <span style="font-size:22px;font-weight:800;color:#f0ece4">${lastBig}</span>
+          <span style="font-size:9.5px;color:rgba(240,236,228,.35);text-transform:uppercase;letter-spacing:.4px">${isOverride?'手動指定':'系統建議'}</span>
+          <span style="font-size:22px;font-weight:800;color:#f59e0b">${nextBig}</span>
         </div>
-        <div style="font-size:11px;color:rgba(240,236,228,.4);margin-top:1px">${lastDetail}</div>
-        <div style="font-size:11.5px;color:#f59e0b;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px dashed #2a2a2a">下次建議：${nextTxt}${sug.note?`・${sug.note}`:''}</div>
+        <div style="font-size:11px;color:#f59e0b;margin-top:1px">${nextDetail}${sug.note?`・${sug.note}`:''}</div>
+        <div style="font-size:11px;color:rgba(240,236,228,.4);margin-top:6px;padding-top:6px;border-top:1px dashed #2a2a2a">${lastDetail}</div>
       </div>`;
     }).join('');
     return`<div class="card" style="padding:14px;margin-bottom:14px">
