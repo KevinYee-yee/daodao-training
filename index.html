@@ -2215,9 +2215,11 @@ function saveWorkout(){
       const wRaw=row.querySelector('[data-f=w]').value;
       let w=wRaw!==''?parseFloat(wRaw):null;
       if(w!==null&&assisted)w=-Math.abs(w);
+      const rpeRaw=row.querySelector('[data-f=rpe]').value;
       return{
         w,
         r:row.querySelector('[data-f=r]').value!==''?parseInt(row.querySelector('[data-f=r]').value):null,
+        rpe:rpeRaw!==''?parseInt(rpeRaw):null,
         note:''
       };
     }).filter(s=>s.w!==null||s.r!==null);
