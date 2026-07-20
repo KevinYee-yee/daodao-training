@@ -2724,9 +2724,7 @@ function renderCoachCycleOverview(){
       const sug=computeCoachSuggestion(ex);
       const safeN=ex.name.replace(/'/g,"\\'");
       const cc=catColor(ex.cat);
-      const rxTxt=sug.w!==null
-        ?`${Math.abs(sug.w)}kg×${sug.r||'—'}${sug.rpe?` @RPE${sug.rpe}`:''}`
-        :(sug.r?`${ex.sets}×${sug.r}下（徒手）`:(ex.note||''));
+      const rxTxt=coachSugText(ex,sug);
       return`<div class="menu-chk-row" style="cursor:pointer;border-left:3px solid ${cc};background:${cc}14;border-radius:6px;padding-left:8px" onclick="openExDemo('${safeN}')">
         <span class="menu-chk-name">${ex.name}<span style="font-size:10px;font-weight:700;color:${cc};margin-left:6px;background:${cc}22;padding:1px 6px;border-radius:20px">${ex.cat}</span></span>
         <span class="menu-chk-meta" style="color:#f59e0b;font-weight:700">${rxTxt}</span>
@@ -2893,10 +2891,7 @@ function onCoachNameChange(name,di,ei){
 function coachSugLineHtml(ex){
   if(!ex.name)return'<span style="color:rgba(240,236,228,.3)">選好動作名稱後會顯示目前建議</span>';
   const sug=computeCoachSuggestion(ex);
-  const repTxt=sug.r?`${sug.r}下`:'—';
-  const wTxt=sug.w!==null?`${Math.abs(sug.w)}kg × `:(ex.unit==='bodyweight'?'':'— × ');
-  const rpeTxt=sug.rpe?` @RPE${sug.rpe}`:'';
-  return`<span style="color:#f59e0b;font-weight:700">🎯 目前建議：${wTxt}${repTxt}${rpeTxt}</span><span style="color:rgba(240,236,228,.4)">・${sug.note||''}</span>`;
+  return`<span style="color:#f59e0b;font-weight:700">🎯 目前建議：${coachSugText(ex,sug)}</span><span style="color:rgba(240,236,228,.4)">・${sug.note||''}</span>`;
 }
 function refreshCoachSuggestionLine(di,ei){
   const ex=_editCycle[di]?.exercises[ei];if(!ex)return;
@@ -3001,6 +2996,8 @@ function computeCoachSuggestion(exDef){
   // 課表裡手動填了重量：一律優先採用（教練手動覆蓋），不管有沒有歷史紀錄都直接顯示這個數字，
   // 直到把這欄清空為止，系統才會改回自動用歷史紀錄推算
   if(exDef.w!=null)return{w:exDef.w,r:exDef.rep,rpe:exDef.rpe,note:'課表手動指定重量',last};
+  // 輔助動作不自動算建議重量：只給目標RPE，重量交給教練看「上次紀錄」自己判斷要不要加重
+  if(exDef.cat==='輔助')return{w:null,r:exDef.rep,rpe:exDef.rpe,note:'輔助動作，參考上次紀錄自行判斷',last,isAssist:true};
   if(!last){
     return{w:null,r:exDef.rep,rpe:exDef.rpe,note:'第一次嘗試，現場抓重量',last:null,isFirst:true};
   }
@@ -3026,6 +3023,12 @@ function computeCoachSuggestion(exDef){
     if(gap>10){w=Math.round(w*0.85*2)/2;note='超過10天沒練，先降負荷';}
   }
   return{w,r:exDef.rep,rpe:exDef.rpe,note,last};
+}
+// 統一組「這次建議」的顯示文字：徒手／輔助（只給RPE，重量看上次紀錄自己判斷）／一般（重量×次數@RPE）
+function coachSugText(ex,sug){
+  if(ex.unit==='bodyweight')return sug.r?`${sug.r}下（徒手）`:(ex.note||'徒手');
+  if(sug.w===null)return sug.rpe?`目標 RPE${sug.rpe}（重量看上次紀錄）`:'看上次紀錄自行判斷';
+  return`${Math.abs(sug.w)}kg×${sug.r||'—'}${sug.rpe?` @RPE${sug.rpe}`:''}`;
 }
 
 // ── 教練循環：開始這天訓練（帶入動作、預填建議重量/次數）──
@@ -3057,8 +3060,7 @@ function startCoachDay(dayIdx){
       }
       const lp=document.getElementById('lp-'+curId);
       if(lp){
-        const rxTxt=sug.w!==null?`${Math.abs(sug.w)}kg×${sug.r||'—'}${sug.rpe?` @RPE${sug.rpe}`:''}`:(sug.r?`${sug.r}下（徒手）`:(ex.note||''));
-        let html=`<span style="color:#f59e0b">🎯 課表：${rxTxt}・${sug.note}</span>`;
+        let html=`<span style="color:#f59e0b">🎯 課表：${coachSugText(ex,sug)}・${sug.note}</span>`;
         if(sug.last)html+=`<br><span style="color:rgba(240,236,228,.55)">📋 上次(${sug.last.date.slice(5)})：${fmtSets(sug.last.sets)}</span>`;
         lp.hidden=false;lp.innerHTML=html;
       }
@@ -3077,9 +3079,7 @@ function renderCoachCard(){
   const rows=day.exercises.map(ex=>{
     const sug=computeCoachSuggestion(ex);
     const cc=catColor(ex.cat);
-    const rxTxt=sug.w!==null
-      ?`${Math.abs(sug.w)}kg × ${sug.r||'—'}下${sug.rpe?` @RPE${sug.rpe}`:''}`
-      :(sug.r?`${ex.sets}×${sug.r}下（徒手）`:(ex.note||''));
+    const rxTxt=coachSugText(ex,sug);
     const lastTxt=sug.last?`上次(${sug.last.date.slice(5)})：${fmtSets(sug.last.sets)}`:'尚無紀錄';
     return`<div style="padding:9px 10px;margin-top:8px;border-left:3px solid ${cc};background:${cc}14;border-radius:6px">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
@@ -3187,21 +3187,22 @@ function renderCoachTab(){
       const lastBig=(ex.unit==='bodyweight')?'徒手':(lastWs.length?Math.abs(Math.max(...lastWs))+'kg':'—');
       const lastDetail=last?`上次(${last.date.slice(5)})：${fmtSets(last.sets)}`:'尚無紀錄';
       const isOverride=ex.w!=null;
-      const nextBig=sug.w!==null?`${Math.abs(sug.w)}kg`:(ex.unit==='bodyweight'?'徒手':'—');
-      const nextDetail=sug.w!==null
-        ?`${Math.abs(sug.w)}kg × ${sug.r||'—'}下${sug.rpe?` @RPE${sug.rpe}`:''}`
-        :(ex.unit==='bodyweight'?(ex.note||''):(sug.r?sug.r+'下':''));
+      const nextDetail=coachSugText(ex,sug);
+      // 輔助動作（沒有手動覆蓋）：系統不算建議重量，卡片主要大字改成「上次重量」讓她自己判斷要不要加重；
+      // 主項目／核心，或輔助但教練有手動指定重量：主要大字顯示建議重量
+      const leadLabel=sug.isAssist?'上次重量':(isOverride?'手動指定':'系統建議');
+      const leadBig=sug.isAssist?lastBig:(sug.w!==null?`${Math.abs(sug.w)}kg`:(ex.unit==='bodyweight'?'徒手':'—'));
       return`<div onclick="openCoachCycleEditor(${di},${ei})" style="cursor:pointer;background:#161616;border:1px solid #2a2a2a;border-left:3px solid ${cc};border-radius:10px;padding:11px 12px;margin-bottom:8px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
           <span style="font-size:13.5px;font-weight:700;color:#f0ece4">${ex.name}<span style="font-size:10px;font-weight:700;color:${cc};margin-left:6px;background:${cc}22;padding:1px 6px;border-radius:20px">${ex.cat}</span></span>
           <span style="font-size:10.5px;font-weight:700;color:${statusColor};white-space:nowrap">${statusTxt}</span>
         </div>
         <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px">
-          <span style="font-size:9.5px;color:rgba(240,236,228,.35);text-transform:uppercase;letter-spacing:.4px">${isOverride?'手動指定':'系統建議'}</span>
-          <span style="font-size:22px;font-weight:800;color:#f59e0b">${nextBig}</span>
+          <span style="font-size:9.5px;color:rgba(240,236,228,.35);text-transform:uppercase;letter-spacing:.4px">${leadLabel}</span>
+          <span style="font-size:22px;font-weight:800;color:${sug.isAssist?'#f0ece4':'#f59e0b'}">${leadBig}</span>
         </div>
-        <div style="font-size:11px;color:#f59e0b;margin-top:1px">${nextDetail}${sug.note?`・${sug.note}`:''}</div>
-        <div style="font-size:11px;color:rgba(240,236,228,.4);margin-top:6px;padding-top:6px;border-top:1px dashed #2a2a2a">${lastDetail}</div>
+        <div style="font-size:11px;color:rgba(240,236,228,.55);margin-top:1px">${lastDetail}</div>
+        <div style="font-size:11.5px;color:#f59e0b;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px dashed #2a2a2a">${sug.isAssist?'目標':'建議'}：${nextDetail}${sug.note?`・${sug.note}`:''}</div>
       </div>`;
     }).join('');
     return`<div class="card" style="padding:14px;margin-bottom:14px">
