@@ -1138,6 +1138,12 @@ async function apiDeleteWeight(date){
   if(ok)clearPending('weight',date);
   else queuePending('weight',date,{op:'delete'});
 }
+// 整批覆寫（不是合併）：唯一能把某個欄位「清空」的路徑，因為 saveWeight 的合併邏輯永遠不會用 null 覆蓋既有值
+async function apiRebuildWeight(records){
+  const ok=await apiPost('rebuildWeight',{records});
+  if(ok)clearPending('weight','__rebuild__');
+  else queuePending('weight','__rebuild__',{op:'rebuild',records});
+}
 async function apiSaveDiet(date,meals){
   const ok=await apiPost('saveDiet',{date,meals});
   if(ok)clearPending('diet',date);
@@ -1165,7 +1171,11 @@ async function flushPending(){
   if(!arr.length)return;
   for(const p of arr){
     let ok=false;
-    if(p.type==='weight')ok=p.payload.op==='delete'?await apiPost('deleteWeight',{date:p.key}):await apiPost('saveWeight',{record:p.payload.record});
+    if(p.type==='weight'){
+      if(p.payload.op==='delete')ok=await apiPost('deleteWeight',{date:p.key});
+      else if(p.payload.op==='rebuild')ok=await apiPost('rebuildWeight',{records:p.payload.records});
+      else ok=await apiPost('saveWeight',{record:p.payload.record});
+    }
     else if(p.type==='diet')ok=await apiPost('saveDiet',{date:p.key,meals:p.payload.meals});
     else if(p.type==='cardio')ok=await apiPost('saveCardio',{record:p.payload.record});
     else if(p.type==='bodyCfg')ok=await apiPost('saveBodyCfg',{cfg:p.payload.cfg});
@@ -1289,6 +1299,8 @@ async function syncCardioFromGAS(){
 
 async function syncWeightFromGAS(){
   const url=getGASUrl();if(!url)return;
+  // 有整批覆寫（rebuild）還沒送出去時，先不要抓伺服器資料回來蓋，避免清空欄位的操作被舊資料復原
+  if(getPending().some(p=>p.type==='weight'&&p.payload.op==='rebuild'))return;
   try{
     const res=await fetch(url+'?action=getWeight');
     const json=await res.json();
@@ -3488,8 +3500,12 @@ function renderWeightList(){
     const isEven=i%2===0;
     return `<div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1.5fr 1.5fr 28px;gap:4px;align-items:center;background:${isEven?'transparent':'rgba(255,255,255,.02)'};border-top:1px solid #161616">
       <div onclick="editWeightEntry('${r.date}')" style="padding:8px 0 8px 16px;cursor:pointer;font-size:12px;color:#f0ece4;font-weight:600">${r.date.slice(5)}</div>
-      <div onclick="editWeightEntry('${r.date}')" style="padding:8px 0;cursor:pointer;font-size:12px;color:rgba(240,236,228,.7);text-align:center">${am??'—'}</div>
-      <div onclick="editWeightEntry('${r.date}')" style="padding:8px 0;cursor:pointer;font-size:12px;color:rgba(240,236,228,.7);text-align:center">${pm??'—'}</div>
+      <div style="padding:8px 0;font-size:12px;color:rgba(240,236,228,.7);text-align:center">
+        <span onclick="editWeightEntry('${r.date}')" style="cursor:pointer">${am??'—'}</span>${am!=null?`<span onclick="event.stopPropagation();clearWeightSlot('${r.date}','am')" style="cursor:pointer;color:rgba(255,107,107,.4);font-size:10px;margin-left:3px" title="清除早上這筆">✕</span>`:''}
+      </div>
+      <div style="padding:8px 0;font-size:12px;color:rgba(240,236,228,.7);text-align:center">
+        <span onclick="editWeightEntry('${r.date}')" style="cursor:pointer">${pm??'—'}</span>${pm!=null?`<span onclick="event.stopPropagation();clearWeightSlot('${r.date}','pm')" style="cursor:pointer;color:rgba(255,107,107,.4);font-size:10px;margin-left:3px" title="清除晚上這筆">✕</span>`:''}
+      </div>
       <div onclick="editWeightEntry('${r.date}')" style="padding:8px 0;cursor:pointer;font-size:11px;font-weight:700;color:${nightColor};text-align:center">${nightTxt}${nightTip?`<br><span style="font-size:9px;font-weight:400;color:rgba(240,236,228,.3)">${nightTip}</span>`:''}</div>
       <div onclick="editWeightEntry('${r.date}')" style="padding:8px 0;cursor:pointer;font-size:11px;font-weight:700;color:${mornColor};text-align:center">${mornTxt}</div>
       <button onclick="event.stopPropagation();deleteWeightEntry('${r.date}')" style="background:none;border:none;color:rgba(255,107,107,.45);font-size:16px;padding:4px;cursor:pointer;flex-shrink:0">✕</button>
@@ -3503,7 +3519,7 @@ function saveWeight(slot){
   const inp=document.getElementById('weight-'+slot);
   const dateEl=document.getElementById('weight-date');
   const kg=parseFloat(inp.value);
-  if(!kg||kg<20||kg>200){showToast('請輸入有效體重（20–200）');return;}
+  if(!kg||kg<=0){showToast('請輸入有效體重');return;}
   const dateStr=(dateEl&&dateEl.value)||todayStr();
   const arr=getWeightData();
   const idx=arr.findIndex(d=>d.date===dateStr);
@@ -3546,6 +3562,28 @@ function deleteWeightEntry(date){
     a2.sort((a,b)=>a.date.localeCompare(b.date));
     saveWeightData(a2);
     apiSaveWeight(deleted);
+    renderWeightChart2();renderWeightList();renderWeightEntry();renderBodyGoalsUI();
+  });
+}
+
+// 只清除某一天的早上或晚上其中一筆（常見於記錯記到另一個時段），不動另一個時段
+function clearWeightSlot(date,slot){
+  const arr=getWeightData();
+  const idx=arr.findIndex(d=>d.date===date);
+  if(idx<0)return;
+  const oldVal=arr[idx][slot];
+  if(oldVal==null)return;
+  const keepSlot=slot==='am'?'pm':'am';
+  const stillHasOther=arr[idx][keepSlot]!=null;
+  const snapshot=JSON.parse(JSON.stringify(arr));
+  if(stillHasOther){arr[idx][slot]=null;}
+  else{arr.splice(idx,1);}
+  saveWeightData(arr);
+  apiRebuildWeight(arr);
+  renderWeightChart2();renderWeightList();renderWeightEntry();renderBodyGoalsUI();
+  showUndoToast('已清除'+date+'的'+(slot==='am'?'早上':'晚上')+'紀錄',()=>{
+    saveWeightData(snapshot);
+    apiRebuildWeight(snapshot);
     renderWeightChart2();renderWeightList();renderWeightEntry();renderBodyGoalsUI();
   });
 }
