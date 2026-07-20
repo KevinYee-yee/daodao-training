@@ -696,6 +696,21 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
   </div>
 </div>
 
+<!-- 動作詳情／改名 bottom sheet -->
+<div class="create-menu-overlay" id="exercise-detail-overlay" hidden onclick="if(event.target===this)closeExerciseDetail()">
+  <div class="create-menu-sheet">
+    <div style="font-size:18px;font-weight:800;color:#f0ece4;margin-bottom:14px">動作詳情</div>
+    <label class="form-label">動作名稱</label>
+    <input class="form-input" id="ex-detail-name" style="margin-bottom:12px">
+    <label class="form-label">所屬類別</label>
+    <select class="form-input" id="ex-detail-cat" style="margin-bottom:12px"></select>
+    <div id="ex-detail-usage" style="font-size:12px;color:rgba(240,236,228,.4);margin-bottom:12px"></div>
+    <div id="ex-detail-info" style="font-size:12px;color:rgba(240,236,228,.55);margin-bottom:16px"></div>
+    <button class="btn btn-primary btn-full" onclick="saveExerciseRename()">儲存改名</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="closeExerciseDetail()">取消</button>
+  </div>
+</div>
+
 <!-- 教練循環課表編輯 bottom sheet -->
 <div class="create-menu-overlay" id="coach-cycle-edit-overlay" hidden onclick="if(event.target===this)closeCoachCycleEditor()">
   <div class="create-menu-sheet">
@@ -970,7 +985,8 @@ function hideSheet(id){
   setTimeout(()=>{if(!el.classList.contains('sheet-show')){el.style.display='none';el.hidden=true;}},320);
 }
 // ── 動作資料庫（依部位）──
-const EXERCISE_DB={
+// 只當「從沒編輯過時」的預設值；實際動作庫是可編輯資料，見 getExerciseDB()
+const DEFAULT_EXERCISE_DB={
   '腿部':['高腳杯深蹲','分腿蹲','腿推機','勾腿機器','徒手深蹲'],
   '背部':['水平划船','站姿屈體划船','坐姿划船','單邊啞鈴划船','滑輪下拉','輔助引體向上機'],
   '胸部':['啞鈴胸推','機械胸推','啞鈴臥推','器械坐姿胸推'],
@@ -979,6 +995,27 @@ const EXERCISE_DB={
   '臀部':['壺鈴硬舉','啞鈴羅馬尼亞硬舉','盪壺','臀外展機','髖外展','單腿後踢','器械臀推機'],
   '核心':['死蟲','鳥狗','棒式']
 };
+const EXERCISE_DB_KEY='daodao_exercise_db_v1';
+function getExerciseDB(){
+  const raw=localStorage.getItem(EXERCISE_DB_KEY);
+  if(raw){try{const p=JSON.parse(raw);if(p&&Object.keys(p).length)return p;}catch(e){}}
+  return JSON.parse(JSON.stringify(DEFAULT_EXERCISE_DB));
+}
+function saveExerciseDBData(db){localStorage.setItem(EXERCISE_DB_KEY,JSON.stringify(db));}
+async function apiSaveExerciseDB(db){
+  const ok=await apiPost('saveExerciseDb',{db});
+  if(ok)clearPending('exerciseDb','db');
+  else queuePending('exerciseDb','db',{db});
+}
+async function syncExerciseDBFromGAS(){
+  const url=getGASUrl();if(!url)return;
+  if(pendingKeys('exerciseDb').size)return;
+  try{
+    const res=await fetch(url+'?action=getExerciseDb');
+    const json=await res.json();
+    if(json.ok&&json.db&&Object.keys(json.db).length)saveExerciseDBData(json.db);
+  }catch(e){}
+}
 
 // ── SEED（歷史資料）──
 const SEED=[
@@ -1181,11 +1218,14 @@ async function flushPending(){
     else if(p.type==='bodyCfg')ok=await apiPost('saveBodyCfg',{cfg:p.payload.cfg});
     else if(p.type==='coachState')ok=await apiPost('saveCoachState',{state:p.payload.state});
     else if(p.type==='coachCycle')ok=await apiPost('saveCoachCycle',{cycle:p.payload.cycle});
+    else if(p.type==='exerciseDb')ok=await apiPost('saveExerciseDb',{db:p.payload.db});
+    else if(p.type==='exerciseInfo')ok=await apiPost('saveExerciseInfo',{info:p.payload.info});
+    else if(p.type==='exerciseRename')ok=await apiPost('renameExercise',{oldName:p.payload.oldName,newName:p.payload.newName});
     else if(p.type==='workout')ok=p.payload.op==='delete'?await apiPost('delete',{id:p.key}):await apiPost('add',{workout:p.payload.workout});
     if(ok)clearPending(p.type,p.key);
   }
   if(!getPending().length){
-    await Promise.all([apiLoad(),syncWeightFromGAS(),syncDietFromGAS(),syncCardioFromGAS(),syncBodyCfgFromGAS(),syncCoachStateFromGAS(),syncCoachCycleFromGAS()]);
+    await Promise.all([apiLoad(),syncWeightFromGAS(),syncDietFromGAS(),syncCardioFromGAS(),syncBodyCfgFromGAS(),syncCoachStateFromGAS(),syncCoachCycleFromGAS(),syncExerciseDBFromGAS(),syncExerciseInfoFromGAS()]);
     WK=getCache();
     renderOverview();renderFreqProgress();renderCardioProgress();
     if(!document.getElementById('tab-body').hidden)renderBodyTab();
@@ -1344,7 +1384,7 @@ function setSyncState(state){
 // ── UTILS ──
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 // 手機數字鍵盤打不出負號，這幾個「輔助重量越輕越強」的動作直接在存檔時轉成負值
-const ASSISTED_EX_NAMES=['輔助引體向上機'];
+// （名單併入 getExerciseInfo() 的 assisted 欄位，改名時會跟著動作走，見 getAssistedExNames()）
 function todayStr(){const n=new Date();return`${n.getFullYear()}-${p2(n.getMonth()+1)}-${p2(n.getDate())}`;}
 function p2(n){return String(n).padStart(2,'0');}
 const DOW=['日','一','二','三','四','五','六'];
@@ -2161,25 +2201,30 @@ function onNameChange(inp,exId){
   }
 }
 
+// ── 動作搜尋下拉共用 item（長按查看/改名，一般點擊選取）──
+function exDdItemHtml(name,pickHandler){
+  const esc=String(name).replace(/'/g,"\\'");
+  return `<div class="ex-dd-item" onmousedown="${pickHandler}" oncontextmenu="openExerciseDetail('${esc}');return false" ontouchstart="">${name}</div>`;
+}
 // ── 動作搜尋下拉（新增頁）──
 function buildExDdHtml(query,exId){
   const usedNames=[...new Set(WK.flatMap(w=>w.exercises.map(e=>e.name)))];
   const q=(query||'').toLowerCase().trim();
   let html='';
   if(q){
-    const allNames=[...new Set([...usedNames,...Object.values(EXERCISE_DB).flat()])];
+    const allNames=[...new Set([...usedNames,...Object.values(getExerciseDB()).flat()])];
     const hits=allNames.filter(n=>n.toLowerCase().includes(q));
     html=hits.length
-      ?hits.map(n=>`<div class="ex-dd-item" onmousedown="pickEx(this,'${exId}')">${n}</div>`).join('')
+      ?hits.map(n=>exDdItemHtml(n,`pickEx(this,'${exId}')`)).join('')
       :`<div style="padding:12px 14px;font-size:13px;color:var(--muted)">沒有符合的動作</div>`;
   }else{
     if(usedNames.length){
       html+=`<div class="ex-dd-cat">最近使用</div>`;
-      html+=usedNames.slice(0,5).map(n=>`<div class="ex-dd-item" onmousedown="pickEx(this,'${exId}')">${n}</div>`).join('');
+      html+=usedNames.slice(0,5).map(n=>exDdItemHtml(n,`pickEx(this,'${exId}')`)).join('');
     }
-    for(const[cat,names] of Object.entries(EXERCISE_DB)){
+    for(const[cat,names] of Object.entries(getExerciseDB())){
       html+=`<div class="ex-dd-cat">${cat}</div>`;
-      html+=names.map(n=>`<div class="ex-dd-item" onmousedown="pickEx(this,'${exId}')">${n}</div>`).join('');
+      html+=names.map(n=>exDdItemHtml(n,`pickEx(this,'${exId}')`)).join('');
     }
   }
   return html;
@@ -2210,7 +2255,7 @@ function saveWorkout(){
   const exercises=[];
   for(const blk of blocks){
     const name=blk.querySelector('.ex-name-input').value.trim();if(!name)continue;
-    const assisted=ASSISTED_EX_NAMES.includes(name);
+    const assisted=getAssistedExNames().includes(name);
     const sets=[...blk.querySelectorAll('tbody tr')].map(row=>{
       const wRaw=row.querySelector('[data-f=w]').value;
       let w=wRaw!==''?parseFloat(wRaw):null;
@@ -2579,7 +2624,8 @@ function loadTodayPlan(){
 }
 
 // ── 動作示範資料庫 ──
-const EXERCISE_INFO={
+// 只當「從沒編輯過時」的預設值；實際示範資料是可編輯資料，見 getExerciseInfo()
+const DEFAULT_EXERCISE_INFO={
   '壺鈴硬舉':{muscle:'腿部・後鏈',cues:['雙腳與肩同寬，壺鈴置於雙腳之間','髖部往後推，保持背部平直不拱腰','起身時臀部夾緊，髖部往前推送完成動作']},
   '啞鈴羅馬尼亞硬舉':{muscle:'腿後・臀部',cues:['雙腳微屈膝，啞鈴沿大腿下滑','髖部往後推，感受腿後側延伸','背部始終保持中立，不要拱背']},
   '分腿蹲':{muscle:'腿部・臀部',cues:['前腳踩穩，後腳腳背貼地','前膝沿腳尖方向彎曲','下沉時後膝接近但不碰地面']},
@@ -2594,7 +2640,7 @@ const EXERCISE_INFO={
   '坐姿划船機':{muscle:'背部・二頭',cues:['挺胸坐直，腳踩踏板膝蓋微彎','往肚臍方向拉，感受背部發力','緩慢放回，充分伸展背闊']},
   '單邊啞鈴划船':{muscle:'背部',cues:['一手支撐凳子，上身平行地面','啞鈴往腰側拉，手肘朝後上方','放下時手臂完全伸直感受背部伸展']},
   '滑輪下拉':{muscle:'背闊・二頭',cues:['雙手寬握距，挺胸微後仰','手肘往下往後拉，感受背闊','放回時手臂充分伸展，別讓肩膀聳起']},
-  '輔助引體向上機':{muscle:'背闊・二頭',cues:['調整配重讓你可以完成8-12下','雙手與肩同寬或略寬，挺胸往上拉','用背發力而非手臂，手肘往斜後方收，下去時要控制']},
+  '輔助引體向上機':{muscle:'背闊・二頭',assisted:true,cues:['調整配重讓你可以完成8-12下','雙手與肩同寬或略寬，挺胸往上拉','用背發力而非手臂，手肘往斜後方收，下去時要控制']},
   '啞鈴臥推':{muscle:'胸部・三頭',cues:['雙腳踩地，腰部微弓，肩胛夾緊','啞鈴從肩膀高度下放，手肘約45度','上推時手肘不要完全鎖死']},
   '器械坐姿胸推':{muscle:'胸部・三頭',cues:['坐正，背貼椅背，腳踩穩地面','把手握在胸部高度，手肘與地面平行','推出時不要聳肩，感受胸部發力']},
   '肩推':{muscle:'肩膀・三頭',cues:['雙手握啞鈴在耳朵旁，手肘朝前','往上推直，不要讓腰部過度後仰','下放時手肘回到90度']},
@@ -2618,6 +2664,133 @@ const EXERCISE_INFO={
   '機械肩推':{muscle:'肩膀・三頭',cues:['調整座椅至手肘90度位置','推出時感受三角肌前束與中束','不要鎖死手肘，保留微彎']},
   '坐姿划船':{muscle:'背部・二頭',cues:['挺胸坐直，腳踩踏板膝蓋微彎','往肚臍方向拉，感受背部發力','緩慢放回，充分伸展背闊']}
 };
+const EXERCISE_INFO_KEY='daodao_exercise_info_v1';
+function getExerciseInfo(){
+  const raw=localStorage.getItem(EXERCISE_INFO_KEY);
+  if(raw){try{const p=JSON.parse(raw);if(p&&Object.keys(p).length)return p;}catch(e){}}
+  return JSON.parse(JSON.stringify(DEFAULT_EXERCISE_INFO));
+}
+function saveExerciseInfoData(info){localStorage.setItem(EXERCISE_INFO_KEY,JSON.stringify(info));}
+async function apiSaveExerciseInfo(info){
+  const ok=await apiPost('saveExerciseInfo',{info});
+  if(ok)clearPending('exerciseInfo','info');
+  else queuePending('exerciseInfo','info',{info});
+}
+async function syncExerciseInfoFromGAS(){
+  const url=getGASUrl();if(!url)return;
+  if(pendingKeys('exerciseInfo').size)return;
+  try{
+    const res=await fetch(url+'?action=getExerciseInfo');
+    const json=await res.json();
+    if(json.ok&&json.info&&Object.keys(json.info).length)saveExerciseInfoData(json.info);
+  }catch(e){}
+}
+function getAssistedExNames(){
+  const info=getExerciseInfo();
+  return Object.keys(info).filter(n=>info[n]&&info[n].assisted);
+}
+
+// ── 動作改名：一次同步動作庫、示範資料、教練課表、歷史 Google Sheet 紀錄、本地快取 ──
+async function renameExerciseEverywhere(oldName,newName){
+  newName=(newName||'').trim();
+  if(!newName||newName===oldName)return false;
+  const info=getExerciseInfo();
+  if(info[newName]&&!confirm(`「${newName}」已經是另一個動作，改名後兩者的歷史紀錄會合併成同一個動作，確定嗎？`))return false;
+
+  // 1. 動作庫（分類清單）
+  const db=getExerciseDB();
+  for(const cat of Object.keys(db)){
+    const idx=db[cat].indexOf(oldName);
+    if(idx>=0){
+      if(db[cat].includes(newName))db[cat].splice(idx,1);
+      else db[cat][idx]=newName;
+    }
+  }
+  saveExerciseDBData(db);
+  apiSaveExerciseDB(db);
+
+  // 2. 示範資料（muscle/cues/assisted 跟著名稱走）
+  if(info[oldName]){
+    if(!info[newName])info[newName]=info[oldName];
+    delete info[oldName];
+    saveExerciseInfoData(info);
+    apiSaveExerciseInfo(info);
+  }
+
+  // 3. 教練循環課表引用
+  const cycle=getCoachCycle();
+  let cycleChanged=false;
+  cycle.forEach(day=>day.exercises.forEach(ex=>{
+    if(ex.name===oldName){ex.name=newName;cycleChanged=true;}
+  }));
+  if(cycleChanged){
+    saveCoachCycleData(cycle);
+    await apiSaveCoachCycle(cycle);
+  }
+
+  // 4. 本地快取（WK）樂觀更新，畫面立即反映
+  WK.forEach(w=>w.exercises.forEach(ex=>{if(ex.name===oldName)ex.name=newName;}));
+  setCache(WK);
+
+  // 5. 歷史 Google Sheet 紀錄（整批改名）+ 離線佇列
+  const ok=await apiPost('renameExercise',{oldName,newName});
+  if(ok)clearPending('exerciseRename',oldName);
+  else queuePending('exerciseRename',oldName,{oldName,newName});
+
+  await apiLoad().then(fresh=>{if(fresh&&fresh.length)WK=fresh;});
+  return true;
+}
+
+// ── 動作詳情 bottom sheet：查看資料 + 改名（長按任何動作名稱皆可開啟）──
+let _exDetailOriginalName=null;
+function openExerciseDetail(name){
+  _exDetailOriginalName=name;
+  const db=getExerciseDB();
+  const info=getExerciseInfo()[name];
+  const usageCount=WK.reduce((n,w)=>n+w.exercises.filter(e=>e.name===name).length,0);
+  let curCat='';
+  for(const cat of Object.keys(db)){if(db[cat].includes(name)){curCat=cat;break;}}
+  document.getElementById('ex-detail-name').value=name;
+  const sel=document.getElementById('ex-detail-cat');
+  sel.innerHTML=Object.keys(db).map(cat=>`<option value="${cat}"${cat===curCat?' selected':''}>${cat}</option>`).join('');
+  document.getElementById('ex-detail-usage').textContent=`已使用 ${usageCount} 次訓練紀錄`;
+  const cuesHtml=(info?.cues||[]).map(c=>`・${c}`).join('<br>');
+  document.getElementById('ex-detail-info').innerHTML=info
+    ?`肌群：${info.muscle||'—'}${info.assisted?'（越輕越強的輔助動作）':''}${cuesHtml?'<br>'+cuesHtml:''}`
+    :'（暫無示範資料）';
+  showSheet('exercise-detail-overlay');
+}
+function closeExerciseDetail(){hideSheet('exercise-detail-overlay');_exDetailOriginalName=null;}
+async function saveExerciseRename(){
+  const oldName=_exDetailOriginalName;if(!oldName)return;
+  const newName=document.getElementById('ex-detail-name').value.trim();
+  const newCat=document.getElementById('ex-detail-cat').value;
+  if(!newName){showToast('請輸入動作名稱');return;}
+  if(newName===oldName){
+    // 名稱沒改，但類別可能改了：只搬動作庫分類，不用跑整套改名流程
+    const db=getExerciseDB();
+    for(const cat of Object.keys(db)){const idx=db[cat].indexOf(oldName);if(idx>=0)db[cat].splice(idx,1);}
+    if(!db[newCat].includes(oldName))db[newCat].push(oldName);
+    saveExerciseDBData(db);apiSaveExerciseDB(db);
+    closeExerciseDetail();
+    renderDemoLib(document.getElementById('demo-search')?.value||'');
+    showToast('✅ 已更新類別');
+    return;
+  }
+  const ok=await renameExerciseEverywhere(oldName,newName);
+  if(!ok)return;
+  // 改名後順便套用選好的類別
+  const db=getExerciseDB();
+  for(const cat of Object.keys(db)){const idx=db[cat].indexOf(newName);if(idx>=0)db[cat].splice(idx,1);}
+  if(!db[newCat].includes(newName))db[newCat].push(newName);
+  saveExerciseDBData(db);apiSaveExerciseDB(db);
+  closeExerciseDetail();
+  renderDemoLib(document.getElementById('demo-search')?.value||'');
+  if(!document.getElementById('tab-menu').hidden)renderMenuTab();
+  if(!document.getElementById('tab-coach').hidden)renderCoachTab();
+  if(!document.getElementById('tab-log').hidden){renderLog();renderCharts();}
+  showToast(`✅ 「${oldName}」已改名為「${newName}」`);
+}
 
 // ── 預設訓練菜單（主項目 + 輔助項目分開）──
 // 設計原則：理髮師駝背改善 + 減脂 + 2-3天/週
@@ -2866,19 +3039,19 @@ function buildCoachExDdHtml(query,di,ei){
   const q=(query||'').toLowerCase().trim();
   let html='';
   if(q){
-    const allNames=[...new Set([...usedNames,...Object.values(EXERCISE_DB).flat()])];
+    const allNames=[...new Set([...usedNames,...Object.values(getExerciseDB()).flat()])];
     const hits=allNames.filter(n=>n.toLowerCase().includes(q));
     html=hits.length
-      ?hits.map(n=>`<div class="ex-dd-item" onmousedown="pickCoachEx('${n.replace(/'/g,"\\'")}',${di},${ei})">${n}</div>`).join('')
+      ?hits.map(n=>exDdItemHtml(n,`pickCoachEx('${n.replace(/'/g,"\\'")}',${di},${ei})`)).join('')
       :`<div style="padding:12px 14px;font-size:13px;color:var(--muted)">沒有符合的動作</div>`;
   }else{
     if(usedNames.length){
       html+=`<div class="ex-dd-cat">最近使用</div>`;
-      html+=usedNames.slice(0,5).map(n=>`<div class="ex-dd-item" onmousedown="pickCoachEx('${n.replace(/'/g,"\\'")}',${di},${ei})">${n}</div>`).join('');
+      html+=usedNames.slice(0,5).map(n=>exDdItemHtml(n,`pickCoachEx('${n.replace(/'/g,"\\'")}',${di},${ei})`)).join('');
     }
-    for(const[cat,names] of Object.entries(EXERCISE_DB)){
+    for(const[cat,names] of Object.entries(getExerciseDB())){
       html+=`<div class="ex-dd-cat">${cat}</div>`;
-      html+=names.map(n=>`<div class="ex-dd-item" onmousedown="pickCoachEx('${n.replace(/'/g,"\\'")}',${di},${ei})">${n}</div>`).join('');
+      html+=names.map(n=>exDdItemHtml(n,`pickCoachEx('${n.replace(/'/g,"\\'")}',${di},${ei})`)).join('');
     }
   }
   return html;
@@ -3265,10 +3438,11 @@ function moveCoachDayLive(di,delta){
 
 // ── 動作示範 ──
 function openExDemo(name){
-  const info=EXERCISE_INFO[name];
+  const info=getExerciseInfo()[name];
   const content=document.getElementById('ex-demo-content');if(!content)return;
   const cues=(info?.cues||[]).map((c,i)=>`<div class="demo-cue"><div class="demo-cue-num">${i+1}</div><div>${c}</div></div>`).join('');
   const ytQuery=encodeURIComponent(name+' 重訓 教學');
+  const esc=name.replace(/'/g,"\\'");
   content.innerHTML=`
     <div class="demo-title">${name}</div>
     <div class="demo-muscle">${info?.muscle||'—'}</div>
@@ -3276,7 +3450,8 @@ function openExDemo(name){
     <a href="https://www.youtube.com/results?search_query=${ytQuery}" target="_blank" class="yt-link">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="#ff4444"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-2.7A3.38 3.38 0 0012.76 2a3.38 3.38 0 00-3.06 2A4.83 4.83 0 016 6.69 4.83 4.83 0 012 10.27v3.46a4.83 4.83 0 014 3.58A3.38 3.38 0 0012.76 22a3.38 3.38 0 003.06-4.69 4.83 4.83 0 014-3.58v-3.46a4.83 4.83 0 01-4.23-3.58z"/><polygon fill="#fff" points="10 15 15 12 10 9 10 15"/></svg>
       YouTube 示範影片
-    </a>`;
+    </a>
+    <button type="button" class="btn btn-ghost btn-full" style="margin-top:10px" onclick="openExerciseDetail('${esc}')">✏️ 改名</button>`;
   showSheet('ex-demo-overlay');
 }
 function closeExDemo(){hideSheet('ex-demo-overlay');}
@@ -3285,10 +3460,11 @@ function closeExDemo(){hideSheet('ex-demo-overlay');}
 function renderDemoLib(query){
   const el=document.getElementById('demo-list');if(!el)return;
   const q=(query||'').toLowerCase().trim();
-  const allNames=Object.keys(EXERCISE_INFO);
+  const exInfo=getExerciseInfo();
+  const allNames=Object.keys(exInfo);
   const filtered=q?allNames.filter(n=>n.toLowerCase().includes(q)):allNames;
-  el.innerHTML=filtered.map(n=>`<div class="demo-lib-card" onclick="openExDemo('${n.replace(/'/g,"\\'")}')">
-    <div><div class="demo-lib-name">${n}</div><div class="demo-lib-muscle">${EXERCISE_INFO[n].muscle}</div></div>
+  el.innerHTML=filtered.map(n=>`<div class="demo-lib-card" onclick="openExDemo('${n.replace(/'/g,"\\'")}')" oncontextmenu="openExerciseDetail('${n.replace(/'/g,"\\'")}');return false" ontouchstart="">
+    <div><div class="demo-lib-name">${n}</div><div class="demo-lib-muscle">${exInfo[n].muscle}</div></div>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,158,11,.6)" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
   </div>`).join('')||'<div class="empty">找不到符合的動作</div>';
 }
@@ -3300,7 +3476,7 @@ function upd1rm(row){
   const r=parseInt(row.querySelector('[data-f=r]').value);
   const el=row.querySelector('[data-1rm]');if(!el)return;
   const exName=row.closest('.ex-block')?.querySelector('.ex-name-input')?.value.trim();
-  if(w>0&&r>0&&!ASSISTED_EX_NAMES.includes(exName)){const orm=Math.round(w*(1+r/30)*2)/2;el.textContent='~'+orm+'kg';}
+  if(w>0&&r>0&&!getAssistedExNames().includes(exName)){const orm=Math.round(w*(1+r/30)*2)/2;el.textContent='~'+orm+'kg';}
   else el.textContent='';
 }
 
@@ -3963,6 +4139,8 @@ if(getGASUrl()){
     syncBodyCfgFromGAS().then(()=>{renderBodyTab();renderOverviewWeight();});
     syncCoachStateFromGAS().then(renderCoachCard);
     syncCoachCycleFromGAS().then(()=>{renderCoachCard();if(!document.getElementById('tab-menu').hidden)renderMenuTab();});
+    syncExerciseDBFromGAS();
+    syncExerciseInfoFromGAS();
   });
 }
 // 連線恢復時自動把離線期間累積的變更補同步回 Google Sheet
