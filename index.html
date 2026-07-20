@@ -2809,12 +2809,12 @@ function renderCoachCycleEditor(){
           </label>
         </div>
         <div class="cc-ex-kg" style="${isBw?'display:none':''};display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:rgba(240,236,228,.5)">
-          起始重量<input type="number" class="form-input" style="width:58px;margin-bottom:0" step="0.5" placeholder="無紀錄" value="${ex.w??''}" oninput="updCoachEx(${di},${ei},'w',this.value===''?null:parseFloat(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">kg
+          手動指定重量<input type="number" class="form-input" style="width:58px;margin-bottom:0" step="0.5" placeholder="自動" value="${ex.w??''}" oninput="updCoachEx(${di},${ei},'w',this.value===''?null:parseFloat(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">kg
           　建議次數<input type="number" class="form-input" style="width:56px;margin-bottom:0" value="${ex.rep??''}" oninput="updCoachEx(${di},${ei},'rep',this.value===''?null:parseInt(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">下
           　建議RPE<input type="number" class="form-input" style="width:50px;margin-bottom:0" value="${ex.rpe??''}" oninput="updCoachEx(${di},${ei},'rpe',this.value===''?null:parseInt(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">
           　每次加重<input type="number" class="form-input" style="width:58px;margin-bottom:0" step="0.5" value="${ex.inc??''}" oninput="updCoachEx(${di},${ei},'inc',parseFloat(this.value)||0)" onchange="refreshCoachSuggestionLine(${di},${ei})">kg
         </div>
-        <div style="font-size:10px;color:rgba(240,236,228,.3);margin:2px 0 0">「起始重量」只在這個動作還沒有訓練紀錄時當建議值；一旦有實際紀錄了，系統會改用她上次的重量往上推算</div>
+        <div style="font-size:10px;color:rgba(240,236,228,.3);margin:2px 0 0">「手動指定重量」只要有填，菜單／教練頁一律直接顯示這個數字，不會自動用歷史紀錄推算；清空這欄才會恢復系統自動計算</div>
         <div class="cc-ex-bw" style="${isBw?'':'display:none'}">
           <input class="form-input" style="margin-bottom:0" placeholder="備註（例：每側，抓穩定度即可）" value="${safeNote}" oninput="updCoachEx(${di},${ei},'note',this.value)">
         </div>
@@ -2998,9 +2998,10 @@ function computeCoachSuggestion(exDef){
   if(exDef.unit==='bodyweight'){
     return{w:null,r:exDef.rep||null,rpe:null,note:exDef.note||'抓穩定度即可',last};
   }
+  // 課表裡手動填了重量：一律優先採用（教練手動覆蓋），不管有沒有歷史紀錄都直接顯示這個數字，
+  // 直到把這欄清空為止，系統才會改回自動用歷史紀錄推算
+  if(exDef.w!=null)return{w:exDef.w,r:exDef.rep,rpe:exDef.rpe,note:'課表手動指定重量',last};
   if(!last){
-    // 還沒有實際紀錄：課表若設定了起始重量就用它，否則現場抓
-    if(exDef.w!=null)return{w:exDef.w,r:exDef.rep,rpe:exDef.rpe,note:'課表設定的起始重量',last:null};
     return{w:null,r:exDef.rep,rpe:exDef.rpe,note:'第一次嘗試，現場抓重量',last:null,isFirst:true};
   }
   const sets=last.sets.filter(s=>s.w!==null&&s.w!==undefined);
