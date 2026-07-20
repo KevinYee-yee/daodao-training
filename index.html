@@ -699,10 +699,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 <!-- 教練循環課表編輯 bottom sheet -->
 <div class="create-menu-overlay" id="coach-cycle-edit-overlay" hidden onclick="if(event.target===this)closeCoachCycleEditor()">
   <div class="create-menu-sheet">
-    <div style="font-size:18px;font-weight:800;color:#f0ece4;margin-bottom:4px">編輯循環課表</div>
+    <div id="cc-editor-title" style="font-size:18px;font-weight:800;color:#f0ece4;margin-bottom:4px">編輯循環課表</div>
     <div style="font-size:12px;color:rgba(240,236,228,.4);margin-bottom:14px">動作名稱要跟訓練紀錄裡打過的完全一致，教練建議才抓得到歷史重量</div>
     <div id="coach-cycle-edit-body"></div>
-    <button class="create-menu-card" style="margin-top:4px" onclick="addCoachDay()">＋ 新增一天</button>
+    <button id="cc-add-day-btn" class="create-menu-card" style="margin-top:4px" onclick="addCoachDay()">＋ 新增一天</button>
     <div style="display:flex;gap:8px;margin-top:16px">
       <button class="btn btn-primary" style="flex:1" onclick="saveCoachCycleEdits()">儲存課表</button>
       <button class="btn btn-ghost" onclick="closeCoachCycleEditor()" style="padding:12px 18px">取消</button>
@@ -2750,88 +2750,113 @@ function renderCoachCycleOverview(){
 // ── 教練循環：課表編輯器（開在「菜單」分頁，自服務改課表用，不用再麻煩 Claude 改 code）──
 let _editCycle=null;
 // targetDi/targetEi：從大卡片長按（整天）或點動作（單一動作）進來時，直接捲到那裡並閃一下提示
+// targetDi/targetEi：從大卡片長按（整天）或點動作（單一動作）進來時，直接只開那個範圍，不會看到其他天
 function openCoachCycleEditor(targetDi,targetEi){
   _editCycle=JSON.parse(JSON.stringify(getCoachCycle()));
+  _coachEditScope=targetDi==null?null:(targetEi==null?{di:targetDi}:{di:targetDi,ei:targetEi});
   renderCoachCycleEditor();
   showSheet('coach-cycle-edit-overlay');
-  if(targetDi==null)return;
-  setTimeout(()=>{
-    const targetEl=(targetEi!=null)
-      ?document.getElementById(`cc-ex-${targetDi}-${targetEi}`)
-      :document.getElementById(`cc-day-${targetDi}`);
-    if(!targetEl)return;
-    targetEl.scrollIntoView({behavior:'smooth',block:'start'});
-    targetEl.style.boxShadow='0 0 0 2px #f59e0b';
-    setTimeout(()=>{targetEl.style.boxShadow='';},1400);
-  },350); // 等 bottom sheet 滑入動畫跑完再捲動
 }
-function closeCoachCycleEditor(){hideSheet('coach-cycle-edit-overlay');_editCycle=null;}
-function renderCoachCycleEditor(){
-  const el=document.getElementById('coach-cycle-edit-body');if(!el)return;
-  el.innerHTML=_editCycle.map((day,di)=>{
-    const exRows=day.exercises.map((ex,ei)=>{
-      const isBw=ex.unit==='bodyweight';
-      const safeN=(ex.name||'').replace(/"/g,'&quot;');
-      const safeNote=(ex.note||'').replace(/"/g,'&quot;');
-      const cc=catColor(ex.cat);
-      return`<div id="cc-ex-${di}-${ei}" style="background:#161616;border:1px solid #2a2a2a;border-left:3px solid ${cc};border-radius:10px;padding:10px;margin-bottom:8px;transition:box-shadow .3s,border-color .3s">
-        <div style="display:flex;gap:6px;margin-bottom:4px">
-          <div style="position:relative;flex:1">
-            <input class="form-input" id="cc-name-${di}-${ei}" style="margin-bottom:0" placeholder="動作名稱（可搜尋）" value="${safeN}" autocomplete="off"
-              oninput="filterCoachExDd(this,${di},${ei})" onfocus="showCoachExDd(this,${di},${ei})" onblur="hideCoachExDd(${di},${ei})">
-            <div class="ex-dropdown" id="cc-dd-${di}-${ei}" hidden></div>
-          </div>
+function closeCoachCycleEditor(){hideSheet('coach-cycle-edit-overlay');_editCycle=null;_coachEditScope=null;}
+// 編輯範圍：null=全部天數；{di}=只顯示這一天；{di,ei}=只顯示這一個動作
+let _coachEditScope=null;
+function backToCoachEditAll(){_coachEditScope=null;renderCoachCycleEditor();}
+function renderCoachExRow(day,di,ex,ei,opts){
+  opts=opts||{};
+  const isBw=ex.unit==='bodyweight';
+  const safeN=(ex.name||'').replace(/"/g,'&quot;');
+  const safeNote=(ex.note||'').replace(/"/g,'&quot;');
+  const cc=catColor(ex.cat);
+  const moveRemoveBtns=opts.showMoveRemove===false?'':`
           <button class="btn-sm" onclick="moveCoachEx(${di},${ei},-1)">↑</button>
           <button class="btn-sm" onclick="moveCoachEx(${di},${ei},1)">↓</button>
-          <button class="btn-sm" style="color:#f87171" onclick="removeCoachEx(${di},${ei})">✕</button>
-        </div>
-        <div id="cc-sug-${di}-${ei}" style="font-size:11.5px;margin-bottom:3px">${coachSugLineHtml(ex)}</div>
-        <div id="cc-lp-${di}-${ei}" hidden style="font-size:11px;color:rgba(240,236,228,.55);margin-bottom:3px"></div>
-        <div style="margin-bottom:8px">
-          <span onclick="toggleCoachExHistory(${di},${ei})" style="cursor:pointer;color:#60a5fa;font-size:11px;user-select:none">📖 查看近期紀錄 ▾</span>
-          <div id="cc-hist-${di}-${ei}" hidden style="margin-top:4px;padding:6px 8px;background:#0d0d0d;border-radius:6px"></div>
-        </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:flex-end">
-          <div>
-            <div style="font-size:10px;color:rgba(240,236,228,.35);margin-bottom:2px">類別</div>
-            <select class="form-input" style="width:auto;margin-bottom:0" onchange="updCoachEx(${di},${ei},'cat',this.value);renderCoachCycleEditor()">
-              ${['主項目','輔助','核心'].map(c=>`<option ${ex.cat===c?'selected':''}>${c}</option>`).join('')}
-            </select>
-          </div>
-          <div>
-            <div style="font-size:10px;color:rgba(240,236,228,.35);margin-bottom:2px">組數</div>
-            <input class="form-input" style="width:80px;margin-bottom:0" placeholder="如 3-4" value="${ex.sets||''}" oninput="updCoachEx(${di},${ei},'sets',this.value)">
-          </div>
-          <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(240,236,228,.6);padding-bottom:9px">
-            <input type="checkbox" ${isBw?'checked':''} onchange="toggleCoachExUnit(${di},${ei},this.checked)">徒手動作
-          </label>
-        </div>
-        <div class="cc-ex-kg" style="${isBw?'display:none':''};display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:rgba(240,236,228,.5)">
-          手動指定重量<input type="number" class="form-input" style="width:58px;margin-bottom:0" step="0.5" placeholder="自動" value="${ex.w??''}" oninput="updCoachEx(${di},${ei},'w',this.value===''?null:parseFloat(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">kg
-          　建議次數<input type="number" class="form-input" style="width:56px;margin-bottom:0" value="${ex.rep??''}" oninput="updCoachEx(${di},${ei},'rep',this.value===''?null:parseInt(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">下
-          　建議RPE<input type="number" class="form-input" style="width:50px;margin-bottom:0" value="${ex.rpe??''}" oninput="updCoachEx(${di},${ei},'rpe',this.value===''?null:parseInt(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">
-          　每次加重<input type="number" class="form-input" style="width:58px;margin-bottom:0" step="0.5" value="${ex.inc??''}" oninput="updCoachEx(${di},${ei},'inc',parseFloat(this.value)||0)" onchange="refreshCoachSuggestionLine(${di},${ei})">kg
-        </div>
-        <div style="font-size:10px;color:rgba(240,236,228,.3);margin:2px 0 0">「手動指定重量」只要有填，菜單／教練頁一律直接顯示這個數字，不會自動用歷史紀錄推算；清空這欄才會恢復系統自動計算</div>
-        <div class="cc-ex-bw" style="${isBw?'':'display:none'}">
-          <input class="form-input" style="margin-bottom:0" placeholder="備註（例：每側，抓穩定度即可）" value="${safeNote}" oninput="updCoachEx(${di},${ei},'note',this.value)">
-        </div>
-      </div>`;
-    }).join('');
-    return`<div id="cc-day-${di}" style="border:1px solid #2a2a2a;border-radius:12px;padding:12px;margin-bottom:14px;transition:box-shadow .3s">
+          <button class="btn-sm" style="color:#f87171" onclick="removeCoachEx(${di},${ei})">✕</button>`;
+  return`<div id="cc-ex-${di}-${ei}" style="background:#161616;border:1px solid #2a2a2a;border-left:3px solid ${cc};border-radius:10px;padding:10px;margin-bottom:8px;transition:box-shadow .3s,border-color .3s">
+    <div style="display:flex;gap:6px;margin-bottom:4px">
+      <div style="position:relative;flex:1">
+        <input class="form-input" id="cc-name-${di}-${ei}" style="margin-bottom:0" placeholder="動作名稱（可搜尋）" value="${safeN}" autocomplete="off"
+          oninput="filterCoachExDd(this,${di},${ei})" onfocus="showCoachExDd(this,${di},${ei})" onblur="hideCoachExDd(${di},${ei})">
+        <div class="ex-dropdown" id="cc-dd-${di}-${ei}" hidden></div>
+      </div>${moveRemoveBtns}
+    </div>
+    <div id="cc-sug-${di}-${ei}" style="font-size:11.5px;margin-bottom:3px">${coachSugLineHtml(ex)}</div>
+    <div id="cc-lp-${di}-${ei}" hidden style="font-size:11px;color:rgba(240,236,228,.55);margin-bottom:3px"></div>
+    <div style="margin-bottom:8px">
+      <span onclick="toggleCoachExHistory(${di},${ei})" style="cursor:pointer;color:#60a5fa;font-size:11px;user-select:none">📖 查看近期紀錄 ▾</span>
+      <div id="cc-hist-${di}-${ei}" hidden style="margin-top:4px;padding:6px 8px;background:#0d0d0d;border-radius:6px"></div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:flex-end">
+      <div>
+        <div style="font-size:10px;color:rgba(240,236,228,.35);margin-bottom:2px">類別</div>
+        <select class="form-input" style="width:auto;margin-bottom:0" onchange="updCoachEx(${di},${ei},'cat',this.value);renderCoachCycleEditor()">
+          ${['主項目','輔助','核心'].map(c=>`<option ${ex.cat===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div style="font-size:10px;color:rgba(240,236,228,.35);margin-bottom:2px">組數</div>
+        <input class="form-input" style="width:80px;margin-bottom:0" placeholder="如 3-4" value="${ex.sets||''}" oninput="updCoachEx(${di},${ei},'sets',this.value)">
+      </div>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(240,236,228,.6);padding-bottom:9px">
+        <input type="checkbox" ${isBw?'checked':''} onchange="toggleCoachExUnit(${di},${ei},this.checked)">徒手動作
+      </label>
+    </div>
+    <div class="cc-ex-kg" style="${isBw?'display:none':''};display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;color:rgba(240,236,228,.5)">
+      手動指定重量<input type="number" class="form-input" style="width:58px;margin-bottom:0" step="0.5" placeholder="自動" value="${ex.w??''}" oninput="updCoachEx(${di},${ei},'w',this.value===''?null:parseFloat(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">kg
+      　建議次數<input type="number" class="form-input" style="width:56px;margin-bottom:0" value="${ex.rep??''}" oninput="updCoachEx(${di},${ei},'rep',this.value===''?null:parseInt(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">下
+      　建議RPE<input type="number" class="form-input" style="width:50px;margin-bottom:0" value="${ex.rpe??''}" oninput="updCoachEx(${di},${ei},'rpe',this.value===''?null:parseInt(this.value))" onchange="refreshCoachSuggestionLine(${di},${ei})">
+      　每次加重<input type="number" class="form-input" style="width:58px;margin-bottom:0" step="0.5" value="${ex.inc??''}" oninput="updCoachEx(${di},${ei},'inc',parseFloat(this.value)||0)" onchange="refreshCoachSuggestionLine(${di},${ei})">kg
+    </div>
+    <div style="font-size:10px;color:rgba(240,236,228,.3);margin:2px 0 0">「手動指定重量」只要有填，菜單／教練頁一律直接顯示這個數字，不會自動用歷史紀錄推算；清空這欄才會恢復系統自動計算</div>
+    <div class="cc-ex-bw" style="${isBw?'':'display:none'}">
+      <input class="form-input" style="margin-bottom:0" placeholder="備註（例：每側，抓穩定度即可）" value="${safeNote}" oninput="updCoachEx(${di},${ei},'note',this.value)">
+    </div>
+  </div>`;
+}
+function renderCoachDayBlock(day,di,opts){
+  opts=opts||{};
+  const exRows=day.exercises.map((ex,ei)=>renderCoachExRow(day,di,ex,ei,opts)).join('');
+  const dayMoveBtns=opts.showDayMove===false?'':`
+        <button class="btn-sm" onclick="moveCoachDay(${di},-1)">↑</button>
+        <button class="btn-sm" onclick="moveCoachDay(${di},1)">↓</button>`;
+  return`<div id="cc-day-${di}" style="border:1px solid #2a2a2a;border-radius:12px;padding:12px;margin-bottom:14px;transition:box-shadow .3s">
       <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center">
         <span style="background:#f59e0b;color:#080808;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;flex-shrink:0">DAY ${di+1}</span>
-        <input class="form-input" style="flex:1;margin-bottom:0" value="${(day.title||'').replace(/"/g,'&quot;')}" oninput="updCoachDayTitle(${di},this.value)">
-        <button class="btn-sm" onclick="moveCoachDay(${di},-1)">↑</button>
-        <button class="btn-sm" onclick="moveCoachDay(${di},1)">↓</button>
+        <input class="form-input" style="flex:1;margin-bottom:0" value="${(day.title||'').replace(/"/g,'&quot;')}" oninput="updCoachDayTitle(${di},this.value)">${dayMoveBtns}
         <button class="btn-sm" style="color:#f87171" onclick="removeCoachDay(${di})">✕</button>
       </div>
       ${exRows}
       <div class="create-menu-card" style="margin-bottom:0" onclick="addCoachExercise(${di})">＋ 新增動作</div>
     </div>`;
-  }).join('');
-  // 補上已經有名稱的動作的「上次訓練紀錄」提示
-  _editCycle.forEach((day,di)=>day.exercises.forEach((ex,ei)=>{if(ex.name)onCoachNameChange(ex.name,di,ei);}));
+}
+function renderCoachCycleEditor(){
+  const el=document.getElementById('coach-cycle-edit-body');if(!el)return;
+  const titleEl=document.getElementById('cc-editor-title');
+  const addDayBtn=document.getElementById('cc-add-day-btn');
+  const scope=_coachEditScope;
+
+  if(scope&&scope.ei!=null){
+    // 單一動作模式：只顯示這一個動作卡片，沒有新增/排序/刪除天或其他動作的介面
+    const day=_editCycle[scope.di];
+    if(titleEl)titleEl.innerHTML=`<span onclick="backToCoachEditAll()" style="cursor:pointer;color:#60a5fa">‹ 全部天數</span>　編輯動作・DAY ${scope.di+1} ${day.title}`;
+    if(addDayBtn)addDayBtn.hidden=true;
+    const ex=day.exercises[scope.ei];
+    el.innerHTML=ex?renderCoachExRow(day,scope.di,ex,scope.ei,{showMoveRemove:false}):'';
+  }else if(scope){
+    // 單日模式：只顯示這一天的所有動作，可以新增/刪除/排序動作、改天名，但看不到其他天
+    const day=_editCycle[scope.di];
+    if(titleEl)titleEl.innerHTML=`<span onclick="backToCoachEditAll()" style="cursor:pointer;color:#60a5fa">‹ 全部天數</span>　編輯 DAY ${scope.di+1}`;
+    if(addDayBtn)addDayBtn.hidden=true;
+    el.innerHTML=day?renderCoachDayBlock(day,scope.di,{showDayMove:false}):'';
+  }else{
+    // 全部天數模式（原本的完整編輯器）
+    if(titleEl)titleEl.textContent='編輯循環課表';
+    if(addDayBtn)addDayBtn.hidden=false;
+    el.innerHTML=_editCycle.map((day,di)=>renderCoachDayBlock(day,di)).join('');
+  }
+  // 補上已經有名稱的動作的「上次訓練紀錄」提示（只需處理畫面上實際有渲染出來的那些）
+  _editCycle.forEach((day,di)=>day.exercises.forEach((ex,ei)=>{
+    if(document.getElementById(`cc-name-${di}-${ei}`)&&ex.name)onCoachNameChange(ex.name,di,ei);
+  }));
 }
 // ── 課表編輯器：動作名稱搜尋下拉（比照新增訓練頁的 filterExDd/showExDd/pickEx），並顯示上次訓練紀錄 ──
 function buildCoachExDdHtml(query,di,ei){
@@ -2926,6 +2951,7 @@ function removeCoachDay(di){
   if(_editCycle.length<=1){showToast('至少要留一天');return;}
   if(!confirm('刪除「'+(_editCycle[di].title||'這天')+'」？'))return;
   _editCycle.splice(di,1);
+  _coachEditScope=null; // 刪完天數會位移，回到全部天數畫面比較安全
   renderCoachCycleEditor();
 }
 function moveCoachDay(di,delta){
