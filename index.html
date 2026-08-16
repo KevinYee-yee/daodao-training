@@ -164,7 +164,7 @@ textarea.form-input{resize:none}
 
 /* ══ MINIMAL CHARCOAL GOLD ══ */
 /* Nav pill — frosted glass */
-.nav{bottom:max(16px,env(safe-area-inset-bottom,16px));left:50%;transform:translateX(-50%);right:auto;width:auto;max-width:calc(100vw - 28px);height:auto;background:rgba(20,16,10,.62);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border:1px solid rgba(245,158,11,.25);border-radius:52px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 12px 28px rgba(0,0,0,.5);padding:6px 10px;gap:2px;will-change:transform}
+.nav{bottom:max(16px,env(safe-area-inset-bottom,16px));left:50%;transform:translate3d(-50%,0,0);right:auto;width:auto;max-width:calc(100vw - 28px);height:auto;background:rgba(20,16,10,.62);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border:1px solid rgba(245,158,11,.25);border-radius:52px;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 12px 28px rgba(0,0,0,.5);padding:6px 10px;gap:2px;will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden}
 .nav-btn{border-radius:40px;padding:8px 6px;color:rgba(240,236,228,.32);font-size:10px;white-space:nowrap;transition:background .12s,color .12s}
 .nav-btn.active{background:rgba(245,158,11,.18);color:#f0ece4}
 .nav-btn:active{opacity:.55}
@@ -237,60 +237,6 @@ textarea.form-input{resize:none}
 /* Banner */
 .banner{background:#111;border:1px solid #222}.banner p{color:#f59e0b}.banner-btn{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#f59e0b}
 #plan-bar{background:#111 !important;border:1px solid #222 !important}
-/* 城市系統 */
-.city-card{
-  background:linear-gradient(135deg,rgba(255,255,255,.1) 0%,rgba(255,255,255,.02) 32%,rgba(255,255,255,0) 60%),linear-gradient(160deg,#0a1a0a,#0d1a14,#0a1220);
-  border-top:1px solid rgba(255,255,255,.18);border-left:1px solid rgba(255,255,255,.1);
-  border-right:1px solid rgba(74,222,128,.12);border-bottom:1px solid rgba(0,0,0,.4);
-  border-radius:18px;padding:14px 14px 12px;overflow:hidden;position:relative;
-  backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 14px 28px rgba(0,0,0,.4);
-}
-.city-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.city-name{font-size:13px;font-weight:700;color:#4ade80;letter-spacing:.5px}
-.city-pts-badge{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:#fbbf24}
-.city-grid-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}
-.city-plot{border-radius:10px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:pointer;transition:transform .1s}
-.city-plot:active{transform:scale(.96)}
-.city-plot.unlocked{box-shadow:0 2px 8px rgba(0,0,0,.4)}
-.city-plot.locked{background:#0d0d0d!important;border:1px solid #1a1a1a}
-.city-plot-emoji{font-size:22px;line-height:1}
-.city-plot-name{font-size:8px;font-weight:700;margin-top:2px;text-align:center;letter-spacing:.2px;line-height:1.2}
-.city-plot.locked .city-plot-emoji{font-size:14px;opacity:.25}
-.city-plot.locked .city-plot-name{color:rgba(240,236,228,.2);font-size:7px}
-.city-bar-row{display:flex;align-items:center;gap:8px}
-.city-bar-wrap{flex:1;height:4px;background:#1a2a1a;border-radius:2px;overflow:hidden}
-.city-bar{height:100%;background:linear-gradient(90deg,#4ade80,#86efac);border-radius:2px;transition:width .6s}
-/* 等距城市地圖 */
-.iso-wrap{overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;flex:1;background:linear-gradient(180deg,#020a04,#030c06)}
-.iso-map{position:relative;margin:0 auto}
-.iso-tile{position:absolute;width:72px;height:36px;clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);cursor:pointer;transition:filter .15s}
-.iso-tile.available{background:linear-gradient(135deg,#2a5a2a,#1e4a1e)!important}
-.iso-tile.available:active{filter:brightness(1.6)}
-.iso-tile.occupied{cursor:default}
-.iso-tile.empty{background:#141e14;opacity:.5;cursor:default}
-@keyframes iso-tile-pulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.4)saturate(1.5)}}
-.iso-tile.available{animation:iso-tile-pulse 1.8s ease-in-out infinite}
-/* 建築 */
-.iso-bld{position:absolute;display:flex;flex-direction:column;align-items:center;transform:translateX(-50%);cursor:pointer;pointer-events:all}
-.iso-bld-emoji{font-size:28px;line-height:1;filter:drop-shadow(0 4px 10px rgba(0,0,0,.8))}
-.iso-bld-name{font-size:7px;font-weight:700;white-space:nowrap;text-shadow:0 1px 4px #000;margin-top:1px;letter-spacing:.2px}
-@keyframes iso-idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-.iso-bld-emoji{animation:iso-idle 3s ease-in-out infinite}
-@keyframes iso-place{0%{transform:translateX(-50%) scale(0) rotate(-15deg);opacity:0;filter:brightness(3)}50%{transform:translateX(-50%) scale(1.25) rotate(5deg)}80%{transform:translateX(-50%) scale(.92) rotate(-2deg)}100%{transform:translateX(-50%) scale(1) rotate(0);opacity:1}}
-.iso-bld.just-placed{animation:iso-place .55s cubic-bezier(.36,.07,.19,.97) both}
-/* 煙霧粒子 */
-.iso-smoke{position:absolute;width:5px;height:5px;border-radius:50%;background:rgba(180,180,180,.5);pointer-events:none;left:50%;animation:iso-smoke-up 2.5s ease-out infinite}
-@keyframes iso-smoke-up{0%{opacity:.6;transform:translateX(-50%) translateY(0) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-22px) scale(2.5)}}
-/* 放置指示 */
-.iso-plus{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:14px;color:rgba(74,222,128,.45);font-weight:900;pointer-events:none}
-/* 選擇器 sheet */
-.city-picker-overlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);display:none;align-items:flex-end}
-.city-picker-sheet{background:#141414;border-radius:22px 22px 0 0;padding:20px 16px calc(28px + env(safe-area-inset-bottom));width:100%;max-height:72vh;overflow-y:auto}
-/* Gacha */
-.gacha-modal{position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center}
-.gacha-sheet{background:#0e0e12;border-radius:22px 22px 0 0;padding:20px 16px calc(28px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:80vh;overflow-y:auto}
-@keyframes gacha-item-in{from{opacity:0;transform:translateY(18px) scale(.9)}to{opacity:1;transform:none}}
 /* Calendar */
 .cal-cell{background:#161616;border-radius:6px}
 .cal-cell.has-w{background:#f59e0b;box-shadow:none}
@@ -492,12 +438,12 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 .ex-block.all-done{border-color:rgba(74,222,128,.35);background:#1a2218}
 .ex-block.all-done .ex-name-input{color:#4ade80}
 /* ── Sheet enter/exit motion ── */
-.modal-overlay,.gacha-modal,.city-picker-overlay,.ex-demo-overlay,.create-menu-overlay,.food-add-overlay{opacity:0;transition:opacity .28s ease-out}
-.modal-overlay.sheet-show,.gacha-modal.sheet-show,.city-picker-overlay.sheet-show,.ex-demo-overlay.sheet-show,.create-menu-overlay.sheet-show,.food-add-overlay.sheet-show{opacity:1}
-.modal,.gacha-sheet,.city-picker-sheet,.ex-demo-sheet,.create-menu-sheet,.food-add-sheet{transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)}
-.sheet-show .modal,.sheet-show .gacha-sheet,.sheet-show .city-picker-sheet,.sheet-show .ex-demo-sheet,.sheet-show .create-menu-sheet,.sheet-show .food-add-sheet{transform:translateY(0)}
+.modal-overlay,.ex-demo-overlay,.create-menu-overlay,.food-add-overlay{opacity:0;transition:opacity .28s ease-out}
+.modal-overlay.sheet-show,.ex-demo-overlay.sheet-show,.create-menu-overlay.sheet-show,.food-add-overlay.sheet-show{opacity:1}
+.modal,.ex-demo-sheet,.create-menu-sheet,.food-add-sheet{transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)}
+.sheet-show .modal,.sheet-show .ex-demo-sheet,.sheet-show .create-menu-sheet,.sheet-show .food-add-sheet{transform:translateY(0)}
 @media (prefers-reduced-motion:reduce){
-  .modal-overlay,.gacha-modal,.city-picker-overlay,.ex-demo-overlay,.create-menu-overlay,.food-add-overlay,.modal,.gacha-sheet,.city-picker-sheet,.ex-demo-sheet,.create-menu-sheet,.food-add-sheet{transition-duration:.01ms!important;transform:none!important}
+  .modal-overlay,.ex-demo-overlay,.create-menu-overlay,.food-add-overlay,.modal,.ex-demo-sheet,.create-menu-sheet,.food-add-sheet{transition-duration:.01ms!important;transform:none!important}
 }
 /* Session detail expand */
 .session-detail{display:block;max-height:0;opacity:0;overflow:hidden;transition:max-height .28s cubic-bezier(.23,1,.32,1),opacity .2s ease-out;margin-top:0;border-top:none;padding-top:0}
@@ -598,8 +544,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     </div>
     <div style="font-size:11px;color:rgba(240,236,228,.28);text-align:right;white-space:nowrap" id="ov-badge-sub">0/10</div>
   </div>
-  <!-- 家園 -->
-  <div id="homeland-card" style="margin:0 16px 12px;cursor:pointer" onclick="goTab('city',document.querySelector('[data-tab=city]'))"></div>
   <!-- Recent sessions compact -->
   <div class="ov-recent-hd">
     <span class="ov-recent-title">最近訓練</span>
@@ -769,6 +713,12 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
         <div id="weight-list-rows"></div>
       </div>
     </div>
+    <div class="sec-title" style="margin-top:12px">今日攝取</div>
+    <div class="card" id="body-today-card" style="padding:16px"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="openAddFood()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增飲食
+    </button>
+    <div id="diet-list" style="margin-top:10px"></div>
     <div class="sec-title" style="margin-top:12px">目標設定</div>
     <div class="card" id="body-goals-card" style="padding:16px"></div>
   </div>
@@ -791,6 +741,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
         </label>
       </div>
     </div>
+    <div id="food-desc-block" style="display:none;margin-bottom:14px">
+      <label class="form-label">補充說明（選填，AI看不準時幫它一把）</label>
+      <input class="form-input" id="food-desc-input" placeholder="例如：巧克力厚片、去皮雞胸、無糖豆漿">
+      <button id="food-analyze-btn" class="btn btn-primary btn-full" style="margin-top:8px" onclick="analyzeFoodPhoto()">🔍 開始辨識</button>
+    </div>
     <label class="form-label">食物名稱</label>
     <div style="position:relative;margin-bottom:12px">
       <input class="form-input" id="food-name-input" placeholder="搜尋或直接輸入（如：雞胸肉）" autocomplete="off"
@@ -807,39 +762,14 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
         <input class="form-input" type="number" id="food-kcal" placeholder="—" inputmode="decimal">
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
       <div><label class="form-label">蛋白質(g)</label><input class="form-input" type="number" id="food-protein" placeholder="—" inputmode="decimal"></div>
       <div><label class="form-label">碳水(g)</label><input class="form-input" type="number" id="food-carbs" placeholder="—" inputmode="decimal"></div>
       <div><label class="form-label">脂肪(g)</label><input class="form-input" type="number" id="food-fat" placeholder="—" inputmode="decimal"></div>
     </div>
+    <div id="food-breakdown" style="display:none;font-size:11.5px;color:rgba(240,236,228,.45);line-height:1.7;margin-bottom:14px;padding:10px 12px;background:#141414;border-radius:10px"></div>
     <button id="food-save-btn" class="btn btn-primary" onclick="saveFoodEntry()">儲存飲食</button>
     <button class="btn btn-ghost btn-full" onclick="closeAddFood()" style="margin-top:8px">取消</button>
-  </div>
-</div>
-
-<!-- 城市 tab -->
-<div id="tab-city" class="tab-content" style="display:none;flex-direction:column;height:100svh;overflow:hidden">
-  <div style="padding:env(safe-area-inset-top,16px) 16px 0;background:#06080e;flex-shrink:0;z-index:10">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid #1a1a22">
-      <div>
-        <div style="font-size:20px;font-weight:800;color:#f0ece4">🏙️ 我的城市</div>
-        <div style="font-size:11px;color:rgba(240,236,228,.32);margin-top:2px" id="city-tab-sub">城市幣 0 · +0/hr</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <button onclick="cityRotate()" style="background:#1a1a28;border:1px solid #2a2a3a;border-radius:10px;color:rgba(240,236,228,.7);font-size:16px;padding:7px 10px;cursor:pointer;line-height:1" title="旋轉地圖">↻</button>
-        <button onclick="openGachaModal()" style="background:linear-gradient(135deg,#3818a8,#6020d0);border:none;border-radius:10px;color:#f0ece4;font-size:11px;font-weight:700;padding:7px 12px;cursor:pointer;white-space:nowrap">✦ 抽卡</button>
-        <div id="city-tab-pts" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:6px 10px;font-size:11px;font-weight:700;color:#f0ece4;white-space:nowrap">⭐ 0 分</div>
-      </div>
-    </div>
-  </div>
-  <!-- 待放置倉庫 -->
-  <div id="city-inventory" style="display:none;padding:8px 16px;background:#06080e;flex-shrink:0;border-bottom:1px solid #12121c">
-    <div style="font-size:9px;font-weight:700;color:rgba(240,236,228,.28);margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase">📦 倉庫 — 點空地放置</div>
-    <div id="city-inventory-list" style="display:flex;gap:7px;overflow-x:auto;padding-bottom:2px"></div>
-  </div>
-  <!-- 等距地圖 -->
-  <div class="iso-wrap" id="iso-wrap">
-    <div id="iso-map"></div>
   </div>
 </div>
 
@@ -855,62 +785,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     <div id="coach-week-body" style="margin-bottom:20px"></div>
     <div class="sec-title">課表現況</div>
     <div id="coach-tab-body"></div>
-  </div>
-</div>
-
-<!-- 城市建築選擇器 -->
-<div id="city-picker-overlay" class="city-picker-overlay" onclick="if(event.target===this)closeCityPicker()">
-  <div class="city-picker-sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div style="font-size:16px;font-weight:700;color:#f0ece4" id="city-picker-title">選擇建築</div>
-      <button onclick="closeCityPicker()" style="background:none;border:none;color:rgba(240,236,228,.4);font-size:24px;cursor:pointer;padding:0;line-height:1">×</button>
-    </div>
-    <div id="city-picker-list"></div>
-  </div>
-</div>
-
-<!-- 抽卡 modal -->
-<div id="gacha-modal" class="gacha-modal" onclick="if(event.target===this)closeGachaModal()">
-  <div class="gacha-sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div>
-        <div style="font-size:17px;font-weight:800;color:#f0ece4">✦ 抽卡召喚</div>
-        <div style="font-size:10px;color:rgba(240,236,228,.35);margin-top:2px">普通60% · 稀有30% · 傳說8% · 神話2%</div>
-      </div>
-      <button onclick="closeGachaModal()" style="background:none;border:none;color:rgba(240,236,228,.4);font-size:24px;cursor:pointer;padding:0;line-height:1">×</button>
-    </div>
-    <div style="background:#0e0e18;border:1px solid #1e1e28;border-radius:14px;padding:14px;margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-        <span style="font-size:12px;color:rgba(240,236,228,.45)">可用積分</span>
-        <span id="gacha-avail-pts" style="font-size:13px;font-weight:700;color:#f0ece4">0 分</span>
-      </div>
-      <div style="display:flex;gap:10px">
-        <button onclick="doDraw(1)" style="flex:1;padding:13px;background:linear-gradient(135deg,#1e1838,#2a2050);border:1px solid #3a30a0;border-radius:12px;color:#c0b8f0;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">單抽<br><span style="font-size:10px;font-weight:500;opacity:.7">20 分</span></button>
-        <button onclick="doDraw(10)" style="flex:1;padding:13px;background:linear-gradient(135deg,#28103c,#3a1858);border:1px solid #7030b0;border-radius:12px;color:#e0b0f8;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">十連抽<br><span style="font-size:10px;font-weight:500;opacity:.7">200 分 · 必出稀有</span></button>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:14px;font-size:10px">
-      <span style="color:#8a8a9a">普通保底</span><span style="color:rgba(240,236,228,.2)">·</span>
-      <span style="color:#4488ff" id="gacha-pity-R">稀有 0/10</span><span style="color:rgba(240,236,228,.2)">·</span>
-      <span style="color:#f59e0b" id="gacha-pity-L">傳說 0/50</span><span style="color:rgba(240,236,228,.2)">·</span>
-      <span style="color:#d946ef" id="gacha-pity-M">神話 0/80</span>
-    </div>
-    <div style="font-size:10px;color:rgba(240,236,228,.25)">訓練積分越高，可抽次數越多 · 建築被動產出城市幣（未來兌換）</div>
-  </div>
-</div>
-
-<!-- 抽卡結果 modal -->
-<div id="gacha-result-modal" class="gacha-modal" onclick="if(event.target===this)closeGachaResult()">
-  <div class="gacha-sheet">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div>
-        <div style="font-size:17px;font-weight:800;color:#f0ece4">抽卡結果</div>
-        <div id="gacha-result-cost" style="font-size:10px;color:rgba(240,236,228,.35);margin-top:2px"></div>
-      </div>
-      <button onclick="closeGachaResult()" style="background:none;border:none;color:rgba(240,236,228,.4);font-size:24px;cursor:pointer;padding:0;line-height:1">×</button>
-    </div>
-    <div id="gacha-result-list"></div>
-    <button onclick="closeGachaResult()" style="width:100%;margin-top:8px;padding:13px;background:#141420;border:1px solid #2a2a3a;border-radius:12px;color:#f0ece4;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">去放置建築 →</button>
   </div>
 </div>
 
@@ -963,9 +837,6 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
   <button class="nav-btn" data-tab="body" onclick="goTab('body',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>體態
   </button>
-  <button class="nav-btn" data-tab="city" onclick="goTab('city',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="10" width="4" height="11" rx="1"/><rect x="10" y="6" width="4" height="15" rx="1"/><rect x="17" y="13" width="4" height="8" rx="1"/><line x1="1" y1="21" x2="23" y2="21"/></svg>城市
-  </button>
   <button class="nav-btn" data-tab="coach" onclick="goTab('coach',this)">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>教練
   </button>
@@ -973,16 +844,29 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 
 <script>
 // ── Bottom sheet show/hide (slide + fade) ──
+let _sheetLockCount=0,_sheetScrollY=0;
 function showSheet(id){
   const el=document.getElementById(id);
   el.hidden=false;el.style.display='flex';
   void el.offsetHeight;
   requestAnimationFrame(()=>el.classList.add('sheet-show'));
+  if(_sheetLockCount===0){
+    _sheetScrollY=window.scrollY;
+    document.body.style.position='fixed';
+    document.body.style.top=(-_sheetScrollY)+'px';
+    document.body.style.left='0';document.body.style.right='0';
+  }
+  _sheetLockCount++;
 }
 function hideSheet(id){
   const el=document.getElementById(id);
   el.classList.remove('sheet-show');
   setTimeout(()=>{if(!el.classList.contains('sheet-show')){el.style.display='none';el.hidden=true;}},320);
+  _sheetLockCount=Math.max(0,_sheetLockCount-1);
+  if(_sheetLockCount===0){
+    document.body.style.position='';document.body.style.top='';document.body.style.left='';document.body.style.right='';
+    window.scrollTo(0,_sheetScrollY);
+  }
 }
 // ── 動作資料庫（依部位）──
 // 只當「從沒編輯過時」的預設值；實際動作庫是可編輯資料，見 getExerciseDB()
@@ -1395,10 +1279,10 @@ function maxW(ex){
   const pos=ws.filter(v=>v>0);
   return pos.length?Math.max(...pos):Math.max(...ws);
 }
-function showToast(msg){
+function showToast(msg,duration){
   const t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2200);
+  setTimeout(()=>t.classList.remove('show'),duration||2200);
 }
 
 // ── TAB ──
@@ -1407,14 +1291,13 @@ function goTab(tab,btn){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const tabEl=document.getElementById('tab-'+tab);
   tabEl.hidden=false;
-  tabEl.style.display=(tab==='city')?'flex':'block';
+  tabEl.style.display='block';
   if(btn)btn.classList.add('active');
   WK=getCache();
   if(tab==='overview'){renderOverview();renderFreqProgress();renderCardioProgress();renderAchievements();}
   if(tab==='log'){renderLog();renderCharts();}
   if(tab==='menu')renderMenuTab();
   if(tab==='body')renderBodyTab();
-  if(tab==='city')renderCityTab();
   if(tab==='coach')renderCoachTab();
   if(getGASUrl()){
     flushPending();
@@ -1500,308 +1383,6 @@ const OV_BADGES=[
   {n:30,icon:'🏆',name:'傳說',next:50,label:'30次達成'},
   {n:50,icon:'👑',name:'呆呆大魔王',next:50,label:'50次達成'}
 ];
-// ── 家園積分系統 ──
-function calcPoints(){
-  let pts=0;
-  // 重訓：每次 10 分
-  pts+=WK.length*10;
-  // 有氧：每次 5 分
-  pts+=getCardioData().length*5;
-  // 週達標 bonus：每週完成目標 +15 分
-  const target=getGoals().weeklyTarget||3;
-  const wm={};
-  WK.forEach(w=>{
-    const d=new Date(w.date),dow=d.getDay();
-    const m=new Date(d);m.setDate(d.getDate()-(dow===0?6:dow-1));
-    const k=`${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,'0')}-${String(m.getDate()).padStart(2,'0')}`;
-    wm[k]=(wm[k]||0)+1;
-  });
-  pts+=Object.values(wm).filter(v=>v>=target).length*15;
-  return pts;
-}
-
-// ── CITY GAME v3 ──
-const BLDGS=[
-  {id:'shack',  name:'木棚',     rarity:'C', income:1,  h:22, wc:'#9a7252', wc2:'#6a4e38', rc:'#4e2c18'},
-  {id:'hut',    name:'小木屋',   rarity:'C', income:2,  h:32, wc:'#c89a68', wc2:'#a07848', rc:'#804820'},
-  {id:'store',  name:'補給站',   rarity:'C', income:2,  h:30, wc:'#5a7a9a', wc2:'#3a5a7a', rc:'#b8c4d4'},
-  {id:'barn',   name:'穀倉',     rarity:'C', income:3,  h:28, wc:'#c03830', wc2:'#901808', rc:'#202020'},
-  {id:'gym',    name:'健身房',   rarity:'R', income:6,  h:48, wc:'#2c3c58', wc2:'#181e30', rc:'#c82020'},
-  {id:'cafe',   name:'能量吧',   rarity:'R', income:5,  h:38, wc:'#7a5a38', wc2:'#4c3010', rc:'#c88838'},
-  {id:'clinic', name:'診所',     rarity:'R', income:7,  h:44, wc:'#d8e0f0', wc2:'#a8b8d0', rc:'#88b8e8'},
-  {id:'tower',  name:'訓練大樓', rarity:'L', income:15, h:78, wc:'#1c2e58', wc2:'#0e1830', rc:'#2858b8'},
-  {id:'arena',  name:'競技場',   rarity:'L', income:18, h:58, wc:'#502818', wc2:'#281008', rc:'#984020'},
-  {id:'palace', name:'運動殿堂', rarity:'M', income:40, h:88, wc:'#300e48', wc2:'#180828', rc:'#7818c8'},
-];
-const RARITY_META={
-  C:{name:'普通', color:'#8a8a9a', bg:'#16161e'},
-  R:{name:'稀有', color:'#4488ff', bg:'#0a1228'},
-  L:{name:'傳說', color:'#f59e0b', bg:'#1a1200'},
-  M:{name:'神話', color:'#d946ef', bg:'#180a28'},
-};
-const BLDG_EMOJI={shack:'🏚',hut:'🏠',store:'🏬',barn:'🏗',gym:'🏋️',cafe:'☕',clinic:'🏥',tower:'🏢',arena:'🏟',palace:'🏰'};
-const DRAW_COST=20;
-const CITY_V3_KEY='daodao_city_v3';
-const ISO_COLS=8,ISO_ROWS=10,TW=72,TH=36,HW=36,HH=18;
-
-function getCityState(){
-  const s=JSON.parse(localStorage.getItem(CITY_V3_KEY)||'{}');
-  if(!s.layout)s.layout={};
-  if(!s.inv)s.inv={};
-  if(!s.pity)s.pity={R:0,L:0,M:0};
-  if(!s.spent)s.spent=0;
-  if(!s.rot)s.rot=0;
-  if(!s.coins)s.coins=0;
-  if(!s.lastCollect)s.lastCollect=Date.now();
-  return s;
-}
-function saveCityState(s){localStorage.setItem(CITY_V3_KEY,JSON.stringify(s));}
-
-function getAvailablePts(){
-  const s=getCityState();
-  return Math.max(0,calcPoints()-(s.spent||0));
-}
-function getTotalIncome(){
-  const s=getCityState();
-  let r=0;
-  Object.values(s.layout).forEach(id=>{const b=BLDGS.find(x=>x.id===id);if(b)r+=b.income;});
-  return r;
-}
-function collectPassiveCoins(){
-  const s=getCityState();
-  const now=Date.now();
-  const hrs=Math.min((now-(s.lastCollect||now))/3600000,8);
-  const earned=Math.floor(getTotalIncome()*hrs);
-  if(earned>0){s.coins=(s.coins||0)+earned;s.lastCollect=now;saveCityState(s);}
-  return earned;
-}
-
-// ── GACHA ──
-function rollRarity(pity){
-  if((pity.M||0)>=80)return'M';
-  if((pity.L||0)>=50)return'L';
-  if((pity.R||0)>=10)return'R';
-  const r=Math.random();
-  if(r<0.02)return'M';
-  if(r<0.10)return'L';
-  if(r<0.40)return'R';
-  return'C';
-}
-function doDraw(count){
-  const cost=DRAW_COST*count;
-  if(getAvailablePts()<cost){showUndoToast('積分不足，快去訓練！');return;}
-  const s=getCityState();
-  s.spent=(s.spent||0)+cost;
-  const results=[];
-  for(let i=0;i<count;i++){
-    const rar=rollRarity(s.pity);
-    const pool=BLDGS.filter(b=>b.rarity===rar);
-    const b=pool[Math.floor(Math.random()*pool.length)];
-    results.push(b);
-    if(rar!=='M')s.pity.M=(s.pity.M||0)+1;
-    if(rar==='C'||rar==='R')s.pity.L=(s.pity.L||0)+1;
-    if(rar==='C')s.pity.R=(s.pity.R||0)+1;
-    if(rar==='R')s.pity.R=0;
-    if(rar==='L')s.pity.L=0;
-    if(rar==='M'){s.pity.M=0;s.pity.L=0;s.pity.R=0;}
-    s.inv[b.id]=(s.inv[b.id]||0)+1;
-  }
-  saveCityState(s);
-  hideSheet('gacha-modal');
-  showGachaResult(results,cost);
-  renderCityTab();
-}
-function openGachaModal(){
-  const s=getCityState();
-  document.getElementById('gacha-avail-pts').textContent=`${getAvailablePts()} 分`;
-  document.getElementById('gacha-pity-R').textContent=`稀有 ${s.pity.R||0}/10`;
-  document.getElementById('gacha-pity-L').textContent=`傳說 ${s.pity.L||0}/50`;
-  document.getElementById('gacha-pity-M').textContent=`神話 ${s.pity.M||0}/80`;
-  showSheet('gacha-modal');
-}
-function closeGachaModal(){hideSheet('gacha-modal');}
-function showGachaResult(results,cost){
-  document.getElementById('gacha-result-cost').textContent=`消耗 ${cost} 積分`;
-  document.getElementById('gacha-result-list').innerHTML=results.map((b,i)=>{
-    const rm=RARITY_META[b.rarity];
-    return`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:${rm.bg};border:1px solid ${rm.color}40;animation:gacha-item-in .35s ${i*0.07}s both;margin-bottom:7px">
-      <div style="font-size:26px;flex-shrink:0">${BLDG_EMOJI[b.id]||'🏠'}</div>
-      <div style="flex:1"><div style="font-size:13px;font-weight:700;color:#f0ece4">${b.name}</div>
-      <div style="font-size:10px;color:${rm.color};margin-top:1px">${rm.name} · +${b.income} 幣/hr</div></div>
-      <div style="font-size:9px;color:rgba(240,236,228,.28)">+1 入倉</div>
-    </div>`;
-  }).join('');
-  showSheet('gacha-result-modal');
-}
-function closeGachaResult(){hideSheet('gacha-result-modal');}
-
-// ── ISO RENDERING ──
-function isoScreenPos(r,c,rot){
-  let gr=r,gc=c;
-  const R=ISO_ROWS-1,C=ISO_COLS-1;
-  switch((rot||0)%4){
-    case 1:gr=C-c;gc=r;break;
-    case 2:gr=R-r;gc=C-c;break;
-    case 3:gr=c;gc=R-r;break;
-  }
-  return{cx:(ISO_ROWS*HW)+(gc-gr)*HW,cy:60+(gc+gr)*HH,z:gc+gr};
-}
-function bldFacesHtml(cx,cy,b){
-  const bh=b.h,boxW=TW,boxH=TH+bh;
-  const left=cx-HW,top=cy-HH-bh;
-  // Roof: diamond at top of box (y=0..TH)
-  const tp=`polygon(${HW}px 0px,${TW}px ${HH}px,${HW}px ${TH}px,0px ${HH}px)`;
-  // Left wall: from roof-left+roof-bottom down by bh
-  const lp=`polygon(0px ${HH}px,${HW}px ${TH}px,${HW}px ${TH+bh}px,0px ${HH+bh}px)`;
-  // Right wall: from roof-bottom+roof-right down by bh
-  const rp=`polygon(${HW}px ${TH}px,${TW}px ${HH}px,${TW}px ${HH+bh}px,${HW}px ${TH+bh}px)`;
-  return`<div style="position:absolute;left:${left}px;top:${top}px;width:${boxW}px;height:${boxH}px">
-    <div style="position:absolute;inset:0;background:${b.rc};clip-path:${tp}"></div>
-    <div style="position:absolute;inset:0;background:${b.wc};clip-path:${lp}"></div>
-    <div style="position:absolute;inset:0;background:${b.wc2};clip-path:${rp}"></div>
-    <div style="position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:6.5px;font-weight:700;color:rgba(255,255,255,.8);text-shadow:0 1px 3px #000;pointer-events:none;white-space:nowrap;overflow:hidden">${b.name}</div>
-  </div>`;
-}
-function renderCityCard(){
-  const el=document.getElementById('homeland-card');if(!el)return;
-  const pts=calcPoints();const avail=getAvailablePts();
-  const s=getCityState();
-  const placed=Object.keys(s.layout).length;const rate=getTotalIncome();
-  el.innerHTML=`<div class="city-card">
-    <div class="city-header">
-      <div><div class="city-name">🏙️ 我的城市</div>
-        <div style="font-size:10px;color:rgba(240,236,228,.35);margin-top:1px">${placed} 棟已放置 · +${rate} 幣/hr</div></div>
-      <div class="city-pts-badge">⭐ ${pts} 分</div>
-    </div>
-    <div style="font-size:11px;color:rgba(240,236,228,.4);text-align:center;padding:12px 0">
-      ${placed===0?'進城市，抽卡建造你的家園':rate>0?`城市運轉中・已賺 ${s.coins||0} 城市幣`:'點空地放置建築開始被動收入'}
-    </div>
-    <div class="city-bar-row">
-      <div style="font-size:10px;color:rgba(240,236,228,.4);white-space:nowrap">⭐ ${avail} 可用</div>
-      <div class="city-bar-wrap"><div class="city-bar" style="width:${Math.min((avail/DRAW_COST)*10,100)}%"></div></div>
-      <div style="font-size:10px;color:rgba(240,236,228,.4);white-space:nowrap">抽 ${DRAW_COST}分/次</div>
-    </div>
-  </div>`;
-}
-let _cityPickerCell=null;
-function renderCityTab(){
-  const s=getCityState();
-  const avail=getAvailablePts();const rate=getTotalIncome();
-  const earned=collectPassiveCoins();
-  if(earned>0)showUndoToast(`收取 ${earned} 城市幣！`);
-  document.getElementById('city-tab-sub').textContent=`城市幣 ${s.coins||0} · +${rate}/hr`;
-  document.getElementById('city-tab-pts').textContent=`⭐ ${avail} 分`;
-  const inv=s.inv||{};
-  const invIds=Object.entries(inv).filter(([,c])=>c>0).map(([id])=>id);
-  const invEl=document.getElementById('city-inventory');
-  if(invIds.length>0){
-    document.getElementById('city-inventory-list').innerHTML=invIds.map(id=>{
-      const b=BLDGS.find(x=>x.id===id);if(!b)return'';
-      const rm=RARITY_META[b.rarity];
-      return`<div style="background:#1a1a1a;border:1px solid ${rm.color}55;border-radius:10px;padding:7px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:50px;flex-shrink:0">
-        <div style="font-size:20px">${BLDG_EMOJI[id]||'🏠'}</div>
-        <div style="font-size:7px;font-weight:700;color:${rm.color}">${b.name}</div>
-        <div style="font-size:7px;color:rgba(240,236,228,.3)">×${inv[id]}</div>
-      </div>`;
-    }).join('');
-    invEl.style.display='block';
-  }else{invEl.style.display='none';}
-  const mapEl=document.getElementById('iso-map');
-  const rot=s.rot||0;
-  const mapW=(ISO_COLS+ISO_ROWS)*HW+TW;
-  const mapH=(ISO_COLS+ISO_ROWS)*HH+140;
-  mapEl.style.cssText=`position:relative;width:${mapW}px;height:${mapH}px;`;
-  const cells=[];
-  for(let r=0;r<ISO_ROWS;r++)for(let c=0;c<ISO_COLS;c++){
-    const pos=isoScreenPos(r,c,rot);cells.push({r,c,pos,key:`${r},${c}`});
-  }
-  cells.sort((a,b)=>a.pos.z-b.pos.z);
-  const placed=s.layout||{};const hasInv=invIds.length>0;
-  let tilesHtml='',bldsHtml='';
-  cells.forEach(({r,c,pos,key})=>{
-    const{cx,cy,z}=pos;const bid=placed[key];
-    const b=bid?BLDGS.find(x=>x.id===bid):null;
-    const tx=cx-HW,ty=cy-HH;
-    const tc=b?b.wc2:(hasInv?'#1c3c1c':'#0e180e');
-    const curs=(!b&&hasInv)?'pointer':'default';
-    const clickAttr=b?`onclick="onCityBldClick('${key}')"`:(hasInv?`onclick="onCityTileClick('${key}')"`:'');
-    tilesHtml+=`<div style="position:absolute;left:${tx}px;top:${ty}px;width:${TW}px;height:${TH}px;clip-path:polygon(${HW}px 0px,${TW}px ${HH}px,${HW}px ${TH}px,0px ${HH}px);background:${tc};z-index:${z};cursor:${curs}" ${clickAttr}></div>`;
-    if(b)bldsHtml+=`<div style="position:absolute;z-index:${z+1};cursor:pointer" onclick="onCityBldClick('${key}')">${bldFacesHtml(cx,cy,b)}</div>`;
-  });
-  mapEl.innerHTML=tilesHtml+bldsHtml;
-  const wrap=document.getElementById('iso-wrap');
-  if(!wrap._cinit){
-    wrap._cinit=true;
-    requestAnimationFrame(()=>{wrap.scrollLeft=(mapW-wrap.clientWidth)/2;wrap.scrollTop=0;});
-    // Swipe-to-rotate: horizontal swipe >60px triggers map rotation
-    let _tx=0,_ty=0,_swiping=false;
-    wrap.addEventListener('touchstart',e=>{
-      _tx=e.touches[0].clientX;_ty=e.touches[0].clientY;_swiping=true;
-    },{passive:true});
-    wrap.addEventListener('touchend',e=>{
-      if(!_swiping)return;_swiping=false;
-      const dx=e.changedTouches[0].clientX-_tx;
-      const dy=e.changedTouches[0].clientY-_ty;
-      if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){
-        const s=getCityState();
-        s.rot=((s.rot||0)+(dx<0?1:3))%4;
-        saveCityState(s);renderCityTab();
-      }
-    },{passive:true});
-  }
-}
-function onCityTileClick(key){
-  const s=getCityState();
-  const invIds=Object.entries(s.inv||{}).filter(([,c])=>c>0).map(([id])=>id);
-  if(!invIds.length)return;
-  _cityPickerCell=key;
-  document.getElementById('city-picker-title').textContent='選擇建築放置';
-  document.getElementById('city-picker-list').innerHTML=invIds.map(id=>{
-    const b=BLDGS.find(x=>x.id===id);if(!b)return'';
-    const rm=RARITY_META[b.rarity];
-    return`<div onclick="cityPlace('${key}','${id}')" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:${rm.bg};border:1px solid ${rm.color}33;margin-bottom:8px;cursor:pointer;-webkit-tap-highlight-color:transparent">
-      <div style="font-size:30px;flex-shrink:0">${BLDG_EMOJI[id]||'🏠'}</div>
-      <div><div style="font-size:14px;font-weight:700;color:#f0ece4">${b.name}</div>
-      <div style="font-size:10px;color:${rm.color};margin-top:1px">${rm.name} · +${b.income} 幣/hr</div></div>
-      <div style="margin-left:auto;font-size:11px;color:rgba(240,236,228,.3)">×${s.inv[id]}</div>
-    </div>`;
-  }).join('');
-  showSheet('city-picker-overlay');
-}
-function onCityBldClick(key){
-  const s=getCityState();
-  const bid=s.layout[key];const b=BLDGS.find(x=>x.id===bid);if(!b)return;
-  const rm=RARITY_META[b.rarity];_cityPickerCell=key;
-  document.getElementById('city-picker-title').textContent=b.name;
-  document.getElementById('city-picker-list').innerHTML=`
-    <div style="text-align:center;padding:18px;border-radius:14px;background:${rm.bg};border:1px solid ${rm.color}44;margin-bottom:14px">
-      <div style="font-size:44px">${BLDG_EMOJI[b.id]||'🏠'}</div>
-      <div style="font-size:16px;font-weight:800;color:#f0ece4;margin-top:8px">${b.name}</div>
-      <div style="font-size:11px;color:${rm.color};margin-top:4px">${rm.name} · 被動收入 +${b.income} 幣/hr</div>
-    </div>
-    <button onclick="cityRemove('${key}')" style="width:100%;padding:14px;background:#1a0808;border:1px solid #3a1212;border-radius:12px;color:#f87171;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">移除建築</button>`;
-  showSheet('city-picker-overlay');
-}
-function cityPlace(key,bid){
-  const s=getCityState();
-  s.layout[key]=bid;s.inv[bid]=(s.inv[bid]||1)-1;
-  if(s.inv[bid]<=0)delete s.inv[bid];
-  saveCityState(s);
-  hideSheet('city-picker-overlay');
-  renderCityTab();renderCityCard();
-}
-function cityRemove(key){
-  const s=getCityState();const bid=s.layout[key];
-  if(bid){s.inv[bid]=(s.inv[bid]||0)+1;}
-  delete s.layout[key];saveCityState(s);
-  hideSheet('city-picker-overlay');
-  renderCityTab();renderCityCard();
-}
-function closeCityPicker(){hideSheet('city-picker-overlay');}
-function cityRotate(){
-  const s=getCityState();s.rot=((s.rot||0)+1)%4;saveCityState(s);renderCityTab();
-}
-
 function renderOverview(){
   const sorted=[...WK].sort((a,b)=>b.date.localeCompare(a.date));
   const tm=todayStr().slice(0,7);
@@ -1938,7 +1519,6 @@ function renderOverview(){
   setSyncState(syncState);
   updateCloudBanner();
   document.getElementById('recent-list').innerHTML=sorted.slice(0,2).map(s=>sessionCard(s,false)).join('')||'<div class="empty" style="padding:20px 0;text-align:center;color:rgba(240,236,228,.25);font-size:14px">還沒有訓練紀錄<br><span style="font-size:12px;opacity:.6">點上方按鈕開始第一次訓練</span></div>';
-  renderCityCard();
   renderOverviewWeight();
   renderCoachCard();
 }
@@ -3888,15 +3468,18 @@ function saveBodyGoals(){
 }
 
 // ── 飲食新增 bottom sheet ──
-let _foodThumb=null,_foodPer100g=null,_foodSearchResults=[],_editFoodIdx=-1;
+let _foodThumb=null,_foodPer100g=null,_foodSearchResults=[],_editFoodIdx=-1,_foodAnalysisB64=null;
 let _foodSearchTimer=null;
 function openAddFood(editIdx){
-  _foodThumb=null;_foodPer100g=null;_foodSearchResults=[];
+  _foodThumb=null;_foodPer100g=null;_foodSearchResults=[];_foodAnalysisB64=null;
   _editFoodIdx=(editIdx!=null)?editIdx:-1;
   ['food-name-input','food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('food-portion').value='100';
   document.getElementById('food-photo-preview').innerHTML='<div style="width:54px;height:54px;background:#161616;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;color:rgba(240,236,228,.2)">📷</div>';
   document.getElementById('food-dd').hidden=true;
+  const bdEl0=document.getElementById('food-breakdown');if(bdEl0){bdEl0.style.display='none';bdEl0.innerHTML='';}
+  const descBlock0=document.getElementById('food-desc-block');if(descBlock0)descBlock0.style.display='none';
+  const descInput0=document.getElementById('food-desc-input');if(descInput0)descInput0.value='';
   const titleEl=document.getElementById('food-sheet-title');
   const saveBtnEl=document.getElementById('food-save-btn');
   if(_editFoodIdx>=0){
@@ -3920,10 +3503,15 @@ function closeAddFood(){hideSheet('food-add-overlay');_editFoodIdx=-1;}
 function handleFoodPhoto(input){
   const file=input.files[0];if(!file)return;
   const gasUrl=getGASUrl();
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const img=new Image();
-    img.onload=()=>{
+  const objUrl=URL.createObjectURL(file);
+  const img=new Image();
+  img.onerror=()=>{
+    URL.revokeObjectURL(objUrl);
+    showToast('⚠️ 圖片讀取失敗，請重新選擇照片',4000);
+    input.value='';
+  };
+  img.onload=()=>{
+      URL.revokeObjectURL(objUrl);
       // 縮圖（顯示用）
       const thumb=document.createElement('canvas');
       const ts=Math.min(160/img.width,160/img.height);
@@ -3934,65 +3522,95 @@ function handleFoodPhoto(input){
 
       if(!gasUrl){showToast('請先設定 GAS 網址才能辨識食物');return;}
 
-      // 分析用圖（較大解析度）
+      // 分析用圖（較大解析度），先存起來，等使用者按「開始辨識」才真正呼叫 API
+      // 這樣使用者可以先在補充說明欄打字（例如「巧克力厚片」）澄清 AI 視覺辨識不出來的細節，不用先猜錯再重來
       const ac=document.createElement('canvas');
       const as=Math.min(1,800/Math.max(img.width,img.height));
       ac.width=Math.round(img.width*as);ac.height=Math.round(img.height*as);
       ac.getContext('2d').drawImage(img,0,0,ac.width,ac.height);
-      const b64=ac.toDataURL('image/jpeg',0.85).split(',')[1];
+      _foodAnalysisB64=ac.toDataURL('image/jpeg',0.85).split(',')[1];
 
-      // 顯示分析中
-      const nameInp=document.getElementById('food-name-input');
-      if(nameInp){nameInp.value='';nameInp.placeholder='🔍 AI 辨識中…';nameInp.disabled=true;}
-      ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{
-        const el=document.getElementById(id);if(el){el.value='';el.placeholder='…';}
-      });
-
-      // 直接呼叫 Gemini API（繞過 GAS POST redirect 問題）
-      const cfg2=getCfg();
-      const geminiKey=cfg2.geminiKey||'';
-      if(!geminiKey){showToast('請在設定中填入 Gemini API Key');if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}return;}
-      const geminiUrl='https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key='+geminiKey;
-      fetch(geminiUrl,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          contents:[{parts:[
-            {inline_data:{mime_type:'image/jpeg',data:b64}},
-            {text:'這是一張食物照片。請估算這份食物的營養成分，以JSON格式回覆，只需JSON不要其他文字：{"name":"食物名稱（中文）","portion":"份量描述","kcal":熱量整數,"protein":蛋白質g整數,"carbs":碳水g整數,"fat":脂肪g整數}'}
-          ]}],
-          generationConfig:{thinkingConfig:{thinkingBudget:0}}
-        })
-      }).then(r=>r.json()).then(data=>{
-        if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
-        if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
-        ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{const el=document.getElementById(id);if(el)el.placeholder='—';});
-        // 支援 Gemini 直接回應格式
-        let parsed=null;
-        if(data.candidates&&data.candidates[0]){
-          const parts=data.candidates[0].content.parts;
-          const tp=parts.find(p=>!p.thought&&p.text)||parts[0];
-          const m=(tp.text||'').match(/\{[\s\S]*?\}/);
-          if(m){try{parsed=JSON.parse(m[0]);}catch(e){}}
-        } else if(data.ok&&data.name){
-          parsed=data;
-        }
-        if(parsed){
-          if(nameInp)nameInp.value=parsed.name||'';
-          const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
-          set('food-kcal',parsed.kcal);set('food-protein',parsed.protein);
-          set('food-carbs',parsed.carbs);set('food-fat',parsed.fat);
-          if(parsed.portion){const pl=document.getElementById('food-portion');if(pl)pl.placeholder=parsed.portion;}
-          showToast('✅ 辨識完成：'+(parsed.name||'食物'));
-        } else {
-          showToast('⚠️ 辨識失敗，請手動輸入');
-        }
-      }).catch(()=>{
-        if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
-        showToast('⚠️ 辨識失敗，請手動輸入');
-      });
-    };
-    img.src=e.target.result;
+      const descBlock=document.getElementById('food-desc-block');
+      if(descBlock)descBlock.style.display='block';
+      const analyzeBtn=document.getElementById('food-analyze-btn');
+      if(analyzeBtn){analyzeBtn.textContent='🔍 開始辨識';analyzeBtn.disabled=false;}
   };
-  reader.readAsDataURL(file);
+  img.src=objUrl;
+}
+
+function analyzeFoodPhoto(){
+  if(!_foodAnalysisB64){showToast('請先選擇照片');return;}
+  const cfg2=getCfg();
+  const geminiKey=cfg2.geminiKey||'';
+  if(!geminiKey){showToast('請在設定中填入 Gemini API Key');return;}
+  const desc=(document.getElementById('food-desc-input')?.value||'').trim();
+  const nameInp=document.getElementById('food-name-input');
+  const analyzeBtn=document.getElementById('food-analyze-btn');
+  if(analyzeBtn){analyzeBtn.disabled=true;analyzeBtn.textContent='辨識中…';}
+  if(nameInp){nameInp.value='';nameInp.placeholder='🔍 AI 辨識中…';nameInp.disabled=true;}
+  ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{
+    const el=document.getElementById(id);if(el){el.value='';el.placeholder='…';}
+  });
+
+  const descLine=desc?`使用者補充說明（視覺不確定時以這個為準，優先採信）："${desc}"。`:'';
+  const geminiUrl='https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key='+geminiKey;
+  fetch(geminiUrl,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      contents:[{parts:[
+        {inline_data:{mime_type:'image/jpeg',data:_foodAnalysisB64}},
+        {text:`這是一張食物照片。${descLine}請把照片中的食物拆解成幾個主要組成品項（例如：雞腿肉、白切肉、白飯、滷豆干、香腸、青菜⋯逐一列出，不要合併），針對「照片中這整份」（不是每100g）逐項估算重量與營養素，以JSON格式回覆，只需JSON不要其他文字，不要用markdown code block包裹：{"name":"整體食物名稱（中文）","items":[{"item":"品項名稱","grams":這個品項重量估計整數,"kcal":這個品項熱量整數,"protein":這個品項蛋白質g整數,"carbs":這個品項碳水g整數,"fat":這個品項脂肪g整數}]}`}
+      ]}],
+      generationConfig:{thinkingConfig:{thinkingBudget:0}}
+    })
+  }).then(r=>r.json()).then(data=>{
+    if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
+    if(analyzeBtn){analyzeBtn.disabled=false;analyzeBtn.textContent='🔄 重新辨識';}
+    ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{const el=document.getElementById(id);if(el)el.placeholder='—';});
+    // 支援 Gemini 直接回應格式（用第一個 { 到最後一個 } 擷取，避免 items 陣列內的巢狀 {} 被非貪婪比對截斷）
+    let parsed=null;
+    if(data.candidates&&data.candidates[0]){
+      const parts=data.candidates[0].content.parts;
+      const tp=parts.find(p=>!p.thought&&p.text)||parts[0];
+      let raw=(tp.text||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/,'').replace(/```\s*$/,'');
+      const first=raw.indexOf('{'),last=raw.lastIndexOf('}');
+      if(first>=0&&last>first){try{parsed=JSON.parse(raw.slice(first,last+1));}catch(e){}}
+    } else if(data.ok&&data.name){
+      parsed=data;
+    }
+    const items=parsed&&Array.isArray(parsed.items)?parsed.items:null;
+    const bdEl=document.getElementById('food-breakdown');
+    if(parsed&&items&&items.length){
+      const sum=(k)=>items.reduce((a,it)=>a+(parseFloat(it[k])||0),0);
+      if(nameInp)nameInp.value=parsed.name||items.map(it=>it.item).join('、');
+      const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=Math.round(v);};
+      set('food-kcal',sum('kcal'));set('food-protein',sum('protein'));
+      set('food-carbs',sum('carbs'));set('food-fat',sum('fat'));
+      set('food-portion',sum('grams'));
+      if(bdEl){
+        bdEl.style.display='block';
+        bdEl.innerHTML='逐項估算：'+items.map(it=>`${it.item} ${Math.round(it.grams)||'?'}g（蛋白${Math.round(it.protein)||0}・碳水${Math.round(it.carbs)||0}・脂肪${Math.round(it.fat)||0}）`).join('<br>');
+      }
+      showToast('✅ 辨識完成：'+(parsed.name||'食物')+'（AI逐項估算，僅供參考，誤差可能±20-30%）',4500);
+    } else if(parsed&&parsed.kcal!=null){
+      // 相容舊格式（沒有 items 陣列時退回單一總量）
+      if(nameInp)nameInp.value=parsed.name||'';
+      const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
+      set('food-kcal',parsed.kcal);set('food-protein',parsed.protein);
+      set('food-carbs',parsed.carbs);set('food-fat',parsed.fat);
+      if(parsed.grams)set('food-portion',Math.round(parsed.grams));
+      if(bdEl)bdEl.style.display='none';
+      showToast('✅ 辨識完成：'+(parsed.name||'食物')+'（AI估算，僅供參考，誤差可能±20-30%）',4000);
+    } else {
+      const reason=data&&data.error?(data.error.message||JSON.stringify(data.error)):'回應格式異常，請重試';
+      console.error('Gemini食物辨識失敗',data);
+      showToast('⚠️ 辨識失敗：'+reason,6000);
+    }
+  }).catch(err=>{
+    if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
+    if(analyzeBtn){analyzeBtn.disabled=false;analyzeBtn.textContent='🔍 開始辨識';}
+    console.error('Gemini食物辨識網路錯誤',err);
+    showToast('⚠️ 辨識失敗：'+(err&&err.message||'網路錯誤'),6000);
+  });
 }
 
 function searchFood(q){
