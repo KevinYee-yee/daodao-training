@@ -3599,7 +3599,9 @@ function handleFoodPhoto(input){
   img.src=objUrl;
 }
 
-function analyzeFoodPhoto(){
+const FOOD_ANALYZE_MAX_RETRY=2;
+function analyzeFoodPhoto(retryCount){
+  retryCount=retryCount||0;
   if(!_foodAnalysisB64){showToast('請先選擇照片');return;}
   const cfg2=getCfg();
   const geminiKey=cfg2.geminiKey||'';
@@ -3607,8 +3609,8 @@ function analyzeFoodPhoto(){
   const desc=(document.getElementById('food-desc-input')?.value||'').trim();
   const nameInp=document.getElementById('food-name-input');
   const analyzeBtn=document.getElementById('food-analyze-btn');
-  if(analyzeBtn){analyzeBtn.disabled=true;analyzeBtn.textContent='辨識中…';}
-  if(nameInp){nameInp.value='';nameInp.placeholder='🔍 AI 辨識中…';nameInp.disabled=true;}
+  if(analyzeBtn){analyzeBtn.disabled=true;analyzeBtn.textContent=retryCount>0?`重試中…(${retryCount}/${FOOD_ANALYZE_MAX_RETRY})`:'辨識中…';}
+  if(nameInp){nameInp.value='';nameInp.placeholder=retryCount>0?'🔁 伺服器忙碌，重試中…':'🔍 AI 辨識中…';nameInp.disabled=true;}
   ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{
     const el=document.getElementById(id);if(el){el.value='';el.placeholder='…';}
   });
@@ -3623,10 +3625,7 @@ function analyzeFoodPhoto(){
       ]}],
       generationConfig:{thinkingConfig:{thinkingBudget:0}}
     })
-  }).then(r=>r.json()).then(data=>{
-    if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
-    if(analyzeBtn){analyzeBtn.disabled=false;analyzeBtn.textContent='🔄 重新辨識';}
-    ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{const el=document.getElementById(id);if(el)el.placeholder='—';});
+  }).then(r=>r.json().then(data=>({status:r.status,data}))).then(({status,data})=>{
     // 支援 Gemini 直接回應格式（用第一個 { 到最後一個 } 擷取，避免 items 陣列內的巢狀 {} 被非貪婪比對截斷）
     let parsed=null;
     if(data.candidates&&data.candidates[0]){
@@ -3641,6 +3640,9 @@ function analyzeFoodPhoto(){
     const items=parsed&&Array.isArray(parsed.items)?parsed.items:null;
     const bdEl=document.getElementById('food-breakdown');
     if(parsed&&items&&items.length){
+      if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
+      if(analyzeBtn){analyzeBtn.disabled=false;analyzeBtn.textContent='🔄 重新辨識';}
+      ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{const el=document.getElementById(id);if(el)el.placeholder='—';});
       const sum=(k)=>items.reduce((a,it)=>a+(parseFloat(it[k])||0),0);
       if(nameInp)nameInp.value=parsed.name||items.map(it=>it.item).join('、');
       const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=Math.round(v);};
@@ -3654,6 +3656,9 @@ function analyzeFoodPhoto(){
       showToast('✅ 辨識完成：'+(parsed.name||'食物')+'（AI逐項估算，僅供參考，誤差可能±20-30%）',4500);
     } else if(parsed&&parsed.kcal!=null){
       // 相容舊格式（沒有 items 陣列時退回單一總量）
+      if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
+      if(analyzeBtn){analyzeBtn.disabled=false;analyzeBtn.textContent='🔄 重新辨識';}
+      ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{const el=document.getElementById(id);if(el)el.placeholder='—';});
       if(nameInp)nameInp.value=parsed.name||'';
       const set=(id,v)=>{const el=document.getElementById(id);if(el&&v!=null)el.value=v;};
       set('food-kcal',parsed.kcal);set('food-protein',parsed.protein);
@@ -3662,11 +3667,24 @@ function analyzeFoodPhoto(){
       if(bdEl)bdEl.style.display='none';
       showToast('✅ 辨識完成：'+(parsed.name||'食物')+'（AI估算，僅供參考，誤差可能±20-30%）',4000);
     } else {
-      const reason=data&&data.error?(data.error.message||JSON.stringify(data.error)):'回應格式異常，請重試';
+      const errMsg=(data&&data.error&&(data.error.message||data.error.status))||'';
+      const isOverload=status===503||status===429||/overload|unavailable|high demand|quota/i.test(errMsg);
+      if(isOverload&&retryCount<FOOD_ANALYZE_MAX_RETRY){
+        setTimeout(()=>analyzeFoodPhoto(retryCount+1),1500*(retryCount+1));
+        return;
+      }
+      if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
+      if(analyzeBtn){analyzeBtn.disabled=false;analyzeBtn.textContent='🔄 重新辨識';}
+      ['food-kcal','food-protein','food-carbs','food-fat'].forEach(id=>{const el=document.getElementById(id);if(el)el.placeholder='—';});
+      const reason=errMsg||'回應格式異常，請重試';
       console.error('Gemini食物辨識失敗',data);
-      showToast('⚠️ 辨識失敗：'+reason,6000);
+      showToast('⚠️ 辨識失敗：'+reason+(isOverload?'（已重試'+FOOD_ANALYZE_MAX_RETRY+'次仍失敗，稍後再試看看）':''),6000);
     }
   }).catch(err=>{
+    if(retryCount<FOOD_ANALYZE_MAX_RETRY){
+      setTimeout(()=>analyzeFoodPhoto(retryCount+1),1500*(retryCount+1));
+      return;
+    }
     if(nameInp){nameInp.disabled=false;nameInp.placeholder='食物名稱';}
     if(analyzeBtn){analyzeBtn.disabled=false;analyzeBtn.textContent='🔍 開始辨識';}
     console.error('Gemini食物辨識網路錯誤',err);
