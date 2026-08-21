@@ -732,7 +732,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     </div>
     </div>
     <div id="body-sub-diet" style="display:none">
-    <div class="sec-title">今日攝取</div>
+    <div class="sec-title" id="diet-list-title">今日攝取</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <input class="form-input" type="date" id="diet-date" style="flex:1;color:#f0ece4;background:#161616" onchange="onDietDateChange()">
+      <button class="btn btn-ghost" onclick="jumpToTodayDiet()" style="padding:0 16px;height:46px;border-radius:10px;flex-shrink:0;font-size:12px;white-space:nowrap">回到今天</button>
+    </div>
     <div class="card" id="body-today-card" style="padding:16px"></div>
     <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="openAddFood()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增飲食
@@ -804,7 +808,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     <div id="diet-day-detail-title" style="font-size:18px;font-weight:800;color:#f0ece4;margin-bottom:4px">飲食紀錄</div>
     <div id="diet-day-detail-summary" style="font-size:12px;color:rgba(240,236,228,.4);margin-bottom:14px"></div>
     <div id="diet-day-detail-body"></div>
-    <button class="btn btn-ghost btn-full" style="margin-top:14px" onclick="closeDietDayDetail()">關閉</button>
+    <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="editDietDetailDay()">✏️ 編輯這天飲食</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="closeDietDayDetail()">關閉</button>
   </div>
 </div>
 
@@ -3226,8 +3231,19 @@ function getBodyCfg(){
   return Object.assign(def,JSON.parse(localStorage.getItem('daodao_body_cfg')||'{}'));
 }
 function saveBodyCfg(c){localStorage.setItem('daodao_body_cfg',JSON.stringify(c));}
-function getTodayDiet(){const d=getDietData();return d[todayStr()]||[];}
-function saveTodayDiet(arr){const d=getDietData();d[todayStr()]=arr;saveDietData(d);}
+function getDietForDate(date){const d=getDietData();return d[date]||[];}
+function saveDietForDate(date,arr){const d=getDietData();d[date]=arr;saveDietData(d);}
+// 飲食分頁目前選取的日期（可以回去某一天調整登記，不是只能記今天）
+function getDietDateSel(){
+  const el=document.getElementById('diet-date');
+  return (el&&el.value)||todayStr();
+}
+function jumpToTodayDiet(){
+  const el=document.getElementById('diet-date');
+  if(el)el.value=todayStr();
+  renderDietList();renderTodaySummary();
+}
+function onDietDateChange(){renderDietList();renderTodaySummary();}
 
 // ── 體態 Tab 渲染 ──
 let _weightChart2=null;
@@ -3245,6 +3261,8 @@ function setBodySubTab(tab){
 
 function renderBodyTab(){
   setBodySubTab(_bodySubTab);
+  const dietDateEl=document.getElementById('diet-date');
+  if(dietDateEl&&!dietDateEl.value)dietDateEl.value=todayStr();
   renderTodaySummary();
   renderWeightEntry();
   renderWeightChart2();
@@ -3256,7 +3274,10 @@ function renderBodyTab(){
 }
 
 function renderTodaySummary(){
-  const meals=getTodayDiet();
+  const sel=getDietDateSel();
+  const isToday=sel===todayStr();
+  const dayWord=isToday?'今日':'這天';
+  const meals=getDietForDate(sel);
   const cfg=getBodyCfg();
   const tot={kcal:0,protein:0,carbs:0,fat:0};
   meals.forEach(m=>{tot.kcal+=(m.kcal||0);tot.protein+=(m.protein||0);tot.carbs+=(m.carbs||0);tot.fat+=(m.fat||0);});
@@ -3264,8 +3285,8 @@ function renderTodaySummary(){
   const over=tot.kcal>cfg.goalKcal;
   const rem=Math.max(0,cfg.goalKcal-tot.kcal);
   let tip='';
-  if(cfg.goalType==='cut'){tip=over?'⚠️ 已超出目標，今日注意控制':rem<200?'✅ 接近目標，今天做得很好！':`還可攝取 ${rem} kcal`;}
-  else if(cfg.goalType==='bulk'){tip=rem>300?`還需補充 ${rem} kcal 才達標`:'✅ 今日攝取達標！';}
+  if(cfg.goalType==='cut'){tip=over?`⚠️ 已超出目標，${dayWord}注意控制`:rem<200?`✅ 接近目標，${dayWord}做得很好！`:`還可攝取 ${rem} kcal`;}
+  else if(cfg.goalType==='bulk'){tip=rem>300?`還需補充 ${rem} kcal 才達標`:`✅ ${dayWord}攝取達標！`;}
   else{tip=over?`超出 ${tot.kcal-cfg.goalKcal} kcal`:`剩餘 ${rem} kcal`;}
   const el=document.getElementById('body-today-card');if(!el)return;
   el.innerHTML=`
@@ -3492,9 +3513,13 @@ function clearWeightSlot(date,slot){
 }
 
 function renderDietList(){
-  const meals=getTodayDiet();
+  const sel=getDietDateSel();
+  const isToday=sel===todayStr();
+  const meals=getDietForDate(sel);
   const el=document.getElementById('diet-list');if(!el)return;
-  if(!meals.length){el.innerHTML='<div class="empty" style="padding:16px 0">今日尚未記錄飲食</div>';return;}
+  const titleEl=document.getElementById('diet-list-title');
+  if(titleEl)titleEl.textContent=isToday?'今日攝取':`${sel} 攝取`;
+  if(!meals.length){el.innerHTML=`<div class="empty" style="padding:16px 0">${isToday?'今日尚未記錄飲食':'這天沒有飲食紀錄'}</div>`;return;}
   el.innerHTML=meals.map((m,i)=>`
     <div class="body-diet-item" onclick="openAddFood(${i})" style="cursor:pointer">
       ${m.thumb?`<img src="${m.thumb}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0">`
@@ -3508,13 +3533,14 @@ function renderDietList(){
 }
 
 function deleteFoodEntry(idx){
-  const arr=getTodayDiet();
+  const date=getDietDateSel();
+  const arr=getDietForDate(date);
   const deleted=arr[idx];
-  arr.splice(idx,1);saveTodayDiet(arr);
-  apiSaveDiet(todayStr(),arr);
+  arr.splice(idx,1);saveDietForDate(date,arr);
+  apiSaveDiet(date,arr);
   renderDietList();renderTodaySummary();
   showUndoToast('飲食已刪除',()=>{
-    const a2=getTodayDiet();a2.splice(idx,0,deleted);saveTodayDiet(a2);apiSaveDiet(todayStr(),a2);renderDietList();renderTodaySummary();
+    const a2=getDietForDate(date);a2.splice(idx,0,deleted);saveDietForDate(date,a2);apiSaveDiet(date,a2);renderDietList();renderTodaySummary();
   });
 }
 
@@ -3584,7 +3610,9 @@ function renderDietHistory(){
   }).join('');
 }
 
+let _dietDetailDate=null;
 function openDietDayDetail(date){
+  _dietDetailDate=date;
   const cfg=getBodyCfg();
   const meals=getDietData()[date]||[];
   const tot=dietDayTotal(meals);
@@ -3604,6 +3632,15 @@ function openDietDayDetail(date){
   showSheet('diet-day-detail-overlay');
 }
 function closeDietDayDetail(){hideSheet('diet-day-detail-overlay');}
+function editDietDetailDay(){
+  const date=_dietDetailDate;
+  if(!date)return;
+  closeDietDayDetail();
+  const el=document.getElementById('diet-date');
+  if(el)el.value=date;
+  renderDietList();renderTodaySummary();
+  showToast('已切換到 '+date+'，可在上方新增/編輯/刪除當天飲食');
+}
 
 // 簡單線性回歸抓體重趨勢（每週變化速率），比對目標方向給出分析文字
 function computeWeightGoalAnalysis(cfg){
@@ -3779,18 +3816,20 @@ function openAddFood(editIdx){
   const descInput0=document.getElementById('food-desc-input');if(descInput0)descInput0.value='';
   const titleEl=document.getElementById('food-sheet-title');
   const saveBtnEl=document.getElementById('food-save-btn');
+  const dietDateSel=getDietDateSel();
+  const isDietToday=dietDateSel===todayStr();
   if(_editFoodIdx>=0){
-    const m=getTodayDiet()[_editFoodIdx];
+    const m=getDietForDate(dietDateSel)[_editFoodIdx];
     if(m){
       const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
       set('food-name-input',m.name);set('food-kcal',m.kcal);
       set('food-protein',m.protein);set('food-carbs',m.carbs);set('food-fat',m.fat);
       if(m.thumb){_foodThumb=m.thumb;document.getElementById('food-photo-preview').innerHTML=`<img src="${m.thumb}" style="width:54px;height:54px;object-fit:cover;border-radius:8px">`;}
     }
-    if(titleEl)titleEl.textContent='編輯飲食';
+    if(titleEl)titleEl.textContent=isDietToday?'編輯飲食':`編輯飲食（${dietDateSel}）`;
     if(saveBtnEl)saveBtnEl.textContent='更新飲食';
   } else {
-    if(titleEl)titleEl.textContent='新增飲食';
+    if(titleEl)titleEl.textContent=isDietToday?'新增飲食':`新增飲食（${dietDateSel}）`;
     if(saveBtnEl)saveBtnEl.textContent='儲存飲食';
   }
   showSheet('food-add-overlay');
@@ -3976,7 +4015,8 @@ function saveFoodEntry(){
   const protein=parseFloat(document.getElementById('food-protein').value)||0;
   const carbs=parseFloat(document.getElementById('food-carbs').value)||0;
   const fat=parseFloat(document.getElementById('food-fat').value)||0;
-  const arr=getTodayDiet();
+  const date=getDietDateSel();
+  const arr=getDietForDate(date);
   if(_editFoodIdx>=0&&_editFoodIdx<arr.length){
     arr[_editFoodIdx]={...arr[_editFoodIdx],name,kcal,protein,carbs,fat,thumb:_foodThumb||arr[_editFoodIdx].thumb};
     showToast('✅ '+name+' 已更新！');
@@ -3984,8 +4024,8 @@ function saveFoodEntry(){
     arr.push({id:uid(),name,kcal,protein,carbs,fat,thumb:_foodThumb});
     showToast('✅ '+name+' 已記錄！');
   }
-  saveTodayDiet(arr);
-  apiSaveDiet(todayStr(),arr);
+  saveDietForDate(date,arr);
+  apiSaveDiet(date,arr);
   closeAddFood();renderDietList();renderTodaySummary();
 }
 
