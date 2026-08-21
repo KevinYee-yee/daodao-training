@@ -326,6 +326,11 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 /* Swap chips */
 .swap-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
 .swap-chip{font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;border:1px solid #2a2a2a;color:rgba(240,236,228,.4);background:#161616;transition:background .1s,border-color .1s,color .1s;-webkit-tap-highlight-color:transparent}
+/* 體態頁子分類分頁 */
+.body-subtabs{display:flex;gap:4px;background:#141414;border-radius:12px;padding:4px;margin-bottom:16px;position:sticky;top:0;z-index:5}
+.body-subtab-btn{flex:1;padding:9px 2px;border-radius:9px;border:none;background:none;color:rgba(240,236,228,.4);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:background .15s,color .15s;display:flex;flex-direction:column;align-items:center;gap:2px;-webkit-tap-highlight-color:transparent}
+.body-subtab-btn span.bst-icon{font-size:15px}
+.body-subtab-btn.active{background:rgba(245,158,11,.15);color:#f59e0b}
 .swap-chip.sc-active{background:rgba(245,158,11,.12);color:#f59e0b;border-color:rgba(245,158,11,.35);font-weight:700}
 .swap-chip:active{opacity:.7}
 /* Pick-N supplementary */
@@ -358,6 +363,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 .ov-msg{font-size:22px;font-weight:800;color:#f0ece4;line-height:1.25;margin-bottom:6px}
 .ov-msg span{color:#f59e0b}
 .ov-gear{position:absolute;top:52px;right:18px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(240,236,228,.5)}
+.ov-refresh{position:absolute;top:52px;right:62px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(240,236,228,.5);transition:transform .5s ease}
+.ov-refresh.spinning svg{animation:ov-refresh-spin .6s linear infinite}
+@keyframes ov-refresh-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .ov-start-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:16px;background:#f59e0b;color:#080808;border:none;border-radius:16px;font-size:17px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:.2px;margin-top:4px;transition:transform .1s,opacity .1s}
 .ov-start-btn:active{transform:scale(.97);opacity:.88}
 .ov-week-card{padding:18px 16px}
@@ -504,6 +512,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     <div class="ov-msg" id="ov-msg">準備好了嗎？<br><span>今天繼續變強。</span></div>
     <button class="ov-gear" onclick="openSetup()" title="雲端設定">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+    <button class="ov-refresh" id="ov-refresh-btn" onclick="manualCheckUpdate()" title="檢查更新">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
     </button>
     <button class="ov-start-btn" onclick="goTab('add',document.querySelector('[data-tab=add]'))">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>立刻開始訓練
@@ -672,8 +683,14 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
 
 <!-- TAB: 體態 -->
 <div id="tab-body" class="tab-content" hidden>
-  <div class="page-header"><h1>體態追蹤</h1><p>體重・目標</p></div>
+  <div class="page-header"><h1>體態追蹤</h1><p>體重・飲食・目標</p></div>
   <div class="section" style="padding-top:14px">
+    <div class="body-subtabs">
+      <button class="body-subtab-btn" data-bst="weight" onclick="setBodySubTab('weight')"><span class="bst-icon">⚖️</span>體重</button>
+      <button class="body-subtab-btn" data-bst="diet" onclick="setBodySubTab('diet')"><span class="bst-icon">🍽️</span>飲食</button>
+      <button class="body-subtab-btn" data-bst="goals" onclick="setBodySubTab('goals')"><span class="bst-icon">🎯</span>目標</button>
+    </div>
+    <div id="body-sub-weight">
     <div class="sec-title">體重紀錄</div>
     <div class="card">
       <div style="margin-bottom:12px">
@@ -713,14 +730,37 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
         <div id="weight-list-rows"></div>
       </div>
     </div>
-    <div class="sec-title" style="margin-top:12px">今日攝取</div>
+    </div>
+    <div id="body-sub-diet" style="display:none">
+    <div class="sec-title">今日攝取</div>
     <div class="card" id="body-today-card" style="padding:16px"></div>
     <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="openAddFood()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增飲食
     </button>
     <div id="diet-list" style="margin-top:10px"></div>
-    <div class="sec-title" style="margin-top:12px">目標設定</div>
+    <div class="sec-title" style="margin-top:12px">本週飲食結算</div>
+    <div class="card" id="diet-week-card" style="padding:16px"></div>
+    <div class="card" style="padding:0;overflow:hidden;margin-top:10px">
+      <button onclick="toggleDietHistory()" id="diet-history-toggle" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:none;border:none;color:#f0ece4;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
+        <span>飲食歷史紀錄</span>
+        <span id="diet-history-arrow" style="color:rgba(240,236,228,.4);font-size:11px;transition:transform .2s">▼</span>
+      </button>
+      <div id="diet-history-body" hidden>
+        <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;padding:6px 16px 8px;gap:4px">
+          <div style="font-size:10px;font-weight:700;color:rgba(240,236,228,.3);letter-spacing:.4px">日期</div>
+          <div style="font-size:10px;font-weight:700;color:rgba(240,236,228,.3);letter-spacing:.4px;text-align:center">熱量</div>
+          <div style="font-size:10px;font-weight:700;color:rgba(240,236,228,.3);letter-spacing:.4px;text-align:center">蛋白</div>
+          <div style="font-size:10px;font-weight:700;color:rgba(240,236,228,.3);letter-spacing:.4px;text-align:center">碳水</div>
+          <div style="font-size:10px;font-weight:700;color:rgba(240,236,228,.3);letter-spacing:.4px;text-align:center">脂肪</div>
+        </div>
+        <div id="diet-history-rows"></div>
+      </div>
+    </div>
+    </div>
+    <div id="body-sub-goals" style="display:none">
+    <div class="sec-title">目標設定</div>
     <div class="card" id="body-goals-card" style="padding:16px"></div>
+    </div>
   </div>
 </div>
 
@@ -733,6 +773,10 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
         <input class="form-input" type="number" id="cfg-target-weight" step="0.5" inputmode="decimal"></div>
       <div><label class="form-label">每日熱量目標</label>
         <input class="form-input" type="number" id="cfg-goal-kcal" inputmode="numeric"></div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label class="form-label">目標每週體重變化 (kg，增肌填正數/減脂填負數)</label>
+      <input class="form-input" type="number" id="cfg-weekly-rate" step="0.05" inputmode="decimal">
     </div>
     <div style="margin-bottom:12px">
       <label class="form-label">目標類型</label>
@@ -749,6 +793,16 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     </div>
     <button class="btn btn-primary btn-full" onclick="saveBodyGoals()">儲存目標</button>
     <button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="closeGoalEditor()">取消</button>
+  </div>
+</div>
+
+<!-- 飲食歷史單日詳情 bottom sheet -->
+<div class="food-add-overlay" id="diet-day-detail-overlay" hidden onclick="if(event.target===this)closeDietDayDetail()">
+  <div class="food-add-sheet">
+    <div id="diet-day-detail-title" style="font-size:18px;font-weight:800;color:#f0ece4;margin-bottom:4px">飲食紀錄</div>
+    <div id="diet-day-detail-summary" style="font-size:12px;color:rgba(240,236,228,.4);margin-bottom:14px"></div>
+    <div id="diet-day-detail-body"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:14px" onclick="closeDietDayDetail()">關閉</button>
   </div>
 </div>
 
@@ -1299,6 +1353,15 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 // （名單併入 getExerciseInfo() 的 assisted 欄位，改名時會跟著動作走，見 getAssistedExNames()）
 function todayStr(){const n=new Date();return`${n.getFullYear()}-${p2(n.getMonth()+1)}-${p2(n.getDate())}`;}
 function p2(n){return String(n).padStart(2,'0');}
+// 給定任一天日期，回傳該天所在週（週一~週日）的邊界
+function getWeekRange(dateStr){
+  const d=new Date(dateStr+'T00:00:00');
+  const dow=d.getDay();
+  const mon=new Date(d);mon.setDate(d.getDate()-(dow===0?6:dow-1));mon.setHours(0,0,0,0);
+  const sun=new Date(mon);sun.setDate(mon.getDate()+6);sun.setHours(23,59,59,999);
+  return{monday:mon,sunday:sun};
+}
+function dateToStr(d){return`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;}
 const DOW=['日','一','二','三','四','五','六'];
 function fmtDate(iso){const[y,m,d]=iso.split('-');const dt=new Date(+y,+m-1,+d);return`${+m}/${+d}（${DOW[dt.getDay()]}）`;}
 function maxW(ex){
@@ -1591,6 +1654,7 @@ function renderOverviewWeight(){
       <span class="ov-weight-sub" style="margin-top:0">距目標 ${cfg.targetWeight}kg</span>
       <span style="font-size:12px;font-weight:700;color:#f59e0b">${Math.abs(distToGoal)}kg</span>
     </div>`:''}
+    ${(()=>{const an=computeWeightGoalAnalysis(cfg);if(an.weeklyRate==null)return'';const goalR=cfg.goalWeeklyRate;return`<div style="margin-top:6px;font-size:11.5px;color:rgba(240,236,228,.45)">📊 目前每週 ${an.weeklyRate>=0?'+':''}${an.weeklyRate}kg　／　目標每週 ${goalR>=0?'+':''}${goalR}kg</div>`;})()}
   `;
 }
 
@@ -3156,7 +3220,7 @@ function saveWeightData(d){localStorage.setItem('daodao_weight_v1',JSON.stringif
 function getDietData(){return JSON.parse(localStorage.getItem('daodao_diet_v1')||'{}');}
 function saveDietData(d){localStorage.setItem('daodao_diet_v1',JSON.stringify(d));}
 function getBodyCfg(){
-  const def={goalKcal:1500,goalProtein:100,goalCarbs:180,goalFat:55,targetWeight:55,goalType:'cut'};
+  const def={goalKcal:1500,goalProtein:100,goalCarbs:180,goalFat:55,targetWeight:55,goalType:'cut',goalWeeklyRate:-0.3};
   return Object.assign(def,JSON.parse(localStorage.getItem('daodao_body_cfg')||'{}'));
 }
 function saveBodyCfg(c){localStorage.setItem('daodao_body_cfg',JSON.stringify(c));}
@@ -3165,11 +3229,26 @@ function saveTodayDiet(arr){const d=getDietData();d[todayStr()]=arr;saveDietData
 
 // ── 體態 Tab 渲染 ──
 let _weightChart2=null;
+let _bodySubTab='weight';
+function setBodySubTab(tab){
+  _bodySubTab=tab;
+  ['weight','diet','goals'].forEach(t=>{
+    const el=document.getElementById('body-sub-'+t);
+    if(el)el.style.display=(t===tab)?'block':'none';
+  });
+  document.querySelectorAll('.body-subtab-btn').forEach(b=>b.classList.toggle('active',b.dataset.bst===tab));
+  // 切換分頁時圖表容器可能剛從隱藏變顯示，Chart.js在隱藏容器裡量不到寬高，重畫一次確保尺寸正確
+  if(tab==='weight')renderWeightChart2();
+}
+
 function renderBodyTab(){
+  setBodySubTab(_bodySubTab);
   renderTodaySummary();
   renderWeightEntry();
   renderWeightChart2();
   renderDietList();
+  renderDietWeekSummary();
+  if(!document.getElementById('diet-history-body').hidden)renderDietHistory();
   renderBodyGoalsUI();
 }
 
@@ -3346,7 +3425,11 @@ function saveWeight(slot){
   renderBodyGoalsUI();
   if(!document.getElementById('weight-list-body').hidden)renderWeightList();
   apiSaveWeight({date:dateStr,am:arr.find(d=>d.date===dateStr)?.am||null,pm:arr.find(d=>d.date===dateStr)?.pm||null});
-  showToast('✅ '+(slot==='am'?'🌅 早上':'🌙 晚上')+' 體重 '+kg+' kg（'+dateStr+'）已記錄');
+  renderOverviewWeight();
+  const bcfg=getBodyCfg();
+  const an=computeWeightGoalAnalysis(bcfg);
+  const rateTxt=(slot==='am'&&an.weeklyRate!=null)?`　目前每週${an.weeklyRate>=0?'+':''}${an.weeklyRate}kg／目標${bcfg.goalWeeklyRate>=0?'+':''}${bcfg.goalWeeklyRate}kg`:'';
+  showToast('✅ '+(slot==='am'?'🌅 早上':'🌙 晚上')+' 體重 '+kg+' kg（'+dateStr+'）已記錄'+rateTxt,rateTxt?4000:2200);
 }
 
 function editWeightEntry(date){
@@ -3431,6 +3514,93 @@ function deleteFoodEntry(idx){
   });
 }
 
+function dietDayTotal(meals){
+  const tot={kcal:0,protein:0,carbs:0,fat:0};
+  (meals||[]).forEach(m=>{tot.kcal+=(m.kcal||0);tot.protein+=(m.protein||0);tot.carbs+=(m.carbs||0);tot.fat+=(m.fat||0);});
+  return tot;
+}
+
+function renderDietWeekSummary(){
+  const el=document.getElementById('diet-week-card');if(!el)return;
+  const cfg=getBodyCfg();
+  const {monday,sunday}=getWeekRange(todayStr());
+  const dietData=getDietData();
+  const days=[];
+  for(let d=new Date(monday);d<=sunday;d.setDate(d.getDate()+1)){
+    const iso=dateToStr(d);
+    const meals=dietData[iso];
+    if(meals&&meals.length)days.push({date:iso,...dietDayTotal(meals)});
+  }
+  if(!days.length){
+    el.innerHTML='<div style="font-size:12.5px;color:rgba(240,236,228,.35);text-align:center;padding:8px 0">這週還沒有飲食紀錄</div>';
+    return;
+  }
+  const avg=k=>days.reduce((a,d)=>a+d[k],0)/days.length;
+  const kcalHitDays=days.filter(d=>Math.abs(d.kcal-cfg.goalKcal)<=cfg.goalKcal*0.1).length;
+  const proteinHitDays=days.filter(d=>d.protein>=cfg.goalProtein).length;
+  el.innerHTML=`
+    <div style="font-size:11px;color:rgba(240,236,228,.4);margin-bottom:10px">本週已記錄 ${days.length}/7 天</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="text-align:center"><div style="font-size:15px;font-weight:700;color:#f0ece4">${Math.round(avg('kcal'))}<span style="font-size:10px;font-weight:400;color:rgba(240,236,228,.3)">/${cfg.goalKcal}</span></div><div style="font-size:10px;color:rgba(240,236,228,.35)">平均kcal</div></div>
+      <div style="text-align:center"><div style="font-size:15px;font-weight:700;color:#4ade80">${Math.round(avg('protein'))}<span style="font-size:10px;font-weight:400;color:rgba(240,236,228,.3)">/${cfg.goalProtein}</span></div><div style="font-size:10px;color:rgba(240,236,228,.35)">平均蛋白g</div></div>
+      <div style="text-align:center"><div style="font-size:15px;font-weight:700;color:#60a5fa">${Math.round(avg('carbs'))}<span style="font-size:10px;font-weight:400;color:rgba(240,236,228,.3)">/${cfg.goalCarbs}</span></div><div style="font-size:10px;color:rgba(240,236,228,.35)">平均碳水g</div></div>
+      <div style="text-align:center"><div style="font-size:15px;font-weight:700;color:#f472b6">${Math.round(avg('fat'))}<span style="font-size:10px;font-weight:400;color:rgba(240,236,228,.3)">/${cfg.goalFat}</span></div><div style="font-size:10px;color:rgba(240,236,228,.35)">平均脂肪g</div></div>
+    </div>
+    <div style="font-size:11.5px;color:rgba(240,236,228,.5);line-height:1.6">🎯 熱量達標（±10%內）${kcalHitDays}/${days.length}天　・　蛋白質達標 ${proteinHitDays}/${days.length}天</div>
+  `;
+}
+
+function toggleDietHistory(){
+  const body=document.getElementById('diet-history-body');
+  const arrow=document.getElementById('diet-history-arrow');
+  if(!body)return;
+  const open=body.hidden;
+  body.hidden=!open;
+  if(arrow)arrow.style.transform=open?'rotate(180deg)':'';
+  if(open)renderDietHistory();
+}
+
+function renderDietHistory(){
+  const el=document.getElementById('diet-history-rows');if(!el)return;
+  const cfg=getBodyCfg();
+  const dietData=getDietData();
+  const dates=Object.keys(dietData).filter(d=>dietData[d]&&dietData[d].length).sort((a,b)=>b.localeCompare(a));
+  if(!dates.length){el.innerHTML='<div style="padding:12px 16px;font-size:13px;color:rgba(240,236,228,.35)">尚無紀錄</div>';return;}
+  el.innerHTML=dates.map((date,i)=>{
+    const tot=dietDayTotal(dietData[date]);
+    const kcalColor=Math.abs(tot.kcal-cfg.goalKcal)<=cfg.goalKcal*0.1?'#4ade80':'rgba(240,236,228,.7)';
+    const isEven=i%2===0;
+    return `<div onclick="openDietDayDetail('${date}')" style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;gap:4px;align-items:center;background:${isEven?'transparent':'rgba(255,255,255,.02)'};border-top:1px solid #161616;cursor:pointer">
+      <div style="padding:8px 0 8px 16px;font-size:12px;color:#f0ece4;font-weight:600">${date.slice(5)}</div>
+      <div style="padding:8px 0;font-size:12px;color:${kcalColor};text-align:center;font-weight:700">${Math.round(tot.kcal)}</div>
+      <div style="padding:8px 0;font-size:12px;color:rgba(240,236,228,.7);text-align:center">${Math.round(tot.protein)}</div>
+      <div style="padding:8px 0;font-size:12px;color:rgba(240,236,228,.7);text-align:center">${Math.round(tot.carbs)}</div>
+      <div style="padding:8px 0;font-size:12px;color:rgba(240,236,228,.7);text-align:center">${Math.round(tot.fat)}</div>
+    </div>`;
+  }).join('');
+}
+
+function openDietDayDetail(date){
+  const cfg=getBodyCfg();
+  const meals=getDietData()[date]||[];
+  const tot=dietDayTotal(meals);
+  document.getElementById('diet-day-detail-title').textContent=date;
+  document.getElementById('diet-day-detail-summary').textContent=
+    `${Math.round(tot.kcal)}/${cfg.goalKcal}kcal　蛋白${Math.round(tot.protein)}g　碳水${Math.round(tot.carbs)}g　脂肪${Math.round(tot.fat)}g`;
+  const bodyEl=document.getElementById('diet-day-detail-body');
+  bodyEl.innerHTML=meals.length?meals.map(m=>`
+    <div class="body-diet-item">
+      ${m.thumb?`<img src="${m.thumb}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;flex-shrink:0">`
+        :`<div style="width:44px;height:44px;background:#161616;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px">🍽️</div>`}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600;color:#f0ece4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.name}</div>
+        <div style="font-size:11px;color:rgba(240,236,228,.4);margin-top:2px">${Math.round(m.kcal)} kcal &nbsp;蛋白 ${Math.round(m.protein)}g &nbsp;碳 ${Math.round(m.carbs)}g &nbsp;脂 ${Math.round(m.fat)}g</div>
+      </div>
+    </div>`).join(''):'<div class="empty" style="padding:16px 0">這天沒有飲食紀錄</div>';
+  showSheet('diet-day-detail-overlay');
+}
+function closeDietDayDetail(){hideSheet('diet-day-detail-overlay');}
+
 // 簡單線性回歸抓體重趨勢（每週變化速率），比對目標方向給出分析文字
 function computeWeightGoalAnalysis(cfg){
   // 只用晨間空腹體重算趨勢——晚上量測系統性偏高(食物水分)，混進去會讓迴歸線失真
@@ -3486,6 +3656,7 @@ function renderBodyGoalsUI(){
 function openGoalEditor(){
   const cfg=getBodyCfg();
   document.getElementById('cfg-target-weight').value=cfg.targetWeight;
+  document.getElementById('cfg-weekly-rate').value=cfg.goalWeeklyRate;
   document.getElementById('cfg-goal-kcal').value=cfg.goalKcal;
   document.getElementById('cfg-protein').value=cfg.goalProtein;
   document.getElementById('cfg-carbs').value=cfg.goalCarbs;
@@ -3514,6 +3685,7 @@ function setGoalType(type){
 function saveBodyGoals(){
   const cfg=getBodyCfg();
   const tw=parseFloat(document.getElementById('cfg-target-weight').value);
+  const wr=parseFloat(document.getElementById('cfg-weekly-rate').value);
   const gk=parseInt(document.getElementById('cfg-goal-kcal').value);
   const gp=parseInt(document.getElementById('cfg-protein').value);
   const gc=parseInt(document.getElementById('cfg-carbs').value);
@@ -3521,6 +3693,7 @@ function saveBodyGoals(){
   const activeType=document.querySelector('#goal-type-chips .swap-chip.sc-active');
   if(activeType)cfg.goalType=activeType.dataset.type;
   if(tw)cfg.targetWeight=tw;if(gk)cfg.goalKcal=gk;
+  if(!isNaN(wr))cfg.goalWeeklyRate=wr;
   if(gp)cfg.goalProtein=gp;if(gc)cfg.goalCarbs=gc;if(gf)cfg.goalFat=gf;
   saveBodyCfg(cfg);apiSaveBodyCfg(cfg);
   renderWeightChart2();renderTodaySummary();renderBodyGoalsUI();
@@ -3842,6 +4015,50 @@ if(getGASUrl()){
 }
 // 連線恢復時自動把離線期間累積的變更補同步回 Google Sheet
 window.addEventListener('online',()=>{if(getGASUrl())flushPending();});
+
+// ── App 版本偵測（iOS「加入主畫面」不會每次自動抓最新版） ──
+let _appVersionTag=null;
+async function checkForAppUpdate(){
+  try{
+    const res=await fetch(location.pathname+'?_chk='+Date.now(),{cache:'no-store'});
+    const tag=res.headers.get('etag')||res.headers.get('last-modified');
+    if(!tag)return;
+    if(_appVersionTag===null){_appVersionTag=tag;return;}
+    if(tag!==_appVersionTag)showAppUpdateBanner();
+  }catch(e){}
+}
+function showAppUpdateBanner(){
+  if(document.getElementById('app-update-banner'))return;
+  const b=document.createElement('div');
+  b.id='app-update-banner';
+  b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#f59e0b;color:#080808;text-align:center;padding:calc(10px + env(safe-area-inset-top,0px)) 10px 10px;font-size:13px;font-weight:800;cursor:pointer';
+  b.textContent='🔄 有新版本可用，點此更新';
+  b.onclick=()=>{location.href=location.pathname+'?_v='+Date.now();};
+  document.body.appendChild(b);
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkForAppUpdate();});
+checkForAppUpdate();
+
+// 手動檢查更新按鈕（總覽頁齒輪旁邊）——不用等背景切回前景才被動偵測，隨時按隨時查，查到新版本直接刷新拿最新的
+function manualCheckUpdate(){
+  const btn=document.getElementById('ov-refresh-btn');
+  if(btn)btn.classList.add('spinning');
+  fetch(location.pathname+'?_chk='+Date.now(),{cache:'no-store'}).then(res=>{
+    const tag=res.headers.get('etag')||res.headers.get('last-modified');
+    if(btn)btn.classList.remove('spinning');
+    if(!tag){showToast('⚠️ 無法確認版本，請檢查網路連線',3000);return;}
+    if(_appVersionTag!==null&&tag!==_appVersionTag){
+      showToast('🔄 發現新版本，正在更新…',2000);
+      setTimeout(()=>{location.href=location.pathname+'?_v='+Date.now();},600);
+    }else{
+      _appVersionTag=tag;
+      showToast('✅ 已經是最新版本',2000);
+    }
+  }).catch(()=>{
+    if(btn)btn.classList.remove('spinning');
+    showToast('⚠️ 檢查失敗，請檢查網路連線',3000);
+  });
+}
 </script>
 </body>
 </html>
