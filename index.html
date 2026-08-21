@@ -760,6 +760,8 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.8) opacity(.5
     <div id="body-sub-goals" style="display:none">
     <div class="sec-title">目標設定</div>
     <div class="card" id="body-goals-card" style="padding:16px"></div>
+    <div class="sec-title" style="margin-top:12px">本月進度</div>
+    <div class="card" id="body-month-progress-card" style="padding:16px"></div>
     </div>
   </div>
 </div>
@@ -3250,6 +3252,7 @@ function renderBodyTab(){
   renderDietWeekSummary();
   if(!document.getElementById('diet-history-body').hidden)renderDietHistory();
   renderBodyGoalsUI();
+  renderMonthlyProgress();
 }
 
 function renderTodaySummary(){
@@ -3423,6 +3426,7 @@ function saveWeight(slot){
   inp.value='';inp.placeholder=kg+' kg';
   renderWeightChart2();
   renderBodyGoalsUI();
+  renderMonthlyProgress();
   if(!document.getElementById('weight-list-body').hidden)renderWeightList();
   apiSaveWeight({date:dateStr,am:arr.find(d=>d.date===dateStr)?.am||null,pm:arr.find(d=>d.date===dateStr)?.pm||null});
   renderOverviewWeight();
@@ -3630,6 +3634,65 @@ function computeWeightGoalAnalysis(cfg){
   return{latest,dist,weeklyRate,text};
 }
 
+// 本月體重進度：拿月初（或本月第一筆）當基準，跟目標每週速率換算成的「本月目標」比對
+function computeMonthlyWeightProgress(cfg){
+  const arr=getWeightData().map(r=>({date:r.date,w:(r.am??r.kg??null)})).filter(r=>r.w!=null).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!arr.length)return null;
+  const today=new Date();
+  const y=today.getFullYear(),m=today.getMonth();
+  const monthStartStr=`${y}-${p2(m+1)}-01`;
+  const daysInMonth=new Date(y,m+1,0).getDate();
+  const daysElapsed=today.getDate();
+  const daysLeft=daysInMonth-daysElapsed;
+  // 基準：本月開始前最後一筆記錄（沒有的話退而求其次用本月第一筆，該情況下「本月至今變化」會從0開始算）
+  let baseline=null;
+  for(let i=arr.length-1;i>=0;i--){if(arr[i].date<monthStartStr){baseline=arr[i];break;}}
+  if(!baseline)baseline=arr.find(r=>r.date>=monthStartStr)||null;
+  if(!baseline)return null;
+  const latest=arr[arr.length-1];
+  const actualChange=+(latest.w-baseline.w).toFixed(1);
+  const goalRate=cfg.goalWeeklyRate||0;
+  const targetChangeSoFar=+(goalRate*(daysElapsed/7)).toFixed(1);
+  const fullMonthTarget=+(goalRate*(daysInMonth/7)).toFixed(1);
+  const dir=cfg.goalType==='bulk'?1:cfg.goalType==='cut'?-1:0;
+  const onTrack=dir===0?Math.abs(actualChange-targetChangeSoFar)<0.3:(actualChange*dir)>=(targetChangeSoFar*dir)-0.15;
+  // 照「目前實際趨勢」（不是目標速率）推算月底體重
+  const an=computeWeightGoalAnalysis(cfg);
+  const projected=(an.weeklyRate!=null)?+(latest.w+an.weeklyRate*(daysLeft/7)).toFixed(1):null;
+  return{baseline,latest,actualChange,targetChangeSoFar,fullMonthTarget,daysElapsed,daysInMonth,daysLeft,onTrack,projected,goalRate};
+}
+
+function renderMonthlyProgress(){
+  const el=document.getElementById('body-month-progress-card');if(!el)return;
+  const cfg=getBodyCfg();
+  const mp=computeMonthlyWeightProgress(cfg);
+  if(!mp){el.innerHTML='<div style="font-size:12.5px;color:rgba(240,236,228,.35);text-align:center;padding:8px 0">尚無足夠體重紀錄計算本月進度</div>';return;}
+  let pct=0;
+  if(mp.fullMonthTarget!==0){
+    const ratio=mp.actualChange/mp.fullMonthTarget;
+    pct=ratio>0?Math.min(100,Math.round(ratio*100)):0;
+  }
+  const color=mp.onTrack?'#4ade80':'#f59e0b';
+  el.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
+      <div>
+        <div style="font-size:11px;color:rgba(240,236,228,.4)">本月至今變化</div>
+        <div style="font-size:22px;font-weight:800;color:${color}">${mp.actualChange>=0?'+':''}${mp.actualChange}kg</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:rgba(240,236,228,.4)">目標（至今日）</div>
+        <div style="font-size:15px;font-weight:700;color:#f0ece4">${mp.targetChangeSoFar>=0?'+':''}${mp.targetChangeSoFar}kg</div>
+      </div>
+    </div>
+    <div class="body-kcal-bar"><div class="body-kcal-fill" style="width:${pct}%;background:${color}"></div></div>
+    <div style="font-size:11.5px;color:rgba(240,236,228,.5);margin-top:10px;line-height:1.6">
+      ${mp.onTrack?'✅ 進度符合目標步調':'⚠️ 進度落後目標步調，留意這幾天的攝取'}<br>
+      本月目標總變化 ${mp.fullMonthTarget>=0?'+':''}${mp.fullMonthTarget}kg　・　距月底還有 ${mp.daysLeft} 天
+      ${mp.projected!=null?`<br>照目前趨勢，預估月底體重約 ${mp.projected}kg`:''}
+    </div>
+  `;
+}
+
 function renderBodyGoalsUI(){
   const cfg=getBodyCfg();
   const an=computeWeightGoalAnalysis(cfg);
@@ -3696,7 +3759,7 @@ function saveBodyGoals(){
   if(!isNaN(wr))cfg.goalWeeklyRate=wr;
   if(gp)cfg.goalProtein=gp;if(gc)cfg.goalCarbs=gc;if(gf)cfg.goalFat=gf;
   saveBodyCfg(cfg);apiSaveBodyCfg(cfg);
-  renderWeightChart2();renderTodaySummary();renderBodyGoalsUI();
+  renderWeightChart2();renderTodaySummary();renderBodyGoalsUI();renderMonthlyProgress();
   closeGoalEditor();
   showToast('✅ 目標已儲存！');
 }
